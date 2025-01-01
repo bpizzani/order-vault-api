@@ -121,7 +121,9 @@ def aggregated_by_attributes():
                     "promocode": record["promocode"],
                     "customer_count": record["customer_count"]
                 })
-        
+                
+        # Update network graphs for next time.
+        process_and_update()
         return jsonify({"aggregates": results}), 200
 
     except Exception as e:
