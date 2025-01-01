@@ -4,7 +4,8 @@ import requests  # For calling the Client App API
 from neo4j import GraphDatabase
 import networkx as nx
 from order_vault import app
-
+import threading
+import time
 
 # Flask App Setup
 app.secret_key = "your_secret_key"
@@ -75,7 +76,21 @@ def process_and_update():
     except Exception as e:
         return jsonify({"error": "An unexpected error occurred", "details": str(e)}), 500
 
-
+def trigger_process_and_update():
+    try:
+        # Delay the execution for 30 seconds (you can change this value)
+        time.sleep(30) 
+        
+        # Make the request to the /process-and-update route
+        process_update_response = requests.get("https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/process-and-update")
+        
+        if process_update_response.status_code == 200:
+            print("Process and update triggered successfully.")
+        else:
+            print(f"Error triggering the process-and-update API: {process_update_response.text}")
+    except Exception as e:
+        print(f"Error occurred while triggering /process-and-update: {str(e)}")
+        
 @app.route("/aggregated-by-attributes", methods=["GET"])
 def aggregated_by_attributes():
     try:
@@ -123,7 +138,8 @@ def aggregated_by_attributes():
                 })
                 
         # Update network graphs for next time.
-        process_and_update()
+        # Trigger the process-and-update function in the background with a delay
+        threading.Thread(target=trigger_process_and_update).start()
         return jsonify({"aggregates": results}), 200
 
     except Exception as e:
