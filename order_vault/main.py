@@ -81,8 +81,7 @@ def aggregated_by_attributes():
     try:
         # Get the attribute type and optional filters (phone, device_id) from the query parameters
         attribute_type = request.args.get("attribute_type", "device_id")  # Default to 'device_id'
-        phone = request.args.get("phone", None)  # Optional filter by phone
-        device_id = request.args.get("device_id", None)  # Optional filter by device_id
+        value = request.args.get("value", None)  # Optional filter by phone
         
         # Neo4j query to aggregate data by attribute + promocode, with optional filters
         query = """
@@ -92,10 +91,8 @@ def aggregated_by_attributes():
         """
         
         # Add filtering based on phone or device_id if provided
-        if phone:
-            query += " AND c.phone = $phone"
-        if device_id:
-            query += " AND c.device_id = $device_id"
+        if value:
+            query += " AND attr.value = $value"
         
         query += """
         RETURN 
@@ -107,11 +104,9 @@ def aggregated_by_attributes():
         
         # Prepare parameters for Neo4j query
         params = {"attribute_type": attribute_type}
-        if phone:
-            params["phone"] = phone
-        if device_id:
-            params["device_id"] = device_id
-        
+        if value:
+            params["value"] = value
+            
         results = []
         
         # Execute the query
