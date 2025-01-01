@@ -9,3 +9,4 @@ psycopg2-binary           # PostgreSQL adapter (use if switching to PostgreSQL)
 psycopg2
 requests==2.31.0          # For making HTTP requests (if needed)
 neo4j
+networkx
