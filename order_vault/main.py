@@ -7,8 +7,6 @@ from order_vault import app
 
 
 # Flask App Setup
-app = Flask(__name__)
-
 app.secret_key = "your_secret_key"
 # Client App API URL
 CLIENT_APP_API_URL = "https://order-vault-client-webapp-13ee822f0ba9.herokuapp.com/api/orders"  # Replace with actual API endpoint
