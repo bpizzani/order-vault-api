@@ -108,6 +108,7 @@ def aggregated_by_attributes():
         params = {"attribute_type": attribute_type}
         if value:
             params["value"] = value
+            params["promocode"] = promocode
             
         results = []
         
