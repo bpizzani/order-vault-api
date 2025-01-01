@@ -122,7 +122,7 @@ def aggregated_by_attributes():
                     "customer_count": record["customer_count"]
                 })
         
-        return jsonify({"aggregates": results}), 200
+        return jsonify({"aggregates": results[0]}), 200
 
     except Exception as e:
         return jsonify({"error": "An unexpected error occurred while fetching aggregates", "details": str(e)}), 500
