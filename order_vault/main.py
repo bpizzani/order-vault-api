@@ -79,11 +79,25 @@ def process_and_update():
 @app.route("/aggregated-by-attributes", methods=["GET"])
 def aggregated_by_attributes():
     try:
-        # Neo4j query to aggregate data by attribute + promocode
+        # Get the attribute type and optional filters (phone, device_id) from the query parameters
+        attribute_type = request.args.get("attribute_type", "device_id")  # Default to 'device_id'
+        phone = request.args.get("phone", None)  # Optional filter by phone
+        device_id = request.args.get("device_id", None)  # Optional filter by device_id
+        
+        # Neo4j query to aggregate data by attribute + promocode, with optional filters
         query = """
         MATCH (c:Customer)-[:HAS_ATTRIBUTE]->(attr {type: $attribute_type})
         MATCH (c)-[:HAS_ATTRIBUTE]->(p {type: 'promocode'})
         WHERE attr.value IS NOT NULL AND p.value IS NOT NULL
+        """
+        
+        # Add filtering based on phone or device_id if provided
+        if phone:
+            query += " AND c.phone = $phone"
+        if device_id:
+            query += " AND c.device_id = $device_id"
+        
+        query += """
         RETURN 
           attr.value AS attribute_value,
           p.value AS promocode,
@@ -91,14 +105,18 @@ def aggregated_by_attributes():
         ORDER BY customer_count DESC
         """
         
-        # Get the attribute type from the query parameters (e.g., 'device_id', 'phone')
-        attribute_type = request.args.get("attribute_type", "device_id")
+        # Prepare parameters for Neo4j query
+        params = {"attribute_type": attribute_type}
+        if phone:
+            params["phone"] = phone
+        if device_id:
+            params["device_id"] = device_id
         
         results = []
         
         # Execute the query
         with driver.session() as session:
-            neo4j_results = session.run(query, attribute_type=attribute_type)
+            neo4j_results = session.run(query, params)
             for record in neo4j_results:
                 results.append({
                     "attribute_value": record["attribute_value"],
