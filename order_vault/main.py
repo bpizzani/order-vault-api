@@ -113,4 +113,5 @@ def aggregated_by_attributes():
 
 
 if __name__ == "__main__":
+    print("started APP")
     #app.run(debug=True, port=5002)  # Run the Middle App on a different port
