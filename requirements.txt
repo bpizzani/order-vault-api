@@ -1,0 +1,10 @@
+Flask                     # Core Flask framework
+Flask-SQLAlchemy          # SQLAlchemy integration with Flask
+Flask-Migrate==4.0.4      # For database migrations
+Flask-Restful==0.3.9      # To create RESTful APIs
+SQLAlchemy                # ORM for database interactions
+Werkzeug>=2.3.3           # Flask dependency for routing and WSGI utilities
+gunicorn==21.2.0          # For deploying the app in production
+psycopg2-binary           # PostgreSQL adapter (use if switching to PostgreSQL)
+psycopg2
+requests==2.31.0          # For making HTTP requests (if needed)
