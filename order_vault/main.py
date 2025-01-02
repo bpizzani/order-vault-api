@@ -314,7 +314,7 @@ def aggregated_by_attributes():
         email_customer_count = aggregated_email_data["customer_count"] if aggregated_email_data else 0
 
         if device_customer_count > 1 or phone_customer_count > 1 or  card_customer_count > 1 or email_customer_count > 1:
-            return jsonify({"aggregates": "ABUSISVE"}), 200
+            return jsonify({"aggregates": "ABUSIVE"}), 200
         else:
             return jsonify({"aggregates": "GENUINE"}), 200
         
