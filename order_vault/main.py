@@ -166,7 +166,7 @@ def process_and_update_increment():
 def trigger_process_and_update():
     try:
         # Delay the execution for 30 seconds (you can change this value)
-        time.sleep(2) 
+        time.sleep(3) 
         
         # Make the request to the /process-and-update route
         process_update_response = requests.get("https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/process-and-update")
@@ -287,7 +287,6 @@ def aggregated_by_attributes():
                     })
         
         # Trigger background process for next time
-        threading.Thread(target=trigger_process_and_update).start()
         aggregated_results = {attribute_type: [] for attribute_type in attribute_types}
             
         # Group the aggregated data by attribute type
@@ -312,6 +311,8 @@ def aggregated_by_attributes():
         phone_customer_count = aggregated_phone_data["customer_count"] if aggregated_phone_data else 0
         card_customer_count = aggregated_card_data["customer_count"] if aggregated_card_data else 0
         email_customer_count = aggregated_email_data["customer_count"] if aggregated_email_data else 0
+        
+        threading.Thread(target=trigger_process_and_update).start()
 
         if device_customer_count >= 1 or phone_customer_count >= 1 or card_customer_count >= 1 or email_customer_count >= 1:
             print("FRAUD")
