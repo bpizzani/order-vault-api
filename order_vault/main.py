@@ -141,7 +141,7 @@ def trigger_process_and_update():
         time.sleep(30) 
         
         # Make the request to the /process-and-update route
-        process_update_response = requests.get("https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/process-and-update-increment")
+        process_update_response = requests.get("https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/process-and-update")
         
         if process_update_response.status_code == 200:
             print("Process and update triggered successfully.")
