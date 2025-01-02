@@ -41,6 +41,28 @@ def create_graph(tx, G):
                     MERGE (a1)-[:CONNECTED_TO]->(a2)
                     """, value1=node_id, value2=neighbor, type=G.nodes[neighbor]['type'])
 
+
+def update_graph_incrementally(tx, G_new):
+    for node, attributes in G_new.nodes(data=True):
+        tx.run(
+            """
+            MERGE (n:Node {id: $id})
+            SET n.type = $type
+            """,
+            id=node,
+            type=attributes.get('type')
+        )
+
+    for u, v in G_new.edges():
+        tx.run(
+            """
+            MATCH (a:Node {id: $u}), (b:Node {id: $v})
+            MERGE (a)-[:CONNECTED_TO]->(b)
+            """,
+            u=u,
+            v=v
+        )
+        
 # Flask Route to Process Data and Update Neo4j
 @app.route("/process-and-update", methods=["GET"])
 def process_and_update():
@@ -76,13 +98,50 @@ def process_and_update():
     except Exception as e:
         return jsonify({"error": "An unexpected error occurred", "details": str(e)}), 500
 
+# Flask Route to Incrementally Update Neo4j Graph with t-1 Data
+@app.route("/process-and-update-increment", methods=["GET"])
+def process_and_update_increment():
+    try:
+        # Fetch only t-1 data from the Client App API
+        t_minus_1_data_url = f"{CLIENT_APP_API_URL}"
+        client_response = requests.get(t_minus_1_data_url)
+        client_response.raise_for_status()
+        t1_data = client_response.json()["orders"]
+
+        # Create a NetworkX Graph for the new data
+        G_new = nx.Graph()
+
+        # Populate the graph with nodes and edges for t-1
+        for order in t1_data:
+            customer_node = f"Customer {order['email']}"
+            G_new.add_node(customer_node, type='customer')
+
+            for attribute in ['ip_address', 'card_details', 'email', 'device_id', 'phone', 'promocode', 'id']:
+                attr_value = order.get(attribute)
+                if attr_value:
+                    attribute_node = f"{attr_value}"
+                    G_new.add_node(attribute_node, type=attribute)
+                    G_new.add_edge(customer_node, attribute_node)
+
+        # Write only the new data to Neo4j
+        with driver.session() as session:
+            session.write_transaction(update_graph_incrementally, G_new)
+
+        return jsonify({"message": "Graph updated successfully with t-1 data."}), 200
+
+    except requests.exceptions.RequestException as e:
+        return jsonify({"error": "Failed to fetch data from Client App API", "details": str(e)}), 500
+    except Exception as e:
+        return jsonify({"error": "An unexpected error occurred", "details": str(e)}), 500
+        
+
 def trigger_process_and_update():
     try:
         # Delay the execution for 30 seconds (you can change this value)
         time.sleep(30) 
         
         # Make the request to the /process-and-update route
-        process_update_response = requests.get("https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/process-and-update")
+        process_update_response = requests.get("https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/process-and-update-increment")
         
         if process_update_response.status_code == 200:
             print("Process and update triggered successfully.")
