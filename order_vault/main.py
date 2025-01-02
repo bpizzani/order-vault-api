@@ -290,7 +290,7 @@ def aggregated_by_attributes():
         threading.Thread(target=trigger_process_and_update).start()
         
         # Return the aggregated results grouped by attribute type
-        return jsonify(grouped_results), 200
+        return jsonify({"aggregates": grouped_results}), 200
 
     except Exception as e:
         return jsonify({"error": "An unexpected error occurred while fetching aggregates", "details": str(e)}), 500
