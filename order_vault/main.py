@@ -246,8 +246,9 @@ def aggregated_by_attributes():
                 values[attribute_type] = value
         
         promocode = request.args.get("promocode", None)  # Optional filter by promocode
-        
-        results = []
+
+        # Initialize an empty dictionary to store the results grouped by attribute type
+        grouped_results = {attribute_type: [] for attribute_type in attribute_types}
         
         # Neo4j query to aggregate data by attribute + promocode, with optional filters
         for attribute_type in attribute_types:
@@ -279,7 +280,7 @@ def aggregated_by_attributes():
             with driver.session() as session:
                 neo4j_results = session.run(query, params)
                 for record in neo4j_results:
-                    results.append({
+                    grouped_results[attribute_type].append({
                         "attribute_value": record["attribute_value"],
                         "promocode": record["promocode"],
                         "customer_count": record["customer_count"]
@@ -288,7 +289,8 @@ def aggregated_by_attributes():
         # Trigger background process for next time
         threading.Thread(target=trigger_process_and_update).start()
         
-        return jsonify({"aggregates": results}), 200
+        # Return the aggregated results grouped by attribute type
+        return jsonify(grouped_results), 200
 
     except Exception as e:
         return jsonify({"error": "An unexpected error occurred while fetching aggregates", "details": str(e)}), 500
