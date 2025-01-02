@@ -43,26 +43,54 @@ def create_graph(tx, G):
 
 
 def update_graph_incrementally(tx, G_new):
+    # Create or update nodes based on their unique identifier and type
     for node, attributes in G_new.nodes(data=True):
+        node_type = attributes.get('type', 'unknown')  # Ensure type is always set
         tx.run(
             """
-            MERGE (n:Node {id: $id})
+            MERGE (n:Node {id: $id, type: $type})
             SET n.type = $type
             """,
             id=node,
-            type=attributes.get('type')
+            type=node_type
         )
 
+    # Create or update relationships between nodes
     for u, v in G_new.edges():
-        tx.run(
-            """
-            MATCH (a:Node {id: $u}), (b:Node {id: $v})
-            MERGE (a)-[:CONNECTED_TO]->(b)
-            """,
-            u=u,
-            v=v
-        )
-        
+        # Get the types of the nodes for each relationship (use the node type)
+        type_u = G_new.nodes[u]['type']
+        type_v = G_new.nodes[v]['type']
+
+        # If both nodes are customers, create a 'HAS_ATTRIBUTE' relationship
+        if type_u == 'customer' and type_v != 'customer':
+            tx.run(
+                """
+                MATCH (a:Node {id: $u}), (b:Node {id: $v})
+                MERGE (a)-[:HAS_ATTRIBUTE]->(b)
+                """,
+                u=u,
+                v=v
+            )
+        elif type_v == 'customer' and type_u != 'customer':
+            tx.run(
+                """
+                MATCH (a:Node {id: $u}), (b:Node {id: $v})
+                MERGE (b)-[:HAS_ATTRIBUTE]->(a)
+                """,
+                u=u,
+                v=v
+            )
+        else:
+            # For other types of relationships, use 'CONNECTED_TO'
+            tx.run(
+                """
+                MATCH (a:Node {id: $u}), (b:Node {id: $v})
+                MERGE (a)-[:CONNECTED_TO]->(b)
+                """,
+                u=u,
+                v=v
+            )
+            
 # Flask Route to Process Data and Update Neo4j
 @app.route("/process-and-update", methods=["GET"])
 def process_and_update():
@@ -141,7 +169,7 @@ def trigger_process_and_update():
         time.sleep(30) 
         
         # Make the request to the /process-and-update route
-        process_update_response = requests.get("https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/process-and-update")
+        process_update_response = requests.get("https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/process-and-update-increment")
         
         if process_update_response.status_code == 200:
             print("Process and update triggered successfully.")
