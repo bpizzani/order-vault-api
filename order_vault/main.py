@@ -288,9 +288,38 @@ def aggregated_by_attributes():
         
         # Trigger background process for next time
         threading.Thread(target=trigger_process_and_update).start()
+        aggregated_results = {attribute_type: [] for attribute_type in attribute_types}
+            
+        # Group the aggregated data by attribute type
+        for k,aggregate in grouped_results.items():
+            if len(aggregate) > 0:
+                aggregate = aggregate[0]
+                attribute_type = k
+                aggregated_results[attribute_type].append({
+                    "attribute_value": aggregate["attribute_value"],
+                    "promocode": aggregate["promocode"],
+                    "customer_count": aggregate["customer_count"]
+                })
+
+         # Get aggregated data 
+        aggregated_device_data = aggregated_results.get("device_id", [])[0] if "device_id" in aggregated_results else None
+        aggregated_phone_data = aggregated_results.get("phone", [])[0] if "phone" in aggregated_results else None
+        aggregated_card_data = aggregated_results.get("card_details", [])[0] if "card_details" in aggregated_results else None
+        aggregated_email_data = aggregated_results.get("email", [])[0] if "email" in aggregated_results else None
+        
+        # Extract the customer count for each, defaulting to 0 if not available
+        device_customer_count = aggregated_device_data["customer_count"] if aggregated_device_data else 0
+        phone_customer_count = aggregated_phone_data["customer_count"] if aggregated_phone_data else 0
+        card_customer_count = aggregated_card_data["customer_count"] if aggregated_card_data else 0
+        email_customer_count = aggregated_email_data["customer_count"] if aggregated_email_data else 0
+
+        if device_customer_count > 1 or phone_customer_count > 1 or  card_customer_count > 1 or email_customer_count > 1:
+            return jsonify({"aggregates": "ABUSISVE"}), 200
+        else:
+            return jsonify({"aggregates": "GENUINE"}), 200
         
         # Return the aggregated results grouped by attribute type
-        return jsonify({"aggregates": grouped_results}), 200
+        #return jsonify({"aggregates": grouped_results}), 200
 
     except Exception as e:
         return jsonify({"error": "An unexpected error occurred while fetching aggregates", "details": str(e)}), 500
