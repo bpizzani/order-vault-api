@@ -166,7 +166,7 @@ def process_and_update_increment():
 def trigger_process_and_update():
     try:
         # Delay the execution for 30 seconds (you can change this value)
-        time.sleep(5) 
+        time.sleep(2) 
         
         # Make the request to the /process-and-update route
         process_update_response = requests.get("https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/process-and-update")
