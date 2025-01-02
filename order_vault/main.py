@@ -178,7 +178,7 @@ def trigger_process_and_update():
     except Exception as e:
         print(f"Error occurred while triggering /process-and-update: {str(e)}")
         
-@app.route("/aggregated-by-attributes", methods=["GET"])
+@app.route("/aggregated-by-attributes-old", methods=["GET"])
 def aggregated_by_attributes_old(): #deprecated
     try:
         # Get the attribute type and optional filters (phone, device_id) from the query parameters
