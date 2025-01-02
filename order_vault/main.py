@@ -302,10 +302,10 @@ def aggregated_by_attributes():
                 })
 
          # Get aggregated data 
-        aggregated_device_data = aggregated_results.get("device_id", [])[0] if "device_id" in aggregated_results else None
-        aggregated_phone_data = aggregated_results.get("phone", [])[0] if "phone" in aggregated_results else None
-        aggregated_card_data = aggregated_results.get("card_details", [])[0] if "card_details" in aggregated_results else None
-        aggregated_email_data = aggregated_results.get("email", [])[0] if "email" in aggregated_results else None
+        aggregated_device_data = aggregated_results.get("device_id", [])[0] if "device_id" in aggregated_results and len(aggregated_results["device_id"]) > 0 else None
+        aggregated_phone_data = aggregated_results.get("phone", [])[0] if "phone" in aggregated_results and len(aggregated_results["phone"]) > 0 else None
+        aggregated_card_data = aggregated_results.get("card_details", [])[0] if "card_details" in aggregated_results and len(aggregated_results["card_details"]) > 0 else None
+        aggregated_email_data = aggregated_results.get("email", [])[0] if "email" in aggregated_results and len(aggregated_results["email"]) > 0 else None
         
         # Extract the customer count for each, defaulting to 0 if not available
         device_customer_count = aggregated_device_data["customer_count"] if aggregated_device_data else 0
