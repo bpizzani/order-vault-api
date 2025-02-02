@@ -112,7 +112,7 @@ def process_and_update():
             customer_node = f"Customer {order['email']}"
             G.add_node(customer_node, type='customer')
 
-            for attribute in ['ip_address', 'card_details','email', 'device_id', 'phone', 'promocode', 'id']:
+            for attribute in ['card_details','email', 'device_id', 'phone', 'promocode', 'id']: # ip_address
                 attr_value = order.get(attribute)
                 if attr_value:
                     attribute_node = f"{attr_value}"
@@ -148,7 +148,7 @@ def process_and_update_increment():
             customer_node = f"Customer {order['email']}"
             G_new.add_node(customer_node, type='customer')
 
-            for attribute in ['ip_address', 'card_details', 'email', 'device_id', 'phone', 'promocode', 'id']:
+            for attribute in ['card_details', 'email', 'device_id', 'phone', 'promocode', 'id']: #'ip_address', 
                 attr_value = order.get(attribute)
                 if attr_value:
                     attribute_node = f"{attr_value}"
