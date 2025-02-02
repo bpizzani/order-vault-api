@@ -18,6 +18,11 @@ NEO4J_USERNAME = "neo4j"  # Replace with your username
 NEO4J_PASSWORD = "8qain--QL1kWhww4XY_bKIcoAPgLnexJJt4WC59dRhY"  # Replace with your password
 driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USERNAME, NEO4J_PASSWORD))
 
+
+@app.route("/", methods=["GET", "POST"])
+def home():
+    return render_template("home.html")
+
 # Helper Function to Create Neo4j Graph from NetworkX Graph
 def create_graph(tx, G):
     for node_id, node_data in G.nodes(data=True):
