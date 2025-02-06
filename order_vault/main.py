@@ -22,22 +22,62 @@ driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USERNAME, NEO4J_PASSWORD))
 def home():
     return render_template("home.html")
 
-# Helper Function to Create Neo4j Graph from NetworkX Graph
+# Function to trigger the background process once the order is finalized
+def trigger_process_and_update(order_data):
+    try:
+        time.sleep(3)  # Simulate some delay
+        
+        # Here you would trigger the 'process-and-update' API to process the data
+        process_update_response = requests.get("https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/process-and-update")
+        
+        if process_update_response.status_code == 200:
+            print("Process and update triggered successfully.")
+        else:
+            print(f"Error triggering the process-and-update API: {process_update_response.text}")
+        
+        # If order was confirmed and fraud evaluation passed, store it in Neo4j
+        with driver.session() as session:
+            # Here, you can process order_data and save to Neo4j based on the client's confirmation
+            save_order_in_neo4j(session, order_data)
+
+    except Exception as e:
+        print(f"Error occurred while triggering process-and-update: {str(e)}")
+
+
+def save_order_in_neo4j(session, order_data):
+    """ Save the confirmed order into Neo4j """
+    G = nx.Graph()
+    
+    customer_node = f"Customer {order_data['email']}"
+    G.add_node(customer_node, type='customer')
+    
+    # Add order attributes as nodes and edges in the graph
+    for attribute in ['card_details', 'email', 'device_id', 'phone', 'promocode', 'id']:
+        attr_value = order_data.get(attribute)
+        if attr_value:
+            attribute_node = f"{attr_value}"
+            G.add_node(attribute_node, type=attribute)
+            G.add_edge(customer_node, attribute_node)
+
+    # Write the graph to Neo4j
+    with session:
+        session.write_transaction(create_graph, G)
+
+
 def create_graph(tx, G):
+    """ Helper function to create or update nodes in Neo4j from the NetworkX graph """
     for node_id, node_data in G.nodes(data=True):
         if node_data['type'] == 'customer':
-            # Create or merge the Customer node
             tx.run("MERGE (c:Customer {email: $email, type:'customer'})", email=node_id)
+        
         for neighbor in G.neighbors(node_id):
             if node_data['type'] == 'customer':
-                # Create relationship from customer to attribute
                 tx.run("""
                 MERGE (c:Customer {email: $email, type:"customer"})
                 MERGE (a {value: $value, type:$type})
                 MERGE (c)-[:HAS_ATTRIBUTE]->(a)
                 """, email=node_id, value=neighbor, type=G.nodes[neighbor]['type'])
             else:
-                # Create relationships between attributes
                 if G.nodes[neighbor]['type'] != 'customer':
                     tx.run("""
                     MERGE (a1 {value: $value1, type:$type})
@@ -46,54 +86,22 @@ def create_graph(tx, G):
                     """, value1=node_id, value2=neighbor, type=G.nodes[neighbor]['type'])
 
 
-def update_graph_incrementally(tx, G_new):
-    # Create or update nodes based on their unique identifier and type
-    for node, attributes in G_new.nodes(data=True):
-        node_type = attributes.get('type', 'unknown')  # Ensure type is always set
-        tx.run(
-            """
-            MERGE (n:Node {id: $id, type: $type})
-            SET n.type = $type
-            """,
-            id=node,
-            type=node_type
-        )
+# Flask Route to Handle Order Finalization
+@app.route("/finalize-order", methods=["POST"])
+def finalize_order():
+    try:
+        # Get order data from the request (client confirms finalization)
+        order_data = request.json  # Expecting JSON with order details
+        
+        # After client confirms, trigger the background process to handle data processing
+        threading.Thread(target=trigger_process_and_update, args=(order_data,)).start()
+        
+        return jsonify({"message": "Order finalized and processing started."}), 200
+    
+    except Exception as e:
+        return jsonify({"error": "An error occurred while finalizing the order", "details": str(e)}), 500
 
-    # Create or update relationships between nodes
-    for u, v in G_new.edges():
-        # Get the types of the nodes for each relationship (use the node type)
-        type_u = G_new.nodes[u]['type']
-        type_v = G_new.nodes[v]['type']
 
-        # If both nodes are customers, create a 'HAS_ATTRIBUTE' relationship
-        if type_u == 'customer' and type_v != 'customer':
-            tx.run(
-                """
-                MATCH (a:Node {id: $u}), (b:Node {id: $v})
-                MERGE (a)-[:HAS_ATTRIBUTE]->(b)
-                """,
-                u=u,
-                v=v
-            )
-        elif type_v == 'customer' and type_u != 'customer':
-            tx.run(
-                """
-                MATCH (a:Node {id: $u}), (b:Node {id: $v})
-                MERGE (b)-[:HAS_ATTRIBUTE]->(a)
-                """,
-                u=u,
-                v=v
-            )
-        else:
-            # For other types of relationships, use 'CONNECTED_TO'
-            tx.run(
-                """
-                MATCH (a:Node {id: $u}), (b:Node {id: $v})
-                MERGE (a)-[:CONNECTED_TO]->(b)
-                """,
-                u=u,
-                v=v
-            )
             
 # Flask Route to Process Data and Update Neo4j
 @app.route("/process-and-update", methods=["GET"])
@@ -130,58 +138,7 @@ def process_and_update():
     except Exception as e:
         return jsonify({"error": "An unexpected error occurred", "details": str(e)}), 500
 
-# Flask Route to Incrementally Update Neo4j Graph with t-1 Data
-@app.route("/process-and-update-increment", methods=["GET"])
-def process_and_update_increment():
-    try:
-        # Fetch only t-1 data from the Client App API
-        t_minus_1_data_url = f"{CLIENT_APP_API_URL}"
-        client_response = requests.get(t_minus_1_data_url)
-        client_response.raise_for_status()
-        t1_data = client_response.json()["orders"]
 
-        # Create a NetworkX Graph for the new data
-        G_new = nx.Graph()
-
-        # Populate the graph with nodes and edges for t-1
-        for order in t1_data:
-            customer_node = f"Customer {order['email']}"
-            G_new.add_node(customer_node, type='customer')
-
-            for attribute in ['card_details', 'email', 'device_id', 'phone', 'promocode', 'id']: #'ip_address', 
-                attr_value = order.get(attribute)
-                if attr_value:
-                    attribute_node = f"{attr_value}"
-                    G_new.add_node(attribute_node, type=attribute)
-                    G_new.add_edge(customer_node, attribute_node)
-
-        # Write only the new data to Neo4j
-        with driver.session() as session:
-            session.write_transaction(update_graph_incrementally, G_new)
-
-        return jsonify({"message": "Graph updated successfully with t-1 data."}), 200
-
-    except requests.exceptions.RequestException as e:
-        return jsonify({"error": "Failed to fetch data from Client App API", "details": str(e)}), 500
-    except Exception as e:
-        return jsonify({"error": "An unexpected error occurred", "details": str(e)}), 500
-        
-
-def trigger_process_and_update():
-    try:
-        # Delay the execution for 30 seconds (you can change this value)
-        time.sleep(3) 
-        
-        # Make the request to the /process-and-update route
-        process_update_response = requests.get("https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/process-and-update")
-        
-        if process_update_response.status_code == 200:
-            print("Process and update triggered successfully.")
-        else:
-            print(f"Error triggering the process-and-update API: {process_update_response.text}")
-    except Exception as e:
-        print(f"Error occurred while triggering /process-and-update: {str(e)}")
-    
 @app.route("/aggregated-by-attributes", methods=["GET"])
 def aggregated_by_attributes():
     try:
@@ -262,7 +219,7 @@ def aggregated_by_attributes():
         card_customer_count = aggregated_card_data["customer_count"] if aggregated_card_data else 0
         email_customer_count = aggregated_email_data["customer_count"] if aggregated_email_data else 0
         
-        threading.Thread(target=trigger_process_and_update).start()
+        #threading.Thread(target=trigger_process_and_update).start()
 
         if device_customer_count >= 1 or phone_customer_count >= 1 or card_customer_count >= 1 or email_customer_count >= 1:
             print("FRAUD")
@@ -276,6 +233,7 @@ def aggregated_by_attributes():
     except Exception as e:
         return jsonify({"error": "An unexpected error occurred while fetching aggregates", "details": str(e)}), 500
         
+
 
 if __name__ == "__main__":
     print("started APP")
