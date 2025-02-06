@@ -181,61 +181,7 @@ def trigger_process_and_update():
             print(f"Error triggering the process-and-update API: {process_update_response.text}")
     except Exception as e:
         print(f"Error occurred while triggering /process-and-update: {str(e)}")
-        
-@app.route("/aggregated-by-attributes-old", methods=["GET"])
-def aggregated_by_attributes_old(): #deprecated
-    try:
-        # Get the attribute type and optional filters (phone, device_id) from the query parameters
-        attribute_type = request.args.get("attribute_type", "device_id")  # Default to 'device_id'
-        value = request.args.get("value", None)  # Optional filter by phone
-        promocode = request.args.get("promocode", None)  # Optional filter by promocode
-        
-        # Neo4j query to aggregate data by attribute + promocode, with optional filters
-        query = """
-        MATCH (c:Customer)-[:HAS_ATTRIBUTE]->(attr {type: $attribute_type})
-        MATCH (c)-[:HAS_ATTRIBUTE]->(p {type: 'promocode'})
-        WHERE attr.value IS NOT NULL AND p.value IS NOT NULL
-        """
-        
-        # Add filtering based on phone or device_id if provided
-        if value:
-            query += " AND attr.value = $value"
-            query += " AND p.value = $promocode"
-        
-        query += """
-        RETURN 
-          attr.value AS attribute_value,
-          p.value AS promocode,
-          COUNT(DISTINCT c.email) AS customer_count
-        ORDER BY customer_count DESC
-        """
-        
-        # Prepare parameters for Neo4j query
-        params = {"attribute_type": attribute_type}
-        if value:
-            params["value"] = value
-            params["promocode"] = promocode
-            
-        results = []
-        
-        # Execute the query
-        with driver.session() as session:
-            neo4j_results = session.run(query, params)
-            for record in neo4j_results:
-                results.append({
-                    "attribute_value": record["attribute_value"],
-                    "promocode": record["promocode"],
-                    "customer_count": record["customer_count"]
-                })
-                
-        # Update network graphs for next time.
-        # Trigger the process-and-update function in the background with a delay
-        threading.Thread(target=trigger_process_and_update).start()
-        return jsonify({"aggregates": results}), 200
-
-    except Exception as e:
-        return jsonify({"error": "An unexpected error occurred while fetching aggregates", "details": str(e)}), 500
-
+    
 @app.route("/aggregated-by-attributes", methods=["GET"])
 def aggregated_by_attributes():
     try:
