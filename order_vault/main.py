@@ -45,23 +45,38 @@ def trigger_process_and_update(order_data):
 
 
 def save_order_in_neo4j(session, order_data):
-    """ Save the confirmed order into Neo4j """
-    G = nx.Graph()
-    
-    customer_node = f"Customer {order_data['email']}"
-    G.add_node(customer_node, type='customer')
-    
-    # Add order attributes as nodes and edges in the graph
-    for attribute in ['card_details', 'email', 'device_id', 'phone', 'promocode', 'id']:
-        attr_value = order_data.get(attribute)
-        if attr_value:
-            attribute_node = f"{attr_value}"
-            G.add_node(attribute_node, type=attribute)
-            G.add_edge(customer_node, attribute_node)
+    """ Save the confirmed order into Neo4j or update existing nodes/relationships """
+    try:
+        G = nx.Graph()  # Create a new graph
 
-    # Write the graph to Neo4j
-    with session:
-        session.write_transaction(create_graph, G)
+        # Define customer node
+        customer_node = f"Customer {order_data['email']}"
+        
+        # Create customer node if it doesn't exist
+        G.add_node(customer_node, type='customer')
+
+        # For each order attribute, check if node exists, update or create as needed
+        for attribute in ['card_details', 'email', 'device_id', 'phone', 'promocode', 'id']:
+            attr_value = order_data.get(attribute)
+            if attr_value:
+                attribute_node = f"{attribute}:{attr_value}"
+                
+                # If the node already exists in the graph, no need to add again
+                if not G.has_node(attribute_node):
+                    G.add_node(attribute_node, type=attribute)
+                
+                # Create a relationship between the customer and the attribute
+                G.add_edge(customer_node, attribute_node)
+
+        # Write the graph to Neo4j
+        with session:
+            session.write_transaction(create_graph, G)
+
+        print("Order data successfully saved/updated in Neo4j.")
+
+    except Exception as e:
+        print(f"Error saving/updating order in Neo4j: {str(e)}")
+
 
 
 def create_graph(tx, G):
