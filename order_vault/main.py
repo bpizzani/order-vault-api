@@ -25,7 +25,7 @@ def home():
 # Function to trigger the background process once the order is finalized
 def trigger_process_and_update(order_data):
     try:
-        time.sleep(3)  # Simulate some delay
+        #time.sleep(3)  # Simulate some delay
         
         # Here you would trigger the 'process-and-update' API to process the data
         process_update_response = requests.get("https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/process-and-update")
