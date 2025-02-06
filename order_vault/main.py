@@ -26,15 +26,15 @@ def home():
 def trigger_process_and_update(order_data):
     try:
         #time.sleep(3)  # Simulate some delay
-        
+
         # Here you would trigger the 'process-and-update' API to process the data
         #process_update_response = requests.get("https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/process-and-update")
-        
+
         #if process_update_response.status_code == 200:
         #    print("Process and update triggered successfully.")
         #else:
         #    print(f"Error triggering the process-and-update API: {process_update_response.text}")
-        
+
         # If order was confirmed and fraud evaluation passed, store it in Neo4j
         with driver.session() as session:
             # Here, you can process order_data and save to Neo4j based on the client's confirmation
@@ -45,38 +45,23 @@ def trigger_process_and_update(order_data):
 
 
 def save_order_in_neo4j(session, order_data):
-    """ Save the confirmed order into Neo4j or update existing nodes/relationships """
-    try:
-        G = nx.Graph()  # Create a new graph
+    """ Save the confirmed order into Neo4j """
+    G = nx.Graph()
 
-        # Define customer node
-        customer_node = f"Customer {order_data['email']}"
-        
-        # Create customer node if it doesn't exist
-        G.add_node(customer_node, type='customer')
+    customer_node = f"Customer {order_data['email']}"
+    G.add_node(customer_node, type='customer')
 
-        # For each order attribute, check if node exists, update or create as needed
-        for attribute in ['card_details', 'email', 'device_id', 'phone', 'promocode', 'id']:
-            attr_value = order_data.get(attribute)
-            if attr_value:
-                attribute_node = f"{attribute}:{attr_value}"
-                
-                # If the node already exists in the graph, no need to add again
-                if not G.has_node(attribute_node):
-                    G.add_node(attribute_node, type=attribute)
-                
-                # Create a relationship between the customer and the attribute
-                G.add_edge(customer_node, attribute_node)
+    # Add order attributes as nodes and edges in the graph
+    for attribute in ['card_details', 'email', 'device_id', 'phone', 'promocode', 'id']:
+        attr_value = order_data.get(attribute)
+        if attr_value:
+            attribute_node = f"{attr_value}"
+            G.add_node(attribute_node, type=attribute)
+            G.add_edge(customer_node, attribute_node)
 
-        # Write the graph to Neo4j
-        with session:
-            session.write_transaction(create_graph, G)
-
-        print("Order data successfully saved/updated in Neo4j.")
-
-    except Exception as e:
-        print(f"Error saving/updating order in Neo4j: {str(e)}")
-
+    # Write the graph to Neo4j
+    with session:
+        session.write_transaction(create_graph, G)
 
 
 def create_graph(tx, G):
@@ -84,7 +69,7 @@ def create_graph(tx, G):
     for node_id, node_data in G.nodes(data=True):
         if node_data['type'] == 'customer':
             tx.run("MERGE (c:Customer {email: $email, type:'customer'})", email=node_id)
-        
+
         for neighbor in G.neighbors(node_id):
             if node_data['type'] == 'customer':
                 tx.run("""
@@ -107,17 +92,17 @@ def finalize_order():
     try:
         # Get order data from the request (client confirms finalization)
         order_data = request.json  # Expecting JSON with order details
-        
+
         # After client confirms, trigger the background process to handle data processing
         threading.Thread(target=trigger_process_and_update, args=(order_data,)).start()
-        
+
         return jsonify({"message": "Order finalized and processing started."}), 200
-    
+
     except Exception as e:
         return jsonify({"error": "An error occurred while finalizing the order", "details": str(e)}), 500
 
 
-            
+
 # Flask Route to Process Data and Update Neo4j
 @app.route("/process-and-update", methods=["GET"])
 def process_and_update():
@@ -159,19 +144,19 @@ def aggregated_by_attributes():
     try:
         # Get the attribute types (can be multiple) and optional filters (phone, device_id) from the query parameters
         attribute_types = request.args.get("attribute_types", "device_id").split(",")  # Defaults to "device_id"
-        
+
         # Get the value for each attribute type (e.g., device_id and phone)
         values = {}
         for attribute_type in attribute_types:
             value = request.args.get(attribute_type, None)
             if value:
                 values[attribute_type] = value
-        
+
         promocode = request.args.get("promocode", None)  # Optional filter by promocode
 
         # Initialize an empty dictionary to store the results grouped by attribute type
         grouped_results = {attribute_type: [] for attribute_type in attribute_types}
-        
+
         # Neo4j query to aggregate data by attribute + promocode, with optional filters
         for attribute_type in attribute_types:
             query = """
@@ -179,12 +164,12 @@ def aggregated_by_attributes():
             MATCH (c)-[:HAS_ATTRIBUTE]->(p {type: 'promocode'})
             WHERE attr.value IS NOT NULL AND p.value IS NOT NULL
             """
-            
+
             # Add filtering based on value (phone, device_id) if provided
             if attribute_type in values:
                 query += f" AND attr.value = ${attribute_type}"
                 query += " AND p.value = $promocode"
-            
+
             query += """
             RETURN 
               attr.value AS attribute_value,
@@ -192,12 +177,12 @@ def aggregated_by_attributes():
               COUNT(DISTINCT c.email) AS customer_count
             ORDER BY customer_count DESC
             """
-            
+
             # Prepare parameters for Neo4j query
             params = {"attribute_type": attribute_type, "promocode": promocode}
             if attribute_type in values:
                 params[attribute_type] = values[attribute_type]
-            
+
             # Execute the query
             with driver.session() as session:
                 neo4j_results = session.run(query, params)
@@ -207,10 +192,10 @@ def aggregated_by_attributes():
                         "promocode": record["promocode"],
                         "customer_count": record["customer_count"]
                     })
-        
+
         # Trigger background process for next time
         aggregated_results = {attribute_type: [] for attribute_type in attribute_types}
-            
+
         # Group the aggregated data by attribute type
         for k,aggregate in grouped_results.items():
             if len(aggregate) > 0:
@@ -227,13 +212,13 @@ def aggregated_by_attributes():
         aggregated_phone_data = aggregated_results.get("phone", [])[0] if "phone" in aggregated_results and len(aggregated_results["phone"]) > 0 else None
         aggregated_card_data = aggregated_results.get("card_details", [])[0] if "card_details" in aggregated_results and len(aggregated_results["card_details"]) > 0 else None
         aggregated_email_data = aggregated_results.get("email", [])[0] if "email" in aggregated_results and len(aggregated_results["email"]) > 0 else None
-        
+
         # Extract the customer count for each, defaulting to 0 if not available
         device_customer_count = aggregated_device_data["customer_count"] if aggregated_device_data else 0
         phone_customer_count = aggregated_phone_data["customer_count"] if aggregated_phone_data else 0
         card_customer_count = aggregated_card_data["customer_count"] if aggregated_card_data else 0
         email_customer_count = aggregated_email_data["customer_count"] if aggregated_email_data else 0
-        
+
         #threading.Thread(target=trigger_process_and_update).start()
 
         if device_customer_count >= 1 or phone_customer_count >= 1 or card_customer_count >= 1 or email_customer_count >= 1:
@@ -247,7 +232,7 @@ def aggregated_by_attributes():
 
     except Exception as e:
         return jsonify({"error": "An unexpected error occurred while fetching aggregates", "details": str(e)}), 500
-        
+
 
 
 if __name__ == "__main__":
