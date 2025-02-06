@@ -28,12 +28,12 @@ def trigger_process_and_update(order_data):
         #time.sleep(3)  # Simulate some delay
         
         # Here you would trigger the 'process-and-update' API to process the data
-        process_update_response = requests.get("https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/process-and-update")
+        #process_update_response = requests.get("https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/process-and-update")
         
-        if process_update_response.status_code == 200:
-            print("Process and update triggered successfully.")
-        else:
-            print(f"Error triggering the process-and-update API: {process_update_response.text}")
+        #if process_update_response.status_code == 200:
+        #    print("Process and update triggered successfully.")
+        #else:
+        #    print(f"Error triggering the process-and-update API: {process_update_response.text}")
         
         # If order was confirmed and fraud evaluation passed, store it in Neo4j
         with driver.session() as session:
