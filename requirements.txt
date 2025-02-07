@@ -10,3 +10,4 @@ psycopg2
 requests==2.31.0          # For making HTTP requests (if needed)
 neo4j
 networkx
+flask-cors
