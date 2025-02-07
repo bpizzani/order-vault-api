@@ -1,5 +1,5 @@
-(window.onload = async function () {
-    function detectBots() {
+export async function detectBots() {
+
         let isBot = false;
 
         if (navigator.webdriver) {
@@ -41,8 +41,3 @@
             document.getElementById("bot_flag").value = isBot ? "Yes" : "No";
         }, 5000); 
     }
-
-    // 🌟 Expose `detectBots` to the global scope
-    window.detectBots = detectBots;
-
-})();
