@@ -1,20 +1,23 @@
 (window.onload = async function () {
-    async function detectBots() {
+    function detectBots() {
         let isBot = false;
 
         if (navigator.webdriver) {
             console.warn("🚨 Bot detected: navigator.webdriver is true");
             isBot = true;
+            document.getElementById("bot_flag").value = isBot ? "Yes" : "No";
         }
 
         if (!window.chrome || !navigator.languages || navigator.languages.length === 0) {
             console.warn("🚨 Bot detected: Suspicious navigator properties");
             isBot = true;
+            document.getElementById("bot_flag").value = isBot ? "Yes" : "No";
         }
 
         if (navigator.plugins.length === 0) {
             console.warn("🚨 Bot detected: No plugins detected (Possible Selenium)");
             isBot = true;
+            document.getElementById("bot_flag").value = isBot ? "Yes" : "No";
         }
 
         const userAgent = navigator.userAgent.toLowerCase();
@@ -23,6 +26,7 @@
         if (isAutomated) {
             console.warn("🚨 Bot detected: Automated browser detected");
             isBot = true;
+            document.getElementById("bot_flag").value = isBot ? "Yes" : "No";
         }
 
         let userInteracted = false;
@@ -36,19 +40,6 @@
             }
             document.getElementById("bot_flag").value = isBot ? "Yes" : "No";
         }, 5000); 
-
-        try {
-            const FingerprintJS = await import('https://openfpcdn.io/fingerprintjs/v4');
-            const fp = await FingerprintJS.load();
-            const result = await fp.get();
-            document.getElementById("device_id").value = result.visitorId;
-
-            const response = await fetch('https://api.ipify.org?format=json');
-            const data = await response.json();
-            document.getElementById("ip_address").value = data.ip;
-        } catch (error) {
-            console.error("Error getting fingerprint/IP:", error);
-        }
     }
 
     // 🌟 Expose `detectBots` to the global scope
