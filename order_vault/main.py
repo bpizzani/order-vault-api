@@ -5,6 +5,7 @@ import networkx as nx
 from order_vault import app
 import threading
 import time
+import hashlib
 
 # Flask App Setup
 app.secret_key = "your_secret_key"
@@ -21,6 +22,33 @@ driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USERNAME, NEO4J_PASSWORD))
 @app.route("/", methods=["GET", "POST"])
 def home():
     return render_template("home.html")
+
+@app.route("/api/fingerprint", methods=["POST"])
+def fingerprint():
+    try:
+        data = request.json  # Get the raw fingerprint data sent from the client
+
+        # 🔒 Secretly select the features you care about (e.g., userAgent, platform, deviceMemory)
+        selected_data = [
+            data.get("userAgent", ""), 
+            data.get("platform", ""), 
+            data.get("screenRes", ""),
+            data.get("colorDepth", ""),
+            data.get("timezone", ""),
+            data.get("languages", ""),
+            data.get("plugins", ""),
+            data.get("webGLFingerprint", ""),
+            data.get("canvasFingerprint", "")       
+        ]
+
+        # 🔑 Generate a unique visitor ID by hashing the selected data
+        visitor_id = hashlib.sha256("|".join(selected_data).encode()).hexdigest()
+
+        return jsonify({"visitorId": visitor_id}), 200
+
+    except Exception as e:
+        return jsonify({"error": "Failed to generate visitorId", "details": str(e)}), 500
+
 
 # Function to trigger the background process once the order is finalized
 def trigger_process_and_update(order_data):
