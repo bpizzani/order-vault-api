@@ -75,15 +75,15 @@ def fingerprint():
 
         # 🔒 Secretly select the features you care about (e.g., userAgent, platform, deviceMemory)
         selected_data = [
-            data.get("userAgent", ""), 
-            data.get("platform", ""), 
-            data.get("screenRes", ""),
-            data.get("colorDepth", ""),
-            data.get("timezone", ""),
-            data.get("languages", ""),
-            data.get("plugins", ""),
-            data.get("webGLFingerprint", ""),
-            data.get("canvasFingerprint", "")       
+            str(data.get("userAgent", "")), 
+            str(data.get("platform", "")), 
+            str(data.get("screenRes", "")),
+            str(data.get("colorDepth", "")),
+            str(data.get("timezone", "")),
+            str(data.get("languages", "")),
+            str(data.get("plugins", "")),
+            str(data.get("webGLFingerprint", "")),
+            str(data.get("canvasFingerprint", ""))       
         ]
 
         logger.debug(f"Selected data: {selected_data}")
