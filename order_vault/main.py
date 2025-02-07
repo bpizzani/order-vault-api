@@ -49,7 +49,6 @@ def fingerprint():
     except Exception as e:
         return jsonify({"error": "Failed to generate visitorId", "details": str(e)}), 500
 
-
 # Function to trigger the background process once the order is finalized
 def trigger_process_and_update(order_data):
     try:
