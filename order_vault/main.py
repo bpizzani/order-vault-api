@@ -6,6 +6,9 @@ from order_vault import app
 import threading
 import time
 import hashlib
+from flask_cors import CORS
+
+CORS(app, supports_credentials=True)
 
 # Flask App Setup
 app.secret_key = "your_secret_key"
