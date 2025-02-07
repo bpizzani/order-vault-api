@@ -23,7 +23,7 @@ driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USERNAME, NEO4J_PASSWORD))
 def home():
     return render_template("home.html")
 
-@app.route("/api/fingerprint", methods=["GET"])
+@app.route("/api/fingerprint", methods=["POST","GET"])
 def fingerprint():
     try:
         data = request.json  # Get the raw fingerprint data sent from the client
