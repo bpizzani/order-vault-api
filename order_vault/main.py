@@ -26,32 +26,6 @@ driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USERNAME, NEO4J_PASSWORD))
 def home():
     return render_template("home.html")
 
-@app.route("/api/fingerprint_old", methods=["POST","GET","OPTIONS"])
-def fingerprint_old():
-    try:
-        data = request.json  # Get the raw fingerprint data sent from the client
-
-        # 🔒 Secretly select the features you care about (e.g., userAgent, platform, deviceMemory)
-        selected_data = [
-            str(data.get("userAgent", "unknown")), 
-            str(data.get("platform", "unknown")), 
-            str(data.get("screenRes", "unknown")),
-            str(data.get("colorDepth", "unknown")),
-            str(data.get("timezone", "unknown")),
-            str(data.get("languages", "unknown")),
-            str(data.get("plugins", "unknown")),
-            str(data.get("webGLFingerprint", "unknown")),
-            str(data.get("canvasFingerprint", "unknown"))       
-        ]
-
-        # 🔑 Generate a unique visitor ID by hashing the selected data
-        visitor_id = hashlib.sha256("|".join(selected_data).encode()).hexdigest()
-
-        return jsonify({"visitorId": visitor_id}), 200
-
-    except Exception as e:
-        return jsonify({"error": "Failed to generate visitorId", "details": str(e)}), 500
-
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)  # Set level to DEBUG to capture all logs
 logger = logging.getLogger(__name__)
@@ -73,6 +47,8 @@ def fingerprint():
         else:
             logger.warning("No data received in the request")
 
+        logger.debug(f"Local Device ID: {str(data.get("localDeviceId", ""))}"
+                     
         # 🔒 Secretly select the features you care about (e.g., userAgent, platform, deviceMemory)
         selected_data = [
             str(data.get("userAgent", "")), 
@@ -85,8 +61,6 @@ def fingerprint():
             str(data.get("webGLFingerprint", "")),
             str(data.get("canvasFingerprint", ""))       
         ]
-
-        logger.debug(f"Selected data: {selected_data}")
 
         # 🔑 Generate a unique visitor ID by hashing the selected data
         visitor_id = hashlib.sha256("|".join(selected_data).encode()).hexdigest()
