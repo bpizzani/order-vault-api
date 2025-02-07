@@ -33,12 +33,12 @@ export async function detectBots() {
         window.addEventListener("mousemove", () => userInteracted = true);
         window.addEventListener("keydown", () => userInteracted = true);
 
-        setTimeout(() => {
-            if (!userInteracted) {
-                console.warn("🚨 Bot detected: No user interaction");
-                isBot = true;
-                return isBot ? "Yes" : "No"
-            }
-        }, 1000); 
+        //setTimeout(() => {
+        //    if (!userInteracted) {
+        //        console.warn("🚨 Bot detected: No user interaction");
+        //        isBot = true;
+        //        return isBot ? "Yes" : "No"
+        //    }
+        //}, 1000); 
     return isBot ? "Yes" : "No"
     }
