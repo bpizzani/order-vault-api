@@ -91,6 +91,4 @@
     // 🌟 Expose `sendFingerprint` to the global scope
     window.sendFingerprint = sendFingerprint;
 
-    // Start fingerprinting process
-    sendFingerprint();
 })();
