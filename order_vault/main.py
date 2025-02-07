@@ -33,15 +33,15 @@ def fingerprint_old():
 
         # 🔒 Secretly select the features you care about (e.g., userAgent, platform, deviceMemory)
         selected_data = [
-            str(data.get("userAgent", "")), 
-            str(data.get("platform", "")), 
-            str(data.get("screenRes", "")),
-            str(data.get("colorDepth", "")),
-            str(data.get("timezone", "")),
-            str(data.get("languages", "")),
-            str(data.get("plugins", "")),
-            str(data.get("webGLFingerprint", "")),
-            str(data.get("canvasFingerprint", ""))       
+            str(data.get("userAgent", "unknown")), 
+            str(data.get("platform", "unknown")), 
+            str(data.get("screenRes", "unknown")),
+            str(data.get("colorDepth", "unknown")),
+            str(data.get("timezone", "unknown")),
+            str(data.get("languages", "unknown")),
+            str(data.get("plugins", "unknown")),
+            str(data.get("webGLFingerprint", "unknown")),
+            str(data.get("canvasFingerprint", "unknown"))       
         ]
 
         # 🔑 Generate a unique visitor ID by hashing the selected data
