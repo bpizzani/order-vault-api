@@ -1,4 +1,4 @@
-window.onload = async function () {
+(window.onload = async function () {
     async function collectData() {
         console.log("Collecting data...");
         try {
@@ -25,6 +25,7 @@ window.onload = async function () {
         }
     }
 
+    // WebGL Fingerprinting
     function getWebGLFingerprint() {
         console.log("Getting WebGL Fingerprint...");
         try {
@@ -34,7 +35,7 @@ window.onload = async function () {
             const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
             if (debugInfo) {
                 const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
-                console.log("WebGL Fingerprint: ", renderer);
+                console.log("WebGL Fingerprint: ", renderer); // Log WebGL fingerprint
                 return renderer;
             }
             return 'no-webgl-info';
@@ -44,6 +45,7 @@ window.onload = async function () {
         }
     }
 
+    // Canvas Fingerprinting
     function getCanvasFingerprint() {
         console.log("Getting Canvas Fingerprint...");
         return new Promise((resolve, reject) => {
@@ -55,7 +57,7 @@ window.onload = async function () {
             ctx.fillText(text, 2, 2);
             try {
                 const fingerprint = canvas.toDataURL();
-                console.log("Canvas Fingerprint: ", fingerprint);
+                console.log("Canvas Fingerprint: ", fingerprint); // Log Canvas fingerprint
                 resolve(fingerprint);
             } catch (e) {
                 console.error("Error in Canvas fingerprinting:", e);
@@ -64,31 +66,34 @@ window.onload = async function () {
         });
     }
 
-    window.sendFingerprint = async function () {  // 🔥 Now globally available
+    async function sendFingerprint() {
         console.log("Sending fingerprint data...");
         try {
             const data = await collectData();
             const response = await fetch("https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/fingerprint", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
+                method: "POST",  // Changed method to POST as it's more appropriate for sending data
+                headers: {
+                    "Content-Type": "application/json"
+                },
                 body: JSON.stringify(data)
             });
 
             if (response.ok) {
                 const result = await response.json();
-                console.log("Response from API: ", result);
-                return result.visitorId;
+                console.log("Response from API: ", result); // Log the result from the server
+                return result.visitorId
+
+
             } else {
                 console.error("Error with the API response:", response.status, response.statusText);
-                return response.statusText;
+                return response.statusText
             }
         } catch (error) {
             console.error("Error sending fingerprint data:", error);
-            return error;
+            return error
         }
-    };
-
+    }
     // Start fingerprinting process
     sendFingerprint();
-};
+})();
 
