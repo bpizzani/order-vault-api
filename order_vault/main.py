@@ -47,7 +47,6 @@ def fingerprint():
         else:
             logger.warning("No data received in the request")
 
-        logger.debug(f"Local Device ID: {str(data.get("localDeviceId", ""))}"
                      
         # 🔒 Secretly select the features you care about (e.g., userAgent, platform, deviceMemory)
         selected_data = [
