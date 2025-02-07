@@ -5,19 +5,19 @@ export async function detectBots() {
         if (navigator.webdriver) {
             console.warn("🚨 Bot detected: navigator.webdriver is true");
             isBot = true;
-            document.getElementById("bot_flag").value = isBot ? "Yes" : "No";
+            return isBot ? "Yes" : "No"
         }
 
         if (!window.chrome || !navigator.languages || navigator.languages.length === 0) {
             console.warn("🚨 Bot detected: Suspicious navigator properties");
             isBot = true;
-            document.getElementById("bot_flag").value = isBot ? "Yes" : "No";
+            return isBot ? "Yes" : "No"
         }
 
         if (navigator.plugins.length === 0) {
             console.warn("🚨 Bot detected: No plugins detected (Possible Selenium)");
             isBot = true;
-            document.getElementById("bot_flag").value = isBot ? "Yes" : "No";
+            return isBot ? "Yes" : "No"
         }
 
         const userAgent = navigator.userAgent.toLowerCase();
@@ -26,7 +26,7 @@ export async function detectBots() {
         if (isAutomated) {
             console.warn("🚨 Bot detected: Automated browser detected");
             isBot = true;
-            document.getElementById("bot_flag").value = isBot ? "Yes" : "No";
+            return isBot ? "Yes" : "No"
         }
 
         let userInteracted = false;
@@ -38,6 +38,8 @@ export async function detectBots() {
                 console.warn("🚨 Bot detected: No user interaction");
                 isBot = true;
             }
-            document.getElementById("bot_flag").value = isBot ? "Yes" : "No";
+            return isBot ? "Yes" : "No"
         }, 5000); 
+
+        return isBot ? "Yes" : "No"
     }
