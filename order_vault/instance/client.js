@@ -51,7 +51,7 @@
 
     async function sendFingerprint() {
         const data = await collectData();
-        const response = await fetch("https://yourserver.com/api/fingerprint", {
+        const response = await fetch("https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/fingerprint", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data)
