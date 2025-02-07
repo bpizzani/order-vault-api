@@ -7,6 +7,7 @@ import threading
 import time
 import hashlib
 from flask_cors import CORS
+import logging
 
 CORS(app, supports_credentials=True)
 
