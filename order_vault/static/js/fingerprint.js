@@ -1,6 +1,4 @@
-// fingerprint.js
-
-window.onload = async function () {
+(window.onload = async function () {
     async function collectData() {
         console.log("Collecting data...");
         try {
@@ -72,7 +70,7 @@ window.onload = async function () {
         console.log("Sending fingerprint data...");
         try {
             const data = await collectData();
-            const response = await fetch("https://your-api-server.com/api/fingerprint", {
+            const response = await fetch("https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/fingerprint", {
                 method: "POST",  // Changed method to POST as it's more appropriate for sending data
                 headers: {
                     "Content-Type": "application/json"
@@ -84,6 +82,8 @@ window.onload = async function () {
                 const result = await response.json();
                 console.log("Response from API: ", result); // Log the result from the server
                 document.getElementById("fingerprint_inhouse").value = result.visitorId;
+                
+                
             } else {
                 console.error("Error with the API response:", response.status, response.statusText);
                 document.getElementById("fingerprint_inhouse").value = response.statusText;
@@ -93,7 +93,6 @@ window.onload = async function () {
             document.getElementById("fingerprint_inhouse").value = error;
         }
     }
-
     // Start fingerprinting process
     sendFingerprint();
-};
+})();
