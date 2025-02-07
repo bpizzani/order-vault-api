@@ -39,6 +39,6 @@ export async function detectBots() {
                 isBot = true;
                 return isBot ? "Yes" : "No"
             }
-        }, 5000); 
-
+        }, 1000); 
+    return isBot ? "Yes" : "No"
     }
