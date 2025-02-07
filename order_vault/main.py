@@ -23,7 +23,7 @@ driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USERNAME, NEO4J_PASSWORD))
 def home():
     return render_template("home.html")
 
-@app.route("/api/fingerprint_old", methods=["POST","GET"])
+@app.route("/api/fingerprint_old", methods=["POST","GET","OPTIONS"])
 def fingerprint_old():
     try:
         data = request.json  # Get the raw fingerprint data sent from the client
@@ -54,7 +54,7 @@ logging.basicConfig(level=logging.DEBUG)  # Set level to DEBUG to capture all lo
 logger = logging.getLogger(__name__)
 
 
-@app.route("/api/fingerprint", methods=["GET", "POST"])
+@app.route("/api/fingerprint", methods=["GET", "POST","OPTIONS"])
 def fingerprint():
     try:
         logger.info("Received request to /api/fingerprint")
