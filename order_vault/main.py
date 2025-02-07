@@ -56,6 +56,10 @@ logger = logging.getLogger(__name__)
 
 @app.route("/api/fingerprint", methods=["GET", "POST","OPTIONS"])
 def fingerprint():
+    if request.method == "OPTIONS":
+        # Handle the preflight request (CORS)
+        return '', 200
+        
     try:
         logger.info("Received request to /api/fingerprint")
 
