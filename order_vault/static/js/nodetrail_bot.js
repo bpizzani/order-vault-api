@@ -37,8 +37,8 @@ export async function detectBots() {
             if (!userInteracted) {
                 console.warn("🚨 Bot detected: No user interaction");
                 isBot = true;
+                return isBot ? "Yes" : "No"
             }
-            return isBot ? "Yes" : "No"
         }, 5000); 
 
         return isBot ? "Yes" : "No"
