@@ -23,8 +23,8 @@ driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USERNAME, NEO4J_PASSWORD))
 def home():
     return render_template("home.html")
 
-@app.route("/api/fingerprint", methods=["POST","GET"])
-def fingerprint():
+@app.route("/api/fingerprint_old", methods=["POST","GET"])
+def fingerprint_old():
     try:
         data = request.json  # Get the raw fingerprint data sent from the client
 
@@ -48,6 +48,50 @@ def fingerprint():
 
     except Exception as e:
         return jsonify({"error": "Failed to generate visitorId", "details": str(e)}), 500
+
+# Set up logging
+logging.basicConfig(level=logging.DEBUG)  # Set level to DEBUG to capture all logs
+logger = logging.getLogger(__name__)
+
+
+@app.route("/api/fingerprint", methods=["GET", "POST"])
+def fingerprint():
+    try:
+        logger.info("Received request to /api/fingerprint")
+
+        data = request.json  # Get the raw fingerprint data sent from the client
+
+        if data:
+            logger.debug(f"Received data: {data}")
+        else:
+            logger.warning("No data received in the request")
+
+        # 🔒 Secretly select the features you care about (e.g., userAgent, platform, deviceMemory)
+        selected_data = [
+            data.get("userAgent", ""), 
+            data.get("platform", ""), 
+            data.get("screenRes", ""),
+            data.get("colorDepth", ""),
+            data.get("timezone", ""),
+            data.get("languages", ""),
+            data.get("plugins", ""),
+            data.get("webGLFingerprint", ""),
+            data.get("canvasFingerprint", "")       
+        ]
+
+        logger.debug(f"Selected data: {selected_data}")
+
+        # 🔑 Generate a unique visitor ID by hashing the selected data
+        visitor_id = hashlib.sha256("|".join(selected_data).encode()).hexdigest()
+
+        logger.info(f"Generated visitorId: {visitor_id}")
+
+        return jsonify({"visitorId": visitor_id}), 200
+
+    except Exception as e:
+        logger.error(f"Error generating visitorId: {str(e)}")
+        return jsonify({"error": "Failed to generate visitorId", "details": str(e)}), 500
+
 
 # Function to trigger the background process once the order is finalized
 def trigger_process_and_update(order_data):
