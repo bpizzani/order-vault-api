@@ -86,11 +86,11 @@
                 
             } else {
                 console.error("Error with the API response:", response.status, response.statusText);
-                return result.visitorIdresponse.statusText
+                return response.statusText
             }
         } catch (error) {
             console.error("Error sending fingerprint data:", error);
-            return result.visitorId error
+            return error
         }
     }
     // Start fingerprinting process
