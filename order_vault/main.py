@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, flash, jsonify
 import requests  # For calling the Client App API
 from flask_sqlalchemy import SQLAlchemy
 from flask_restful import Api, Resource, reqparse 
-from flask_migrate import Migrate  # test
+from flask_migrate import Migrate 
 from neo4j import GraphDatabase
 import networkx as nx
 from order_vault import app
