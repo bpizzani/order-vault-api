@@ -305,6 +305,7 @@ def aggregated_by_attributes():
     except Exception as e:
         return jsonify({"error": "An unexpected error occurred while fetching aggregates", "details": str(e)}), 500
 
+
 @app.route('/api/rules', methods=['GET', 'POST'])
 def manage_rules():
     if request.method == 'POST':
@@ -316,6 +317,15 @@ def manage_rules():
     
     rules = Rule.query.all()
     return jsonify([{ "id": r.id, "attribute": r.attribute, "threshold": r.threshold} for r in rules])
+
+@app.route('/api/rules/<int:rule_id>', methods=['DELETE'])
+def delete_rule(rule_id):
+    rule = Rule.query.get(rule_id)
+    if rule:
+        db.session.delete(rule)
+        db.session.commit()
+        return jsonify({"message": "Rule deleted successfully"}), 200
+    return jsonify({"error": "Rule not found"}), 404
 
 @app.route('/api/evaluate', methods=['GET'])
 def evaluate():
@@ -337,7 +347,6 @@ def evaluate():
         
     is_abusive = count >= rule.threshold
     return jsonify({"attribute": attribute, "value": value, "count": count, "abusive": is_abusive})
-
 
 
 if __name__ == "__main__":
