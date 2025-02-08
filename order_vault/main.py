@@ -284,6 +284,39 @@ def aggregated_by_attributes():
     except Exception as e:
         return jsonify({"error": "An unexpected error occurred while fetching aggregates", "details": str(e)}), 500
 
+@app.route('/rules', methods=['GET', 'POST'])
+def manage_rules():
+    if request.method == 'POST':
+        data = request.json
+        new_rule = Rule(attribute=data['attribute'], threshold=data['threshold'])
+        db.session.add(new_rule)
+        db.session.commit()
+        return jsonify({"message": "Rule added successfully"}), 201
+    
+    rules = Rule.query.all()
+    return jsonify([{ "id": r.id, "attribute": r.attribute, "threshold": r.threshold} for r in rules])
+
+@app.route('/api/evaluate', methods=['GET'])
+def evaluate():
+    attribute = request.args.get('attribute')
+    value = request.args.get('value')
+    
+    rule = Rule.query.filter_by(attribute=attribute).first()
+    if not rule:
+        return jsonify({"error": "No rule found for this attribute"}), 404
+    
+    # Query Neo4j to count occurrences
+    with driver.session() as session:
+        result = session.run("""
+            MATCH (c:Customer)-[:HAS_ATTRIBUTE]->(attr {type: $attribute, value: $value})
+            RETURN COUNT(DISTINCT c.email) AS count
+        """, attribute=attribute, value=value)
+        
+        count = result.single()["count"]
+        
+    is_abusive = count >= rule.threshold
+    return jsonify({"attribute": attribute, "value": value, "count": count, "abusive": is_abusive})
+
 
 
 if __name__ == "__main__":
