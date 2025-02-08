@@ -15,9 +15,6 @@ from order_vault.models.db import db
 from order_vault.models.rule import Rule
 import os
 
-@app.before_first_request
-def create_tables():
-    db.create_all()  # This will create tables based on your models
 
 CORS(app, supports_credentials=True)
 
@@ -29,6 +26,10 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 print(f"Database URI: {os.getenv('DATABASE_URL')}")
 db.init_app(app)
+
+@app.before_first_request
+def create_tables():
+    db.create_all()  # This will create tables based on your models
 
 migrate = Migrate(app, db)  # Initialize Flask-Migrate with the app and db
 
