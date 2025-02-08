@@ -194,11 +194,12 @@
         function addRule() {
             const attribute = document.getElementById("attribute").value;
             const threshold = document.getElementById("threshold").value;
+            const promocode = document.getElementById("promocode").value;
 
             fetch("https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/rules", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ attribute, threshold })
+                body: JSON.stringify({ attribute, threshold, promocode })
             })
             .then(response => response.text())  // Fetch the response as text
             .then(text => {
@@ -228,6 +229,7 @@
                         row.innerHTML = `
                             <td>${rule.attribute}</td>
                             <td>${rule.threshold}</td>
+                            <td>${rule.promocode}</td>
                             <td><button class="delete-btn" onclick="deleteRule(${rule.id})">Eliminar</button></td>
                         `;
                         rulesTable.appendChild(row);
