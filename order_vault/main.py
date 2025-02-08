@@ -33,15 +33,20 @@ migrate = Migrate(app, db)  # Initialize Flask-Migrate with the app and db
 
 api = Api(app)
 
-@app.route("/", methods=["GET", "POST"])
-def home():
-    return render_template("home.html")
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)  # Set level to DEBUG to capture all logs
 logger = logging.getLogger(__name__)
 
 
+@app.route("/", methods=["GET", "POST"])
+def home():
+    return render_template("home.html")
+
+@app.route('/rules')
+def rules_ui():
+    return render_template('rules.html')
+    
 @app.route("/api/fingerprint", methods=["GET", "POST","OPTIONS"])
 def fingerprint():
     if request.method == "OPTIONS":
