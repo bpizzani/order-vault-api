@@ -15,7 +15,6 @@ from order_vault.models.db import db
 from order_vault.models.rule import Rule
 import os
 
-
 CORS(app, supports_credentials=True)
 
 # Flask App Setup
