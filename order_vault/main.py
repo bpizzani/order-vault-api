@@ -10,6 +10,7 @@ from flask_cors import CORS
 import logging
 from order_vault.models.db import db
 from order_vault.models.rule import Rule
+import os
 
 CORS(app, supports_credentials=True)
 
