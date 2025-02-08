@@ -19,7 +19,7 @@ CORS(app, supports_credentials=True)
 # Flask App Setup
 app.secret_key = "your_secret_key"
 # Database configuration
-app.config["SQLALCHEMY_DATABASE_URI"] = 'postgresql://uep1f6okicnq6m:p6f35e035c018de9f19312b19bf865952eaa074171d2eaa324e914d3fbfea6ad2@c9uss87s9bdb8n.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com:5432/d5pggql3gg26am' #os.getenv('DATABASE_URL') #os.environ.get("DATABASE_URL") #"sqlite:///orders_v4.db" #os.environ.get("DATABASE_URL", "sqlite:///orders_v4.db")
+app.config["SQLALCHEMY_DATABASE_URI"] = 'postgres://u32cgla1pp9fm7:p6f656fa0f2edb9dda1653485f118f3b8379d957dce3469ef41d13f34d73e8cb1@c5flugvup2318r.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com:5432/dc0evnfhnut69e' #os.getenv('DATABASE_URL') #os.environ.get("DATABASE_URL") #"sqlite:///orders_v4.db" #os.environ.get("DATABASE_URL", "sqlite:///orders_v4.db")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 print(f"Database URI: {os.getenv('DATABASE_URL')}")
