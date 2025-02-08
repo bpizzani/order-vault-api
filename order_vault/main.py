@@ -348,43 +348,56 @@ def delete_rule(rule_id):
         return jsonify({"message": "Rule deleted successfully"}), 200
     return jsonify({"error": "Rule not found"}), 404
 
-
 @app.route('/api/evaluate', methods=['GET'])
 def evaluate():
-    attribute = request.args.get('attribute')  # Attribute type, e.g., 'device_id'
-    value = request.args.get('value')  # The value of the attribute, e.g., 'device123'
-    promocode = request.args.get('promocode')  # The promocode to filter by
+    try:
+        # Get the attribute types (can be multiple) and values (device_id, phone, etc.) from query parameters
+        attribute_types = request.args.get("attribute_types", "device_id").split(",")  # Defaults to "device_id"
 
-    # Ensure attribute and value are provided
-    if not attribute or not value:
-        return jsonify({"error": "Attribute and value are required"}), 400
+        # Get the value for each attribute type (e.g., device_id and phone)
+        values = {}
+        for attribute_type in attribute_types:
+            value = request.args.get(attribute_type, None)
+            if value:
+                values[attribute_type] = value
 
-    # Retrieve the rule for the provided attribute
-    rule = Rule.query.filter_by(attribute=attribute).first()
-    if not rule:
-        return jsonify({"error": "No rule found for this attribute"}), 404
+        # Get the promocode from the query parameters
+        promocode = request.args.get("promocode", None)
 
-    # Query Neo4j to count occurrences of the customer with the attribute and value, and check for the promocode
-    with driver.session() as session:
-        # Neo4j query to match the customer with the attribute and promocode
-        query = """
-            MATCH (c:Customer)-[:HAS_ATTRIBUTE]->(attr {type: $attribute, value: $value})
-            MATCH (c)-[:HAS_ATTRIBUTE]->(p {type: 'promocode', value: $promocode})
-            RETURN COUNT(DISTINCT c.email) AS count
-        """
-        result = session.run(query, attribute=attribute, value=value, promocode=promocode)
-        count = result.single()["count"]
+        # Initialize an empty dictionary to store results for each attribute
+        evaluation_results = {}
 
-    # Compare the occurrence count with the threshold defined in the rule
-    is_abusive = count >= rule.threshold
-    return jsonify({
-        "attribute": attribute,
-        "value": value,
-        "promocode": promocode,
-        "count": count,
-        "abusive": is_abusive
-    })
-    
+        # Iterate over the attribute types and evaluate based on the rules
+        for attribute_type in attribute_types:
+            rule = Rule.query.filter_by(attribute=attribute_type).first()
+            if not rule:
+                return jsonify({"error": f"No rule found for attribute {attribute_type}"}), 404
+
+            # Query Neo4j to count occurrences of the attribute value + promocode
+            with driver.session() as session:
+                query = """
+                    MATCH (c:Customer)-[:HAS_ATTRIBUTE]->(attr {type: $attribute_type, value: $value})
+                    MATCH (c)-[:HAS_ATTRIBUTE]->(p {type: 'promocode', value: $promocode})
+                    RETURN COUNT(DISTINCT c.email) AS count
+                """
+                result = session.run(query, attribute_type=attribute_type, value=values.get(attribute_type), promocode=promocode)
+                count = result.single()["count"]
+
+            # Compare the count with the rule threshold
+            is_abusive = count >= rule.threshold
+            evaluation_results[attribute_type] = {
+                "value": values.get(attribute_type),
+                "promocode": promocode,
+                "count": count,
+                "abusive": is_abusive
+            }
+
+        # Determine the overall result
+        overall_abusive = any(result["abusive"] for result in evaluation_results.values())
+        return jsonify({"evaluation_results": evaluation_results, "overall_abusive": overall_abusive})
+
+    except Exception as e:
+        return jsonify({"error": "An unexpected error occurred", "details": str(e)}), 500
 
 if __name__ == "__main__":
     print("started APP")
