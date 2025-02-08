@@ -348,27 +348,43 @@ def delete_rule(rule_id):
         return jsonify({"message": "Rule deleted successfully"}), 200
     return jsonify({"error": "Rule not found"}), 404
 
+
 @app.route('/api/evaluate', methods=['GET'])
 def evaluate():
-    attribute = request.args.get('attribute')
-    value = request.args.get('value')
+    attribute = request.args.get('attribute')  # Attribute type, e.g., 'device_id'
+    value = request.args.get('value')  # The value of the attribute, e.g., 'device123'
+    promocode = request.args.get('promocode')  # The promocode to filter by
 
+    # Ensure attribute and value are provided
+    if not attribute or not value:
+        return jsonify({"error": "Attribute and value are required"}), 400
+
+    # Retrieve the rule for the provided attribute
     rule = Rule.query.filter_by(attribute=attribute).first()
     if not rule:
         return jsonify({"error": "No rule found for this attribute"}), 404
 
-    # Query Neo4j to count occurrences
+    # Query Neo4j to count occurrences of the customer with the attribute and value, and check for the promocode
     with driver.session() as session:
-        result = session.run("""
+        # Neo4j query to match the customer with the attribute and promocode
+        query = """
             MATCH (c:Customer)-[:HAS_ATTRIBUTE]->(attr {type: $attribute, value: $value})
+            MATCH (c)-[:HAS_ATTRIBUTE]->(p {type: 'promocode', value: $promocode})
             RETURN COUNT(DISTINCT c.email) AS count
-        """, attribute=attribute, value=value)
-
+        """
+        result = session.run(query, attribute=attribute, value=value, promocode=promocode)
         count = result.single()["count"]
 
+    # Compare the occurrence count with the threshold defined in the rule
     is_abusive = count >= rule.threshold
-    return jsonify({"attribute": attribute, "value": value, "count": count, "abusive": is_abusive})
-
+    return jsonify({
+        "attribute": attribute,
+        "value": value,
+        "promocode": promocode,
+        "count": count,
+        "abusive": is_abusive
+    })
+    
 
 if __name__ == "__main__":
     print("started APP")
