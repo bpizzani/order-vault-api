@@ -317,7 +317,8 @@ def manage_rules():
         return jsonify({"message": "Rule added successfully"}), 201
     
     rules = Rule.query.all()
-    return jsonify([{ "id": r.id, "attribute": r.attribute, "threshold": r.threshold} for r in rules])
+    return jsonify([{"id": r.id, "attribute": r.attribute, "threshold": r.threshold} for r in rules])
+
 
 @app.route('/api/rules/<int:rule_id>', methods=['DELETE'])
 def delete_rule(rule_id):
