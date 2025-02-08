@@ -348,8 +348,8 @@ def delete_rule(rule_id):
         return jsonify({"message": "Rule deleted successfully"}), 200
     return jsonify({"error": "Rule not found"}), 404
 
-@app.route('/api/evaluate', methods=['GET'])
-def evaluate():
+@app.route('/api/evaluate_v0', methods=['GET'])
+def evaluate_v0():
     try:
         # Get the attribute types (can be multiple) and values (device_id, phone, etc.) from query parameters
         attribute_types = request.args.get("attribute_types", "device_id").split(",")  # Defaults to "device_id"
@@ -398,6 +398,61 @@ def evaluate():
 
     except Exception as e:
         return jsonify({"error": "An unexpected error occurred", "details": str(e)}), 500
+
+@app.route('/api/evaluate', methods=['GET'])
+def evaluate():
+    try:
+        # Get the attribute types (can be multiple) and values (device_id, phone, etc.) from query parameters
+        attribute_types = request.args.get("attribute_types", "device_id").split(",")  # Defaults to "device_id"
+
+        # Get the value for each attribute type (e.g., device_id and phone)
+        values = {}
+        for attribute_type in attribute_types:
+            value = request.args.get(attribute_type, None)
+            if value:
+                values[attribute_type] = value
+
+        # Get the promocode from the query parameters
+        promocode = request.args.get("promocode", None)
+
+        # Initialize an empty dictionary to store results for each attribute
+        evaluation_results = {}
+
+        # Iterate over the attribute types and evaluate based on the rules
+        for attribute_type in attribute_types:
+            rule = Rule.query.filter_by(attribute=attribute_type).first()
+            if not rule:
+                return jsonify({"error": f"No rule found for attribute {attribute_type}"}), 404
+
+            # Query Neo4j to count occurrences of the attribute value + promocode
+            with driver.session() as session:
+                query = """
+                    MATCH (c:Customer)-[:HAS_ATTRIBUTE]->(attr {type: $attribute_type, value: $value})
+                """
+                if promocode:
+                    query += "MATCH (c)-[:HAS_ATTRIBUTE]->(p {type: 'promocode', value: $promocode})"
+                query += "RETURN COUNT(DISTINCT c.email) AS count"
+                result = session.run(query, attribute_type=attribute_type, value=values.get(attribute_type), promocode=promocode)
+                
+                # Safeguard in case no result is returned
+                count = result.single()["count"] if result else 0
+
+            # Compare the count with the rule threshold
+            is_abusive = count >= rule.threshold
+            evaluation_results[attribute_type] = {
+                "value": values.get(attribute_type),
+                "promocode": promocode,
+                "count": count,
+                "abusive": is_abusive
+            }
+
+        # Determine the overall result
+        overall_abusive = any(result["abusive"] for result in evaluation_results.values())
+        return jsonify({"evaluation_results": evaluation_results, "overall_abusive": overall_abusive})
+
+    except Exception as e:
+        return jsonify({"error": "An unexpected error occurred", "details": str(e)}), 500
+        
 
 if __name__ == "__main__":
     print("started APP")
