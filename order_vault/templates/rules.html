@@ -116,11 +116,11 @@
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ attribute, threshold })
             })
-            .then(response => response.text())  // Change this to response.text() to inspect the raw response
+            .then(response => response.text())  // Fetch the response as text
             .then(text => {
-                console.log("Response Text:", text);  // Log the response text
+                console.log("Response Text:", text);  // Log the raw response text
                 try {
-                    const data = JSON.parse(text);  // Manually parse if it's valid JSON
+                    const data = JSON.parse(text);  // Attempt to parse JSON
                     loadRules();
                     document.getElementById("ruleForm").reset();
                 } catch (error) {
@@ -132,11 +132,11 @@
         
         function loadRules() {
             fetch("/api/rules")
-            .then(response => response.text())  // Change this to response.text() to inspect the raw response
+            .then(response => response.text())  // Fetch the response as text
             .then(text => {
-                console.log("Response Text:", text);  // Log the response text
+                console.log("Response Text:", text);  // Log the raw response text
                 try {
-                    const data = JSON.parse(text);  // Manually parse if it's valid JSON
+                    const data = JSON.parse(text);  // Attempt to parse JSON
                     const rulesTable = document.getElementById("rulesTable");
                     rulesTable.innerHTML = "";
                     data.forEach(rule => {
@@ -154,6 +154,7 @@
             })
             .catch(error => console.error("Error:", error));
         }
+
 
 
         function deleteRule(ruleId) {
