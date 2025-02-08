@@ -305,7 +305,7 @@ def aggregated_by_attributes():
     except Exception as e:
         return jsonify({"error": "An unexpected error occurred while fetching aggregates", "details": str(e)}), 500
 
-@app.route('/rules', methods=['GET', 'POST'])
+@app.route('/api/rules', methods=['GET', 'POST'])
 def manage_rules():
     if request.method == 'POST':
         data = request.json
