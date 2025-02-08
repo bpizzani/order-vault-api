@@ -110,38 +110,51 @@
         function addRule() {
             const attribute = document.getElementById("attribute").value;
             const threshold = document.getElementById("threshold").value;
-
+        
             fetch("/api/rules", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ attribute, threshold })
             })
-            .then(response => response.json())
-            .then(() => {
-                loadRules();
-                document.getElementById("ruleForm").reset();
+            .then(response => response.text())  // Change this to response.text() to inspect the raw response
+            .then(text => {
+                console.log("Response Text:", text);  // Log the response text
+                try {
+                    const data = JSON.parse(text);  // Manually parse if it's valid JSON
+                    loadRules();
+                    document.getElementById("ruleForm").reset();
+                } catch (error) {
+                    console.error("Error parsing JSON:", error);
+                }
+            })
+            .catch(error => console.error("Error:", error));
+        }
+        
+        function loadRules() {
+            fetch("/api/rules")
+            .then(response => response.text())  // Change this to response.text() to inspect the raw response
+            .then(text => {
+                console.log("Response Text:", text);  // Log the response text
+                try {
+                    const data = JSON.parse(text);  // Manually parse if it's valid JSON
+                    const rulesTable = document.getElementById("rulesTable");
+                    rulesTable.innerHTML = "";
+                    data.forEach(rule => {
+                        const row = document.createElement("tr");
+                        row.innerHTML = `
+                            <td>${rule.attribute}</td>
+                            <td>${rule.threshold}</td>
+                            <td><button class="delete-btn" onclick="deleteRule(${rule.id})">Eliminar</button></td>
+                        `;
+                        rulesTable.appendChild(row);
+                    });
+                } catch (error) {
+                    console.error("Error parsing JSON:", error);
+                }
             })
             .catch(error => console.error("Error:", error));
         }
 
-        function loadRules() {
-            fetch("/api/rules")
-            .then(response => response.json())
-            .then(data => {
-                const rulesTable = document.getElementById("rulesTable");
-                rulesTable.innerHTML = "";
-                data.forEach(rule => {
-                    const row = document.createElement("tr");
-                    row.innerHTML = `
-                        <td>${rule.attribute}</td>
-                        <td>${rule.threshold}</td>
-                        <td><button class="delete-btn" onclick="deleteRule(${rule.id})">Eliminar</button></td>
-                    `;
-                    rulesTable.appendChild(row);
-                });
-            })
-            .catch(error => console.error("Error:", error));
-        }
 
         function deleteRule(ruleId) {
             fetch(`/api/rules/${ruleId}`, {
