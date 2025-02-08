@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Reglas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            margin: 20px;
+        }
+        h2 {
+            color: #333;
+        }
+        form {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            display: inline-block;
+            text-align: left;
+        }
+        input, select, button {
+            padding: 10px;
+            margin: 5px;
+            width: 100%;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        table {
+            width: 80%;
+            margin: 0 auto;
+            background: white;
+            border-collapse: collapse;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+        th {
+            background: #007bff;
+            color: white;
+        }
+        .delete-btn {
+            background: red;
+            color: white;
+            cursor: pointer;
+            border: none;
+            padding: 5px;
+        }
+        .delete-btn:hover {
+            background: darkred;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Gestión de Reglas</h2>
+
+    <form id="ruleForm">
+        <label>Atributo:</label>
+        <select id="attribute">
+            <option value="device_id">Device ID</option>
+            <option value="email">Email</option>
+            <option value="phone">Phone</option>
+            <option value="card_details">Card Details</option>
+        </select>
+
+        <label>Umbral (Threshold):</label>
+        <input type="number" id="threshold" required>
+
+        <button type="submit">Agregar Regla</button>
+    </form>
+
+    <h3>Reglas Configuradas</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Atributo</th>
+                <th>Umbral</th>
+                <th>Acción</th>
+            </tr>
+        </thead>
+        <tbody id="rulesTable">
+            <!-- Aquí se mostrarán las reglas dinámicamente -->
+        </tbody>
+    </table>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            loadRules(); // Cargar reglas al inicio
+
+            document.getElementById("ruleForm").addEventListener("submit", function (event) {
+                event.preventDefault();
+                addRule();
+            });
+        });
+
+        function addRule() {
+            const attribute = document.getElementById("attribute").value;
+            const threshold = document.getElementById("threshold").value;
+
+            fetch("/api/rules", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ attribute, threshold })
+            })
+            .then(response => response.json())
+            .then(() => {
+                loadRules();
+                document.getElementById("ruleForm").reset();
+            })
+            .catch(error => console.error("Error:", error));
+        }
+
+        function loadRules() {
+            fetch("/api/rules")
+            .then(response => response.json())
+            .then(data => {
+                const rulesTable = document.getElementById("rulesTable");
+                rulesTable.innerHTML = "";
+                data.forEach(rule => {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${rule.attribute}</td>
+                        <td>${rule.threshold}</td>
+                        <td><button class="delete-btn" onclick="deleteRule(${rule.id})">Eliminar</button></td>
+                    `;
+                    rulesTable.appendChild(row);
+                });
+            })
+            .catch(error => console.error("Error:", error));
+        }
+
+        function deleteRule(ruleId) {
+            fetch(`/api/rules/${ruleId}`, {
+                method: "DELETE"
+            })
+            .then(() => loadRules())
+            .catch(error => console.error("Error:", error));
+        }
+    </script>
+
+</body>
+</html>
