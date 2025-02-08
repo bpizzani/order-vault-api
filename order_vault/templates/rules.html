@@ -131,7 +131,7 @@
         }
         
         function loadRules() {
-            fetch("https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/rules")
+            fetch("https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/rules", { method: "GET" })
             .then(response => response.text())  // Fetch the response as text
             .then(text => {
                 console.log("Response Text:", text);  // Log the raw response text
