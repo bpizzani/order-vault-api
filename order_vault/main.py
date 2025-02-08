@@ -52,13 +52,13 @@ def home():
 @app.route('/rules')
 def rules_ui():
     return render_template('rules.html')
-    
+
 @app.route("/api/fingerprint", methods=["GET", "POST","OPTIONS"])
 def fingerprint():
     if request.method == "OPTIONS":
         # Handle the preflight request (CORS)
         return '', 200
-        
+
     try:
         logger.info("Received request to /api/fingerprint")
 
@@ -69,7 +69,7 @@ def fingerprint():
         else:
             logger.warning("No data received in the request")
 
-                     
+
         # 🔒 Secretly select the features you care about (e.g., userAgent, platform, deviceMemory)
         selected_data = [
             str(data.get("userAgent", "")), 
@@ -310,30 +310,14 @@ def aggregated_by_attributes():
 @app.route('/api/rules', methods=['GET', 'POST'])
 def manage_rules():
     if request.method == 'POST':
-        # Extracting the JSON data from the request
         data = request.json
-        
-        # Create a new Rule instance
         new_rule = Rule(attribute=data['attribute'], threshold=data['threshold'])
-        
-        # Add to database and commit
         db.session.add(new_rule)
         db.session.commit()
+        return jsonify({"message": "Rule added successfully"}), 201
 
-        # Return the new rule as JSON (including ID)
-        return jsonify({
-            "id": new_rule.id,
-            "attribute": new_rule.attribute,
-            "threshold": new_rule.threshold
-        }), 201  # 201 status means the resource was created successfully
-    
-    # GET request: Return all the rules from the database
     rules = Rule.query.all()
-    return jsonify([{
-        "id": r.id,
-        "attribute": r.attribute,
-        "threshold": r.threshold
-    } for r in rules])
+    return jsonify([{"id": r.id, "attribute": r.attribute, "threshold": r.threshold} for r in rules])
 
 @app.route('/api/rules/<int:rule_id>', methods=['DELETE'])
 def delete_rule(rule_id):
@@ -348,20 +332,20 @@ def delete_rule(rule_id):
 def evaluate():
     attribute = request.args.get('attribute')
     value = request.args.get('value')
-    
+
     rule = Rule.query.filter_by(attribute=attribute).first()
     if not rule:
         return jsonify({"error": "No rule found for this attribute"}), 404
-    
+
     # Query Neo4j to count occurrences
     with driver.session() as session:
         result = session.run("""
             MATCH (c:Customer)-[:HAS_ATTRIBUTE]->(attr {type: $attribute, value: $value})
             RETURN COUNT(DISTINCT c.email) AS count
         """, attribute=attribute, value=value)
-        
+
         count = result.single()["count"]
-        
+
     is_abusive = count >= rule.threshold
     return jsonify({"attribute": attribute, "value": value, "count": count, "abusive": is_abusive})
 
