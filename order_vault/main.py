@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, flash, jsonify
 import requests  # For calling the Client App API
+from flask_sqlalchemy import SQLAlchemy
 from flask_restful import Api, Resource, reqparse 
 from flask_migrate import Migrate  # test
 from neo4j import GraphDatabase
