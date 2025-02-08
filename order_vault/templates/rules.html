@@ -5,70 +5,150 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de Reglas</title>
     <style>
+        /* Basic Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #fff;
             text-align: center;
-            margin: 20px;
+            margin: 0;
+            padding: 0;
         }
-        h2 {
-            color: #333;
-        }
-        form {
-            background: white;
-            padding: 20px;
+
+        h2, h3 {
+            color: #0ff;
             margin-bottom: 20px;
-            border-radius: 5px;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-            display: inline-block;
+        }
+
+        h2 {
+            font-size: 2rem;
+            letter-spacing: 2px;
+        }
+
+        h3 {
+            font-size: 1.5rem;
+        }
+
+        form {
+            background: #222;
+            padding: 30px;
+            margin: 50px auto;
+            border-radius: 15px;
+            width: 80%;
+            max-width: 400px;
+            box-shadow: 0px 8px 20px rgba(0, 255, 255, 0.1);
+            transition: all 0.3s ease-in-out;
+        }
+
+        form:hover {
+            transform: scale(1.02);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 1rem;
             text-align: left;
+            color: #aaa;
         }
-        input, select, button {
-            padding: 10px;
-            margin: 5px;
+
+        select, input, button {
             width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            border: 2px solid #333;
+            background-color: #333;
+            color: #fff;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
         }
+
+        select:hover, input:hover, button:hover {
+            border-color: #0ff;
+        }
+
         button {
-            background-color: #28a745;
-            color: white;
-            border: none;
+            background-color: #0ff;
             cursor: pointer;
+            font-weight: bold;
+            border: none;
+            transition: background-color 0.3s ease;
         }
+
         button:hover {
-            background-color: #218838;
+            background-color: #06b8b8;
         }
+
         table {
             width: 80%;
-            margin: 0 auto;
-            background: white;
+            margin: 50px auto;
+            background: #1f1f1f;
             border-collapse: collapse;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            box-shadow: 0px 8px 20px rgba(0, 255, 255, 0.1);
         }
+
         th, td {
-            padding: 10px;
-            border: 1px solid #ddd;
+            padding: 15px;
+            border: 1px solid #444;
+            text-align: center;
+            font-size: 1rem;
         }
+
         th {
-            background: #007bff;
-            color: white;
+            background: #333;
+            color: #0ff;
+            font-weight: bold;
         }
+
+        td {
+            background: #222;
+            color: #bbb;
+        }
+
         .delete-btn {
             background: red;
             color: white;
-            cursor: pointer;
+            padding: 6px 12px;
             border: none;
-            padding: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
         }
+
         .delete-btn:hover {
             background: darkred;
         }
+
+        /* Adding smooth animations */
+        .fade-in {
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+
     </style>
 </head>
 <body>
 
-    <h2>Gestión de Reglas</h2>
+    <h2>Gestión de Reglas - Prevención de Fraude</h2>
 
-    <form id="ruleForm">
+    <form id="ruleForm" class="fade-in">
         <label>Atributo:</label>
         <select id="attribute">
             <option value="device_id">Device ID</option>
@@ -84,7 +164,7 @@
     </form>
 
     <h3>Reglas Configuradas</h3>
-    <table>
+    <table class="fade-in">
         <thead>
             <tr>
                 <th>Atributo</th>
@@ -110,7 +190,7 @@
         function addRule() {
             const attribute = document.getElementById("attribute").value;
             const threshold = document.getElementById("threshold").value;
-        
+
             fetch("https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/rules", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -129,7 +209,7 @@
             })
             .catch(error => console.error("Error:", error));
         }
-        
+
         function loadRules() {
             fetch("https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/rules", { method: "GET" })
             .then(response => response.text())  // Fetch the response as text
@@ -155,8 +235,6 @@
             .catch(error => console.error("Error:", error));
         }
 
-
-
         function deleteRule(ruleId) {
             fetch(`/api/rules/${ruleId}`, {
                 method: "DELETE"
@@ -168,3 +246,4 @@
 
 </body>
 </html>
+
