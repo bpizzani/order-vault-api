@@ -327,7 +327,8 @@ def manage_rules():
         return jsonify({
             "id": new_rule.id,
             "attribute": new_rule.attribute,
-            "threshold": new_rule.threshold
+            "threshold": new_rule.threshold,
+            "promocode": new_rule.promocode
         }), 201  # 201 status means the resource was created successfully
     
     # GET request: Return all the rules from the database
@@ -335,7 +336,8 @@ def manage_rules():
     return jsonify([{
         "id": r.id,
         "attribute": r.attribute,
-        "threshold": r.threshold
+        "threshold": r.threshold,
+        "promocode": r.promocode
     } for r in rules])
 
 
