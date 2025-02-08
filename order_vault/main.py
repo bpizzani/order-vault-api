@@ -317,7 +317,7 @@ def manage_rules():
         data = request.json
         
         # Create a new Rule instance
-        new_rule = Rule(attribute=data['attribute'], threshold=data['threshold'])
+        new_rule = Rule(attribute=data['attribute'], threshold=data['threshold'], promocode=data['promocode'])
         
         # Add to database and commit
         db.session.add(new_rule)
