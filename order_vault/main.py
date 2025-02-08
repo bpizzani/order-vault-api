@@ -374,30 +374,29 @@ def evaluate():
             
             # If no rule is found, log it and proceed with a default threshold (e.g., 0)
             if not rule:
-                print(f"No rule found for attribute {attribute_type}. Using default threshold.")
-                rule = type("Rule", (), {"threshold": 0})  # Creating a dummy rule with threshold 0
-            
-            # Query Neo4j to count occurrences of the attribute value + promocode
-            with driver.session() as session:
-                query = """
-                    MATCH (c:Customer)-[:HAS_ATTRIBUTE]->(attr {type: $attribute_type, value: $value})
-                """
-                if promocode:
-                    query += "MATCH (c)-[:HAS_ATTRIBUTE]->(p {type: 'promocode', value: $promocode})"
-                query += "RETURN COUNT(DISTINCT c.email) AS count"
-                result = session.run(query, attribute_type=attribute_type, value=values.get(attribute_type), promocode=promocode)
-                
-                # Safeguard in case no result is returned
-                count = result.single()["count"] if result else 0
-
-            # Compare the count with the rule threshold
-            is_abusive = count >= rule.threshold
-            evaluation_results[attribute_type] = {
-                "value": values.get(attribute_type),
-                "promocode": promocode,
-                "count": count,
-                "abusive": is_abusive
-            }
+                print(f"No rule found for attribute {attribute_type}.")
+            else:
+                # Query Neo4j to count occurrences of the attribute value + promocode
+                with driver.session() as session:
+                    query = """
+                        MATCH (c:Customer)-[:HAS_ATTRIBUTE]->(attr {type: $attribute_type, value: $value})
+                    """
+                    if promocode:
+                        query += "MATCH (c)-[:HAS_ATTRIBUTE]->(p {type: 'promocode', value: $promocode})"
+                    query += "RETURN COUNT(DISTINCT c.email) AS count"
+                    result = session.run(query, attribute_type=attribute_type, value=values.get(attribute_type), promocode=promocode)
+                    
+                    # Safeguard in case no result is returned
+                    count = result.single()["count"] if result else 0
+    
+                # Compare the count with the rule threshold
+                is_abusive = count >= rule.threshold
+                evaluation_results[attribute_type] = {
+                    "value": values.get(attribute_type),
+                    "promocode": promocode,
+                    "count": count,
+                    "abusive": is_abusive
+                }
 
         # Determine the overall result (if any attribute is abusive, return overall_abusive as True)
         overall_abusive = any(result["abusive"] for result in evaluation_results.values())
