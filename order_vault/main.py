@@ -15,6 +15,10 @@ from order_vault.models.db import db
 from order_vault.models.rule import Rule
 import os
 
+@app.before_first_request
+def create_tables():
+    db.create_all()  # This will create tables based on your models
+
 CORS(app, supports_credentials=True)
 
 # Flask App Setup
