@@ -111,7 +111,7 @@
             const attribute = document.getElementById("attribute").value;
             const threshold = document.getElementById("threshold").value;
         
-            fetch("/api/rules", {
+            fetch("https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/rules", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ attribute, threshold })
