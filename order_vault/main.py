@@ -8,6 +8,8 @@ import time
 import hashlib
 from flask_cors import CORS
 import logging
+from order_vault.models.db import db
+from order_vault.models.rule import Rule
 
 CORS(app, supports_credentials=True)
 
@@ -21,6 +23,15 @@ NEO4J_URI = "neo4j+s://e027cbe1.databases.neo4j.io"  # Replace with your Neo4j i
 NEO4J_USERNAME = "neo4j"  # Replace with your username
 NEO4J_PASSWORD = "8qain--QL1kWhww4XY_bKIcoAPgLnexJJt4WC59dRhY"  # Replace with your password
 driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USERNAME, NEO4J_PASSWORD))
+
+# Database configuration
+app.config["SQLALCHEMY_DATABASE_URI"] = 'postgresql://uep1f6okicnq6m:p6f35e035c018de9f19312b19bf865952eaa074171d2eaa324e914d3fbfea6ad2@c9uss87s9bdb8n.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com:5432/d5pggql3gg26am' #os.getenv('DATABASE_URL') #os.environ.get("DATABASE_URL") #"sqlite:///orders_v4.db" #os.environ.get("DATABASE_URL", "sqlite:///orders_v4.db")
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+print(f"Database URI: {os.getenv('DATABASE_URL')}")
+db.init_app(app)
+migrate = Migrate(app, db)  # Initialize Flask-Migrate with the app and db
+
+api = Api(app)
 
 @app.route("/", methods=["GET", "POST"])
 def home():
