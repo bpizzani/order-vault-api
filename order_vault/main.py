@@ -310,15 +310,30 @@ def aggregated_by_attributes():
 @app.route('/api/rules', methods=['GET', 'POST'])
 def manage_rules():
     if request.method == 'POST':
+        # Extracting the JSON data from the request
         data = request.json
+        
+        # Create a new Rule instance
         new_rule = Rule(attribute=data['attribute'], threshold=data['threshold'])
+        
+        # Add to database and commit
         db.session.add(new_rule)
         db.session.commit()
-        return jsonify({"message": "Rule added successfully"}), 201
-    
-    rules = Rule.query.all()
-    return jsonify([{"id": r.id, "attribute": r.attribute, "threshold": r.threshold} for r in rules])
 
+        # Return the new rule as JSON (including ID)
+        return jsonify({
+            "id": new_rule.id,
+            "attribute": new_rule.attribute,
+            "threshold": new_rule.threshold
+        }), 201  # 201 status means the resource was created successfully
+    
+    # GET request: Return all the rules from the database
+    rules = Rule.query.all()
+    return jsonify([{
+        "id": r.id,
+        "attribute": r.attribute,
+        "threshold": r.threshold
+    } for r in rules])
 
 @app.route('/api/rules/<int:rule_id>', methods=['DELETE'])
 def delete_rule(rule_id):
