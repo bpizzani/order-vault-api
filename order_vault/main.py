@@ -384,7 +384,7 @@ def evaluate():
                     """
                     if promocode:
                         query += "MATCH (c)-[:HAS_ATTRIBUTE]->(p {type: 'promocode', value: $promocode})"
-                    query += "RETURN COUNT(DISTINCT c.email) AS count"
+                    query += "RETURN COUNT(DISTINCT c.id) AS count"
                     result = session.run(query, attribute_type=attribute_type, value=values.get(attribute_type), promocode=promocode)
                     
                     # Safeguard in case no result is returned
