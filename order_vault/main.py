@@ -371,7 +371,7 @@ def evaluate():
         # Iterate over the attribute types and evaluate based on the rules
         for attribute_type in attribute_types:
             # Get the rule for the attribute type
-            rule = Rule.query.filter_by(attribute=attribute_type).first()
+            rule = Rule.query.filter_by(attribute=attribute_type,promocode=promocode).first()
             
             # If no rule is found, log it and proceed with a default threshold (e.g., 0)
             if not rule:
