@@ -314,10 +314,10 @@ def manage_rules():
     if request.method == 'POST':
         # Extracting the JSON data from the request
         data = request.json
-        
+
         # Create a new Rule instance
         new_rule = Rule(attribute=data['attribute'], threshold=data['threshold'], promocode=data['promocode'])
-        
+
         # Add to database and commit
         db.session.add(new_rule)
         db.session.commit()
@@ -329,7 +329,7 @@ def manage_rules():
             "threshold": new_rule.threshold,
             "promocode": new_rule.promocode
         }), 201  # 201 status means the resource was created successfully
-    
+
     # GET request: Return all the rules from the database
     rules = Rule.query.all()
     return jsonify([{
@@ -372,7 +372,7 @@ def evaluate():
         for attribute_type in attribute_types:
             # Get the rule for the attribute type
             rule = Rule.query.filter_by(attribute=attribute_type,promocode=promocode).first()
-            
+
             # If no rule is found, log it and proceed with a default threshold (e.g., 0)
             if not rule:
                 print(f"No rule found for attribute {attribute_type}.")
@@ -387,14 +387,11 @@ def evaluate():
                     if promocode:
                         query += "MATCH (c)-[:HAS_ATTRIBUTE]->(p {type: 'promocode', value: $promocode})"
                     query += "RETURN COUNT(DISTINCT order_id) AS count"
-
                     result = session.run(query, attribute_type=attribute_type, value=values.get(attribute_type), promocode=promocode)
-                    
-                    logger.info("Query Result: {result.single()["count"]}")
 
                     # Safeguard in case no result is returned
                     count = result.single()["count"] if result else 0
-    
+
                 # Compare the count with the rule threshold
                 is_abusive = count >= rule.threshold
                 evaluation_results[attribute_type] = {
@@ -410,8 +407,9 @@ def evaluate():
 
     except Exception as e:
         return jsonify({"error": "An unexpected error occurred", "details": str(e)}), 500
-        
+
 
 if __name__ == "__main__":
     print("started APP")
     #app.run(debug=True, port=5002)  # Run the Middle App on a different port
+
