@@ -365,7 +365,7 @@ def evaluate():
         # Get the promocode from the query parameters
         promocode = request.args.get("promocode", None)
         print(f"Promocode to evaluate : {promocode}")
-        
+
         # Initialize an empty dictionary to store results for each attribute
         evaluation_results = {}
 
@@ -386,13 +386,14 @@ def evaluate():
             else:
                 # Query Neo4j to count occurrences of the attribute value + promocode
                 with driver.session() as session:
-                   query = """
-                    MATCH (c:Customer)-[:HAS_ATTRIBUTE]->(attr {type: $attribute_type, value: $value})
-                    MATCH (c)-[:HAS_ATTRIBUTE]->(order_id {type: 'id'})
-                    MATCH (order_id)-[:HAS_ATTRIBUTE]->(p {type: 'promocode', value: $promocode})
-                    RETURN COUNT(DISTINCT order_id) AS count
+                    query = """
+                        MATCH (c:Customer)-[:HAS_ATTRIBUTE]->(attr {type: $attribute_type, value: $value})
+                        MATCH (c)-[:HAS_ATTRIBUTE]->(order_id {type: 'id'})
                     """
-                    
+
+                    if promocode:
+                        query += "MATCH (c)-[:HAS_ATTRIBUTE]->(p {type: 'promocode', value: $promocode})"
+                    query += "RETURN COUNT(DISTINCT order_id) AS count"
                     result = session.run(query, attribute_type=attribute_type, value=values.get(attribute_type), promocode=promocode)
 
                     # Safeguard in case no result is returned
@@ -419,4 +420,3 @@ def evaluate():
 if __name__ == "__main__":
     print("started APP")
     #app.run(debug=True, port=5002)  # Run the Middle App on a different port
-
