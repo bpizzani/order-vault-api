@@ -409,6 +409,7 @@ def evaluate():
 
         # Determine the overall result (if any attribute is abusive, return overall_abusive as True)
         overall_abusive = any(result["abusive"] for result in evaluation_results.values())
+        print(overall_abusive)
         return jsonify({"evaluation_results": evaluation_results, "overall_abusive": overall_abusive})
 
     except Exception as e:
