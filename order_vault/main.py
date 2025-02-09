@@ -364,7 +364,7 @@ def evaluate():
 
         # Get the promocode from the query parameters
         promocode = request.args.get("promocode", None)
-        print("Promocode to evaluate : {promocode}")
+        print(f"Promocode to evaluate : {promocode}")
         
         # Initialize an empty dictionary to store results for each attribute
         evaluation_results = {}
@@ -373,7 +373,7 @@ def evaluate():
         for attribute_type in attribute_types:
             # Get the rule for the attribute type
             rule = Rule.query.filter_by(attribute=attribute_type,promocode=promocode).first()
-            print("Rule to evaluate : {rule}")
+            print(f"Rule to evaluate : {rule}")
             # If no rule is found, log it and proceed with a default threshold (e.g., 0)
             if not rule:
                 print(f"No rule found for attribute {attribute_type}.")
