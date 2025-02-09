@@ -386,12 +386,13 @@ def evaluate():
             else:
                 # Query Neo4j to count occurrences of the attribute value + promocode
                 with driver.session() as session:
+
                     query = """
-                    MATCH (c:Customer)-[:HAS_ATTRIBUTE]->(attr {type: $attribute_type, value: $value})
-                    MATCH (c)-[:HAS_ATTRIBUTE]->(order_id {type: 'id'})
-                    MATCH (order_id)-[:HAS_ATTRIBUTE]->(p {type: 'promocode', value: $promocode})
-                    RETURN COUNT(DISTINCT order_id) AS count
-                    """
+                        MATCH (c:Customer)-[:HAS_ATTRIBUTE]->(attr {type: $attribute_type, value: $value})
+                        """
+                    if promocode:
+                        query += "MATCH (c)-[:HAS_ATTRIBUTE]->(p {type: 'promocode', value: $promocode})"
+                    query += "RETURN COUNT(DISTINCT c.email) AS count"
                     
                     result = session.run(query, attribute_type=attribute_type, value=values.get(attribute_type), promocode=promocode)
 
