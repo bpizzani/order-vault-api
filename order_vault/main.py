@@ -376,6 +376,12 @@ def evaluate():
             # If no rule is found, log it and proceed with a default threshold (e.g., 0)
             if not rule:
                 print(f"No rule found for attribute {attribute_type}.")
+                evaluation_results[attribute_type] = {
+                    "value": values.get(attribute_type),
+                    "promocode": promocode,
+                    "count": 0,
+                    "abusive": False
+                }
             else:
                 # Query Neo4j to count occurrences of the attribute value + promocode
                 with driver.session() as session:
