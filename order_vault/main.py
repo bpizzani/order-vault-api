@@ -390,6 +390,8 @@ def evaluate():
 
                     result = session.run(query, attribute_type=attribute_type, value=values.get(attribute_type), promocode=promocode)
                     
+                    logger.info("Query Result: {result.single()["count"]}")
+
                     # Safeguard in case no result is returned
                     count = result.single()["count"] if result else 0
     
