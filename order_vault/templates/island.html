@@ -95,20 +95,34 @@
         </tbody>
     </table>
 
+    <h3>Atributos de la Network</h3>
+    <table id="networkAttributesTable">
+        <thead>
+            <tr>
+                <th>Atributo</th>
+                <th>Cantidad</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Aquí se llenarán los datos dinámicamente -->
+        </tbody>
+    </table>
+
     <script>
         document.getElementById("emailForm").addEventListener("submit", function(event) {
             event.preventDefault();  // Evita el refresco de la página
             const email = document.getElementById("email").value;
             fetchCustomerAttributes(email);
+            fetchNetworkAttributes(email);
         });
 
         function fetchCustomerAttributes(email) {
             fetch(`https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/customer-attributes?email=${encodeURIComponent(email)}`)
                 .then(response => response.json())
                 .then(data => {
-                    console.log("API Response:", data);
+                    console.log("API Response - Customer Attributes:", data);
                     const tableBody = document.querySelector("#attributesTable tbody");
-                    tableBody.innerHTML = "";  // Limpiar la tabla antes de agregar nuevos datos
+                    tableBody.innerHTML = "";  
 
                     if (Object.keys(data).length === 0) {
                         tableBody.innerHTML = "<tr><td colspan='2'>No se encontraron datos</td></tr>";
@@ -121,10 +135,31 @@
                         tableBody.appendChild(row);
                     }
                 })
-                .catch(error => console.error("Error al obtener los atributos:", error));
+                .catch(error => console.error("Error al obtener los atributos del cliente:", error));
+        }
+
+        function fetchNetworkAttributes(email) {
+            fetch(`https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/customer-attributes-network?email=${encodeURIComponent(email)}`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log("API Response - Network Attributes:", data);
+                    const tableBody = document.querySelector("#networkAttributesTable tbody");
+                    tableBody.innerHTML = "";  
+
+                    if (Object.keys(data).length === 0) {
+                        tableBody.innerHTML = "<tr><td colspan='2'>No se encontraron datos</td></tr>";
+                        return;
+                    }
+
+                    for (const [attribute, count] of Object.entries(data)) {
+                        const row = document.createElement("tr");
+                        row.innerHTML = `<td>${attribute}</td><td>${count}</td>`;
+                        tableBody.appendChild(row);
+                    }
+                })
+                .catch(error => console.error("Error al obtener los atributos de la network:", error));
         }
     </script>
 
 </body>
 </html>
-
