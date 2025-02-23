@@ -46,22 +46,31 @@ driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USERNAME, NEO4J_PASSWORD))
 logging.basicConfig(level=logging.DEBUG)  # Set level to DEBUG to capture all logs
 logger = logging.getLogger(__name__)
 
-@app.route('/api/customer-attributes', methods=['GET'])
+@app.route("/api/customer-attributes", methods=["GET"])
 def get_customer_attributes():
-    email = request.args.get("email")
+    email = request.args.get("email", "").strip().lower()  # Normalize input
     if not email:
-        return jsonify({"error": "Email is required"}), 400
+        return jsonify({"error": "Missing email parameter"}), 400
 
     query = """
-        MATCH (c:Customer {email: $email})-[:HAS_ATTRIBUTE]->(attr)
-        RETURN attr.type AS attribute, COUNT(attr) AS count
+    MATCH (c:Customer {email: $email})-[:HAS_ATTRIBUTE]->(attr)
+    RETURN attr.type AS attribute, COUNT(attr) AS count
     """
 
-    with driver.session() as session:
-        result = session.run(query, email=email)
-        attributes = {record["attribute"]: record["count"] for record in result}
+    params = {"email": email}
 
-    return jsonify(attributes)
+    try:
+        with driver.session() as session:
+            result = session.run(query, params)
+            attributes = {record["attribute"]: record["count"] for record in result}
+
+        if not attributes:
+            return jsonify({"message": "No attributes found for this email"}), 200
+
+        return jsonify(attributes), 200
+
+    except Exception as e:
+        return jsonify({"error": "Database error", "details": str(e)}), 500
     
 @app.route("/", methods=["GET", "POST"])
 def home():
