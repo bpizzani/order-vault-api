@@ -137,69 +137,66 @@
                 })
                 .catch(error => console.error("Error al obtener los atributos del cliente:", error));
         }
-
+    
     function fetchNetworkAttributes(email) {
-         fetch(`https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/customer-attributes-network?email=${encodeURIComponent(email)}`)
-         .then(response => response.json())
-         .then(data => {
-             console.log("API Response - Network Attributes:", data); // Log the API response to inspect its structure
-     
-             const tableBody = document.querySelector("#networkAttributesTable tbody");
-             tableBody.innerHTML = "";  // Clear previous data
-     
-             if (data.message || Object.keys(data).length === 0) {
-                 tableBody.innerHTML = "<tr><td colspan='2'>No se encontraron datos</td></tr>";
-                 return;
-             }
-     
-             // Render the network attributes data
-             const networkData = data.network_counts;  // Ensure this is the correct key based on the API response
-     
-             // Log the structure of the network data for further inspection
-             console.log("Network Data:", networkData);
-     
-             // Display distinct phones
-             const rowPhones = document.createElement("tr");
-             rowPhones.innerHTML = `
-                 <td>Teléfonos Distintos</td>
-                 <td>${networkData.phone_count}</td>
-             `;
-             tableBody.appendChild(rowPhones);
-     
-             // Display distinct device IDs
-             const rowDeviceIds = document.createElement("tr");
-             rowDeviceIds.innerHTML = `
-                 <td>Device IDs Distintos</td>
-                 <td>${networkData.device_id_count}</td>
-             `;
-             tableBody.appendChild(rowDeviceIds);
-     
-             // Display distinct card details
-             const rowCardDetails = document.createElement("tr");
-             rowCardDetails.innerHTML = `
-                 <td>Detalles de Tarjetas Distintos</td>
-                 <td>${networkData.card_details_count}</td>
-             `;
-             tableBody.appendChild(rowCardDetails);
-     
-             // Display distinct promocodes
-             const rowPromocodes = document.createElement("tr");
-             rowPromocodes.innerHTML = `
-                 <td>Promocodes Distintos</td>
-                 <td>${networkData.promocode_count}</td>
-             `;
-             tableBody.appendChild(rowPromocodes);
-     
-             // Display distinct order IDs
-             const rowIds = document.createElement("tr");
-             rowIds.innerHTML = `
-                 <td>Ordenes Distintas</td>
-                 <td>${networkData.distinct_order_ids}</td>
-             `;
-             tableBody.appendChild(rowIds);
-         })
-         .catch(error => console.error("Error al obtener los atributos de la network:", error));
-     }
+        fetch(`https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/customer-attributes-network?email=${encodeURIComponent(email)}`)
+        .then(response => response.json())
+        .then(data => {
+            console.log("API Response - Network Attributes:", data);
+    
+            const tableBody = document.querySelector("#networkAttributesTable tbody");
+            tableBody.innerHTML = "";  // Clear previous data
+    
+            if (data.message || Object.keys(data).length === 0) {
+                tableBody.innerHTML = "<tr><td colspan='2'>No se encontraron datos</td></tr>";
+                return;
+            }
+    
+            // Render the network attributes data
+            const networkData = data;  // Adjust if the structure differs in the response
+    
+            // Display distinct phones
+            const rowPhones = document.createElement("tr");
+            rowPhones.innerHTML = `
+                <td>Teléfonos Distintos</td>
+                <td>${networkData.distinct_phones}</td>
+            `;
+            tableBody.appendChild(rowPhones);
+    
+            // Display distinct device IDs
+            const rowDeviceIds = document.createElement("tr");
+            rowDeviceIds.innerHTML = `
+                <td>Device IDs Distintos</td>
+                <td>${networkData.distinct_devices}</td>
+            `;
+            tableBody.appendChild(rowDeviceIds);
+    
+            // Display distinct card details
+            const rowCardDetails = document.createElement("tr");
+            rowCardDetails.innerHTML = `
+                <td>Detalles de Tarjetas Distintos</td>
+                <td>${networkData.distinct_cards}</td>
+            `;
+            tableBody.appendChild(rowCardDetails);
+    
+            // Display distinct promocodes
+            const rowPromocodes = document.createElement("tr");
+            rowPromocodes.innerHTML = `
+                <td>Promocodes Distintos</td>
+                <td>${networkData.distinct_promocodes}</td>
+            `;
+            tableBody.appendChild(rowPromocodes);
+    
+            // Display distinct order IDs
+            const rowIds = document.createElement("tr");
+            rowIds.innerHTML = `
+                <td>Ordenes Distintas</td>
+                <td>${networkData.distinct_order_ids}</td>
+            `;
+            tableBody.appendChild(rowIds);
+        })
+        .catch(error => console.error("Error al obtener los atributos de la network:", error));
+    }
 
     </script>
 
