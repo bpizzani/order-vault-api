@@ -467,7 +467,7 @@ def get_customer_network_attributes():
 
     MATCH (c2:Customer)-[:HAS_ATTRIBUTE]->(attr2)
     WHERE attr2.value IN shared_attributes
-    RETURN attr2.type AS attribute, COUNT(attr2) AS count
+    RETURN attr2.type AS attribute, COUNT(DISTINCT c2) AS count
     """
 
     params = {"email": email}
