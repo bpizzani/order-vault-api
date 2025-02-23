@@ -138,27 +138,56 @@
                 .catch(error => console.error("Error al obtener los atributos del cliente:", error));
         }
 
-        function fetchNetworkAttributes(email) {
-            fetch(`https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/customer-attributes-network?email=${encodeURIComponent(email)}`)
-                .then(response => response.json())
-                .then(data => {
-                    console.log("API Response - Network Attributes:", data);
-                    const tableBody = document.querySelector("#networkAttributesTable tbody");
-                    tableBody.innerHTML = "";  
+function fetchNetworkAttributes(email) {
+    fetch(`https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/customer-attributes-network?email=${encodeURIComponent(email)}`)
+        .then(response => response.json())
+        .then(data => {
+            console.log("API Response - Network Attributes:", data);
 
-                    if (Object.keys(data).length === 0) {
-                        tableBody.innerHTML = "<tr><td colspan='2'>No se encontraron datos</td></tr>";
-                        return;
-                    }
+            const tableBody = document.querySelector("#networkAttributesTable tbody");
+            tableBody.innerHTML = "";  // Clear previous data
 
-                    for (const [attribute, count] of Object.entries(data)) {
-                        const row = document.createElement("tr");
-                        row.innerHTML = `<td>${attribute}</td><td>${count}</td>`;
-                        tableBody.appendChild(row);
-                    }
-                })
-                .catch(error => console.error("Error al obtener los atributos de la network:", error));
-        }
+            if (data.message || Object.keys(data).length === 0) {
+                tableBody.innerHTML = "<tr><td colspan='2'>No se encontraron datos</td></tr>";
+                return;
+            }
+
+            // Render the network attributes data
+            const networkData = data;
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>Atributos compartidos</td>
+                <td>${networkData.connected_attributes.join(', ')}</td>
+            `;
+            tableBody.appendChild(row);
+
+            // Show connected values
+            const rowValues = document.createElement("tr");
+            rowValues.innerHTML = `
+                <td>Valores compartidos</td>
+                <td>${networkData.connected_values.join(', ')}</td>
+            `;
+            tableBody.appendChild(rowValues);
+
+            // Show distinct order IDs
+            const rowOrderIds = document.createElement("tr");
+            rowOrderIds.innerHTML = `
+                <td>Ordenes distintas</td>
+                <td>${networkData.distinct_order_ids}</td>
+            `;
+            tableBody.appendChild(rowOrderIds);
+
+            // Show total connected customers
+            const rowCount = document.createElement("tr");
+            rowCount.innerHTML = `
+                <td>Total clientes conectados</td>
+                <td>${networkData.network_count}</td>
+            `;
+            tableBody.appendChild(rowCount);
+
+        })
+        .catch(error => console.error("Error al obtener los atributos de la network:", error));
+    }
     </script>
 
 </body>
