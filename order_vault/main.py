@@ -54,7 +54,7 @@ def get_customer_attributes():
         return jsonify({"error": "Missing email parameter"}), 400
 
     print(f"Received email: {email}")  # Add this to check what email is received
-
+    email = "Customer "+email
     query = """
     MATCH (c:Customer {email: $email})-[:HAS_ATTRIBUTE]->(attr)
     RETURN attr.type AS attribute, COUNT(attr) AS count
