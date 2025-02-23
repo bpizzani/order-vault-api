@@ -462,19 +462,17 @@ def get_customer_network_attributes():
 
     query = """
     MATCH (c:Customer {email: $email})-[:HAS_ATTRIBUTE]->(attr)
-    WHERE attr.type IN ['phone', 'device_id', 'id', 'email','promocode','card_details']
+    WHERE attr.type IN ['phone', 'device_id', 'card_details', 'promocode']
     WITH COLLECT(DISTINCT attr.value) AS shared_attributes
     
     MATCH (c2:Customer)-[:HAS_ATTRIBUTE]->(attr2)
-    WHERE attr2.value IN shared_attributes AND attr2.type IN ['phone', 'device_id', 'id', 'email','promocode','card_details']
+    WHERE attr2.value IN shared_attributes AND attr2.type IN ['phone', 'device_id', 'card_details', 'promocode', 'id']
     RETURN
         COUNT(DISTINCT CASE WHEN attr2.type = 'phone' THEN attr2.value END) AS distinct_phones,
         COUNT(DISTINCT CASE WHEN attr2.type = 'device_id' THEN attr2.value END) AS distinct_device_ids,
-        COUNT(DISTINCT CASE WHEN attr2.type = 'id' THEN attr2.value END) AS distinct_ids,
-        COUNT(DISTINCT CASE WHEN attr2.type = 'email' THEN attr2.value END) AS distinct_emails,
-        COUNT(DISTINCT CASE WHEN attr2.type = 'card_details' THEN attr2.value END) AS distinct_cards,
-        COUNT(DISTINCT CASE WHEN attr2.type = 'promocode' THEN attr2.value END) AS distinct_promocodes
-
+        COUNT(DISTINCT CASE WHEN attr2.type = 'card_details' THEN attr2.value END) AS distinct_card_details,
+        COUNT(DISTINCT CASE WHEN attr2.type = 'promocode' THEN attr2.value END) AS distinct_promocodes,
+        COUNT(DISTINCT CASE WHEN attr2.type = 'id' THEN attr2.value END) AS distinct_ids
     """
 
     params = {"email": email}
@@ -482,16 +480,15 @@ def get_customer_network_attributes():
     try:
         with driver.session() as session:
             result = session.run(query, params)
-            # Extract values from the result
+            
             network_attributes = {}
             for record in result:
                 network_attributes = {
                     "distinct_phones": record["distinct_phones"],
                     "distinct_device_ids": record["distinct_device_ids"],
-                    "distinct_ids": record["distinct_ids"],
-                    "distinct_emails": record["distinct_emails"],
-                    "distinct_cards": record["distinct_cards"],
-                    "distinct_promocodes": record["distinct_promocodes"]
+                    "distinct_card_details": record["distinct_card_details"],
+                    "distinct_promocodes": record["distinct_promocodes"],
+                    "distinct_ids": record["distinct_ids"]
                 }
     
             if not network_attributes:
@@ -501,8 +498,7 @@ def get_customer_network_attributes():
     
     except Exception as e:
         return jsonify({"error": "Database error", "details": str(e)}), 500
-
-
+        
 if __name__ == "__main__":
     print("started APP")
     #app.run(debug=True, port=5002)  # Run the Middle App on a different port
