@@ -462,20 +462,20 @@ def get_customer_network_attributes():
 
     query = """
     MATCH (c:Customer {email: $email})-[:HAS_ATTRIBUTE]->(attr)
-    WHERE attr.type IN ['device_id', 'phone', 'card_details', 'id', 'email']  # Attributes to look for
+    WHERE attr.type IN ['device_id', 'phone', 'card_details', 'id', 'email']  // Attributes to look for
     WITH COLLECT(DISTINCT attr.value) AS shared_attributes
 
-    #Find all customers sharing any of the attributes
+    // Find all customers sharing any of the attributes
     MATCH (c2:Customer)-[:HAS_ATTRIBUTE]->(attr2)
     WHERE attr2.value IN shared_attributes
     WITH c2, COLLECT(DISTINCT attr2.type) AS connected_attributes, COLLECT(DISTINCT attr2.value) AS connected_values
 
-    #Count distinct IDs in the network (order IDs)
+    // Count distinct IDs in the network (order IDs)
     MATCH (c2)-[:HAS_ATTRIBUTE]->(id_attr)
-    WHERE id_attr.type = 'id'  # Specifically look for order IDs
+    WHERE id_attr.type = 'id'  // Specifically look for order IDs
     WITH c2, connected_attributes, connected_values, COLLECT(DISTINCT id_attr.value) AS order_ids
 
-    #Return results with counts for each attribute and order IDs
+    // Return results with counts for each attribute and order IDs
     RETURN {
         "network_count": COUNT(DISTINCT c2),
         "connected_attributes": connected_attributes,
