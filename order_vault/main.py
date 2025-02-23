@@ -49,8 +49,11 @@ logger = logging.getLogger(__name__)
 @app.route("/api/customer-attributes", methods=["GET"])
 def get_customer_attributes():
     email = request.args.get("email", "").strip().lower()  # Normalize input
+
     if not email:
         return jsonify({"error": "Missing email parameter"}), 400
+
+    print(f"Received email: {email}")  # Add this to check what email is received
 
     query = """
     MATCH (c:Customer {email: $email})-[:HAS_ATTRIBUTE]->(attr)
@@ -71,6 +74,7 @@ def get_customer_attributes():
 
     except Exception as e:
         return jsonify({"error": "Database error", "details": str(e)}), 500
+        
     
 @app.route("/", methods=["GET", "POST"])
 def home():
