@@ -46,7 +46,23 @@ driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USERNAME, NEO4J_PASSWORD))
 logging.basicConfig(level=logging.DEBUG)  # Set level to DEBUG to capture all logs
 logger = logging.getLogger(__name__)
 
+@app.route('/api/customer-attributes', methods=['GET'])
+def get_customer_attributes():
+    email = request.args.get("email")
+    if not email:
+        return jsonify({"error": "Email is required"}), 400
 
+    query = """
+        MATCH (c:Customer {email: $email})-[:HAS_ATTRIBUTE]->(attr)
+        RETURN attr.type AS attribute, COUNT(attr) AS count
+    """
+
+    with driver.session() as session:
+        result = session.run(query, email=email)
+        attributes = {record["attribute"]: record["count"] for record in result}
+
+    return jsonify(attributes)
+    
 @app.route("/", methods=["GET", "POST"])
 def home():
     return render_template("home.html")
