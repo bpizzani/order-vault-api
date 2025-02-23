@@ -450,29 +450,21 @@ def get_customer_attributes():
         
 
 @app.route("/api/customer-attributes-network", methods=["GET"])
-def get_customer_network_attributes():
-    email = request.args.get("email", "").strip().lower()  # Normalize input
-
+def get_network_attributes():
+    email = request.args.get("email", "").strip().lower()
+    
     if not email:
         return jsonify({"error": "Missing email parameter"}), 400
-
-    print(f"Received email: {email}")  # Add this to check what email is received
-    email = "Customer " + email  # Assuming emails in the DB are prefixed with "Customer "
-
-    # Query to find the specific customer's attributes
-    customer_query = """
+    
+    email = "Customer " + email  # Normalize the email as per your Neo4j data
+    
+    query = """
     MATCH (c:Customer {email: $email})-[:HAS_ATTRIBUTE]->(attr)
-    RETURN attr.type AS attribute, COUNT(attr) AS count
-    """
-
-    # Query to find shared attributes across the network of connected customers
-    network_query = """
-    MATCH (c:Customer {email: $email})-[:HAS_ATTRIBUTE]->(attr)
-    WHERE attr.type IN ['phone', 'device_id', 'card_details', 'promocode']
+    WHERE attr.type IN ['phone', 'device_id', 'card_details']
     WITH COLLECT(DISTINCT attr.value) AS shared_attributes
 
     MATCH (c2:Customer)-[:HAS_ATTRIBUTE]->(attr2)
-    WHERE attr2.value IN shared_attributes AND attr2.type IN ['phone', 'device_id', 'card_details', 'promocode']
+    WHERE attr2.value IN shared_attributes AND attr2.type IN ['phone', 'device_id', 'card_details']
     WITH COLLECT(DISTINCT attr2.value) AS connected_values,
          COLLECT(DISTINCT CASE WHEN attr2.type = 'phone' THEN attr2.value END) AS phones,
          COLLECT(DISTINCT CASE WHEN attr2.type = 'device_id' THEN attr2.value END) AS device_ids,
@@ -481,42 +473,44 @@ def get_customer_network_attributes():
 
     MATCH (c2)-[:HAS_ATTRIBUTE]->(order_attr)
     WHERE order_attr.type = 'id'
-    
+
+    MATCH (c2)-[:HAS_ATTRIBUTE]->(phone_attr)
+    WHERE phone_attr.type = 'phone'
+
+    MATCH (c2)-[:HAS_ATTRIBUTE]->(device_attr)
+    WHERE device_attr.type = 'device_id'
+
+    MATCH (c2)-[:HAS_ATTRIBUTE]->(card_attr)
+    WHERE card_attr.type = 'card_details'
+
+    MATCH (c2)-[:HAS_ATTRIBUTE]->(promocode_attr)
+    WHERE promocode_attr.type = 'promocode'
+
     RETURN 
         COUNT(DISTINCT order_attr.value) AS distinct_order_ids,
-        SIZE(phones) AS phone_count,
-        SIZE(device_ids) AS device_id_count,
-        SIZE(card_details) AS card_details_count,
-        SIZE(promocodes) AS promocode_count
+        COUNT(DISTINCT phone_attr.value) AS distinct_phones,
+        COUNT(DISTINCT device_attr.value) AS distinct_devices,
+        COUNT(DISTINCT card_attr.value) AS distinct_cards,
+        COUNT(DISTINCT promocode_attr.value) AS distinct_promocodes
     """
-
-    # Parameters for both queries
+    
     params = {"email": email}
 
     try:
-        # Fetch the customer's attributes first
         with driver.session() as session:
-            # Fetch customer specific attributes
-            customer_result = session.run(customer_query, params)
-            customer_attributes = {record["attribute"]: record["count"] for record in customer_result}
-
-            # Fetch the network-related counts for shared attributes
-            network_result = session.run(network_query, params)
-            network_data = network_result.single()
-
-        # Prepare the final response
-        response = {
-            "customer_attributes": customer_attributes,
-            "network_counts": {
-                "distinct_order_ids": network_data["distinct_order_ids"],
-                "phone_count": network_data["phone_count"],
-                "device_id_count": network_data["device_id_count"],
-                "card_details_count": network_data["card_details_count"],
-                "promocode_count": network_data["promocode_count"]
-            }
-        }
-
-        return jsonify(response), 200
+            result = session.run(query, params)
+            record = result.single()
+            
+            if record:
+                return jsonify({
+                    "distinct_order_ids": record["distinct_order_ids"],
+                    "distinct_phones": record["distinct_phones"],
+                    "distinct_devices": record["distinct_devices"],
+                    "distinct_cards": record["distinct_cards"],
+                    "distinct_promocodes": record["distinct_promocodes"]
+                }), 200
+            else:
+                return jsonify({"message": "No data found for this email"}), 200
 
     except Exception as e:
         return jsonify({"error": "Database error", "details": str(e)}), 500
