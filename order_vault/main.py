@@ -452,61 +452,46 @@ def get_customer_attributes():
 @app.route("/api/customer-attributes-network", methods=["GET"])
 def get_network_attributes():
     email = request.args.get("email", "").strip().lower()
-    
+
     if not email:
         return jsonify({"error": "Missing email parameter"}), 400
-    
+
     email = "Customer " + email  # Normalize the email as per your Neo4j data
-    
+
     query = """
+    // Step 1: Find the customer's attributes
     MATCH (c:Customer {email: $email})-[:HAS_ATTRIBUTE]->(attr)
     WHERE attr.type IN ['phone', 'device_id', 'card_details']
     WITH COLLECT(DISTINCT attr.value) AS shared_attributes
 
+    // Step 2: Find all customers connected by shared attributes
     MATCH (c2:Customer)-[:HAS_ATTRIBUTE]->(attr2)
     WHERE attr2.value IN shared_attributes AND attr2.type IN ['phone', 'device_id', 'card_details']
-    WITH COLLECT(DISTINCT attr2.value) AS connected_values,
-         COLLECT(DISTINCT CASE WHEN attr2.type = 'phone' THEN attr2.value END) AS phones,
-         COLLECT(DISTINCT CASE WHEN attr2.type = 'device_id' THEN attr2.value END) AS device_ids,
-         COLLECT(DISTINCT CASE WHEN attr2.type = 'card_details' THEN attr2.value END) AS card_details,
-         COLLECT(DISTINCT CASE WHEN attr2.type = 'promocode' THEN attr2.value END) AS promocodes
+    WITH COLLECT(DISTINCT attr2.value) AS connected_values
 
+    // Step 3: Find all "id" and "promocode" attributes in the entire connected network
     MATCH (c2)-[:HAS_ATTRIBUTE]->(order_attr)
     WHERE order_attr.type = 'id'
-
-    MATCH (c2)-[:HAS_ATTRIBUTE]->(phone_attr)
-    WHERE phone_attr.type = 'phone'
-
-    MATCH (c2)-[:HAS_ATTRIBUTE]->(device_attr)
-    WHERE device_attr.type = 'device_id'
-
-    MATCH (c2)-[:HAS_ATTRIBUTE]->(card_attr)
-    WHERE card_attr.type = 'card_details'
 
     MATCH (c2)-[:HAS_ATTRIBUTE]->(promocode_attr)
     WHERE promocode_attr.type = 'promocode'
 
+    // Step 4: Return the count of distinct "ids" and "promocodes"
     RETURN 
         COUNT(DISTINCT order_attr.value) AS distinct_order_ids,
-        COUNT(DISTINCT phone_attr.value) AS distinct_phones,
-        COUNT(DISTINCT device_attr.value) AS distinct_devices,
-        COUNT(DISTINCT card_attr.value) AS distinct_cards,
         COUNT(DISTINCT promocode_attr.value) AS distinct_promocodes
     """
-    
+
     params = {"email": email}
 
     try:
         with driver.session() as session:
             result = session.run(query, params)
             record = result.single()
-            
+
             if record:
                 return jsonify({
                     "distinct_order_ids": record["distinct_order_ids"],
-                    "distinct_phones": record["distinct_phones"],
-                    "distinct_devices": record["distinct_devices"],
-                    "distinct_cards": record["distinct_cards"],
                     "distinct_promocodes": record["distinct_promocodes"]
                 }), 200
             else:
@@ -514,6 +499,7 @@ def get_network_attributes():
 
     except Exception as e:
         return jsonify({"error": "Database error", "details": str(e)}), 500
+
         
 if __name__ == "__main__":
     print("started APP")
