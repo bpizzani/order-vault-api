@@ -46,36 +46,6 @@ driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USERNAME, NEO4J_PASSWORD))
 logging.basicConfig(level=logging.DEBUG)  # Set level to DEBUG to capture all logs
 logger = logging.getLogger(__name__)
 
-@app.route("/api/customer-attributes", methods=["GET"])
-def get_customer_attributes():
-    email = request.args.get("email", "").strip().lower()  # Normalize input
-
-    if not email:
-        return jsonify({"error": "Missing email parameter"}), 400
-
-    print(f"Received email: {email}")  # Add this to check what email is received
-    email = "Customer "+email
-    query = """
-    MATCH (c:Customer {email: $email})-[:HAS_ATTRIBUTE]->(attr)
-    RETURN attr.type AS attribute, COUNT(attr) AS count
-    """
-
-    params = {"email": email}
-
-    try:
-        with driver.session() as session:
-            result = session.run(query, params)
-            attributes = {record["attribute"]: record["count"] for record in result}
-
-        if not attributes:
-            return jsonify({"message": "No attributes found for this email"}), 200
-
-        return jsonify(attributes), 200
-
-    except Exception as e:
-        return jsonify({"error": "Database error", "details": str(e)}), 500
-        
-    
 @app.route("/", methods=["GET", "POST"])
 def home():
     return render_template("home.html")
@@ -449,6 +419,72 @@ def evaluate():
     except Exception as e:
         return jsonify({"error": "An unexpected error occurred", "details": str(e)}), 500
 
+@app.route("/api/customer-attributes", methods=["GET"])
+def get_customer_attributes():
+    email = request.args.get("email", "").strip().lower()  # Normalize input
+
+    if not email:
+        return jsonify({"error": "Missing email parameter"}), 400
+
+    print(f"Received email: {email}")  # Add this to check what email is received
+    email = "Customer "+email
+    query = """
+    MATCH (c:Customer {email: $email})-[:HAS_ATTRIBUTE]->(attr)
+    RETURN attr.type AS attribute, COUNT(attr) AS count
+    """
+
+    params = {"email": email}
+
+    try:
+        with driver.session() as session:
+            result = session.run(query, params)
+            attributes = {record["attribute"]: record["count"] for record in result}
+
+        if not attributes:
+            return jsonify({"message": "No attributes found for this email"}), 200
+
+        return jsonify(attributes), 200
+
+    except Exception as e:
+        return jsonify({"error": "Database error", "details": str(e)}), 500
+        
+
+@app.route("/api/customer-attributes-network", methods=["GET"])
+def get_customer_network_attributes():
+    email = request.args.get("email", "").strip().lower()  # Normalize input
+
+    if not email:
+        return jsonify({"error": "Missing email parameter"}), 400
+
+    print(f"Received email: {email}")  # Debugging
+
+    email = "Customer " + email  # Formatting for Neo4j
+
+    query = """
+    MATCH (c:Customer {email: $email})-[:HAS_ATTRIBUTE]->(attr)
+    WHERE attr.type IN ['device_id', 'phone', 'card_details']
+    WITH COLLECT(DISTINCT attr.value) AS shared_attributes
+
+    MATCH (c2:Customer)-[:HAS_ATTRIBUTE]->(attr2)
+    WHERE attr2.value IN shared_attributes
+    RETURN attr2.type AS attribute, COUNT(attr2) AS count
+    """
+
+    params = {"email": email}
+
+    try:
+        with driver.session() as session:
+            result = session.run(query, params)
+            network_attributes = {record["attribute"]: record["count"] for record in result}
+
+        if not network_attributes:
+            return jsonify({"message": "No network attributes found"}), 200
+
+        return jsonify(network_attributes), 200
+
+    except Exception as e:
+        return jsonify({"error": "Database error", "details": str(e)}), 500
+    
 
 if __name__ == "__main__":
     print("started APP")
