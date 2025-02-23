@@ -456,46 +456,68 @@ def get_customer_network_attributes():
     if not email:
         return jsonify({"error": "Missing email parameter"}), 400
 
-    print(f"Received email: {email}")  # Debugging
+    print(f"Received email: {email}")  # Add this to check what email is received
+    email = "Customer " + email  # Assuming emails in the DB are prefixed with "Customer "
 
-    email = "Customer " + email  # Formatting for Neo4j
+    # Query to find the specific customer's attributes
+    customer_query = """
+    MATCH (c:Customer {email: $email})-[:HAS_ATTRIBUTE]->(attr)
+    RETURN attr.type AS attribute, COUNT(attr) AS count
+    """
 
-    query = """
+    # Query to find shared attributes across the network of connected customers
+    network_query = """
     MATCH (c:Customer {email: $email})-[:HAS_ATTRIBUTE]->(attr)
     WHERE attr.type IN ['phone', 'device_id', 'card_details', 'promocode']
     WITH COLLECT(DISTINCT attr.value) AS shared_attributes
-    
+
     MATCH (c2:Customer)-[:HAS_ATTRIBUTE]->(attr2)
-    WHERE attr2.value IN shared_attributes AND attr2.type IN ['phone', 'device_id', 'card_details', 'promocode', 'id']
-    RETURN
-        COUNT(DISTINCT CASE WHEN attr2.type = 'phone' THEN attr2.value END) AS distinct_phones,
-        COUNT(DISTINCT CASE WHEN attr2.type = 'device_id' THEN attr2.value END) AS distinct_device_ids,
-        COUNT(DISTINCT CASE WHEN attr2.type = 'card_details' THEN attr2.value END) AS distinct_card_details,
-        COUNT(DISTINCT CASE WHEN attr2.type = 'promocode' THEN attr2.value END) AS distinct_promocodes,
-        COUNT(DISTINCT CASE WHEN attr2.type = 'id' THEN attr2.value END) AS distinct_ids
+    WHERE attr2.value IN shared_attributes AND attr2.type IN ['phone', 'device_id', 'card_details', 'promocode']
+    WITH COLLECT(DISTINCT attr2.value) AS connected_values,
+         COLLECT(DISTINCT CASE WHEN attr2.type = 'phone' THEN attr2.value END) AS phones,
+         COLLECT(DISTINCT CASE WHEN attr2.type = 'device_id' THEN attr2.value END) AS device_ids,
+         COLLECT(DISTINCT CASE WHEN attr2.type = 'card_details' THEN attr2.value END) AS card_details,
+         COLLECT(DISTINCT CASE WHEN attr2.type = 'promocode' THEN attr2.value END) AS promocodes
+
+    MATCH (c2)-[:HAS_ATTRIBUTE]->(order_attr)
+    WHERE order_attr.type = 'id'
+    
+    RETURN 
+        COUNT(DISTINCT order_attr.value) AS distinct_order_ids,
+        SIZE(phones) AS phone_count,
+        SIZE(device_ids) AS device_id_count,
+        SIZE(card_details) AS card_details_count,
+        SIZE(promocodes) AS promocode_count
     """
 
+    # Parameters for both queries
     params = {"email": email}
-    
+
     try:
+        # Fetch the customer's attributes first
         with driver.session() as session:
-            result = session.run(query, params)
-            
-            network_attributes = {}
-            for record in result:
-                network_attributes = {
-                    "distinct_phones": record["distinct_phones"],
-                    "distinct_device_ids": record["distinct_device_ids"],
-                    "distinct_card_details": record["distinct_card_details"],
-                    "distinct_promocodes": record["distinct_promocodes"],
-                    "distinct_ids": record["distinct_ids"]
-                }
-    
-            if not network_attributes:
-                return jsonify({"message": "No network attributes found"}), 200
-    
-            return jsonify(network_attributes), 200
-    
+            # Fetch customer specific attributes
+            customer_result = session.run(customer_query, params)
+            customer_attributes = {record["attribute"]: record["count"] for record in customer_result}
+
+            # Fetch the network-related counts for shared attributes
+            network_result = session.run(network_query, params)
+            network_data = network_result.single()
+
+        # Prepare the final response
+        response = {
+            "customer_attributes": customer_attributes,
+            "network_counts": {
+                "distinct_order_ids": network_data["distinct_order_ids"],
+                "phone_count": network_data["phone_count"],
+                "device_id_count": network_data["device_id_count"],
+                "card_details_count": network_data["card_details_count"],
+                "promocode_count": network_data["promocode_count"]
+            }
+        }
+
+        return jsonify(response), 200
+
     except Exception as e:
         return jsonify({"error": "Database error", "details": str(e)}), 500
         
