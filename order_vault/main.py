@@ -462,16 +462,19 @@ def get_customer_network_attributes():
 
     query = """
     MATCH (c:Customer {email: $email})-[:HAS_ATTRIBUTE]->(attr)
-    WHERE attr.type IN ['phone', 'device_id', 'id', 'email']
+    WHERE attr.type IN ['phone', 'device_id', 'id', 'email','promocode','card_details']
     WITH COLLECT(DISTINCT attr.value) AS shared_attributes
     
     MATCH (c2:Customer)-[:HAS_ATTRIBUTE]->(attr2)
-    WHERE attr2.value IN shared_attributes AND attr2.type IN ['phone', 'device_id', 'id', 'email']
+    WHERE attr2.value IN shared_attributes AND attr2.type IN ['phone', 'device_id', 'id', 'email','promocode','card_details']
     RETURN
         COUNT(DISTINCT CASE WHEN attr2.type = 'phone' THEN attr2.value END) AS distinct_phones,
         COUNT(DISTINCT CASE WHEN attr2.type = 'device_id' THEN attr2.value END) AS distinct_device_ids,
         COUNT(DISTINCT CASE WHEN attr2.type = 'id' THEN attr2.value END) AS distinct_ids,
-        COUNT(DISTINCT CASE WHEN attr2.type = 'email' THEN attr2.value END) AS distinct_emails
+        COUNT(DISTINCT CASE WHEN attr2.type = 'email' THEN attr2.value END) AS distinct_emails,
+        COUNT(DISTINCT CASE WHEN attr2.type = 'card_details' THEN attr2.value END) AS distinct_cards,
+        COUNT(DISTINCT CASE WHEN attr2.type = 'promocode' THEN attr2.value END) AS distinct_promocodes
+
     """
 
     params = {"email": email}
@@ -486,7 +489,9 @@ def get_customer_network_attributes():
                     "distinct_phones": record["distinct_phones"],
                     "distinct_device_ids": record["distinct_device_ids"],
                     "distinct_ids": record["distinct_ids"],
-                    "distinct_emails": record["distinct_emails"]
+                    "distinct_emails": record["distinct_emails"],
+                    "distinct_cards": record["distinct_cards"],
+                    "distinct_promocodes": record["distinct_promocodes"]
                 }
     
             if not network_attributes:
