@@ -484,7 +484,6 @@ def get_customer_network_attributes():
 
     except Exception as e:
         return jsonify({"error": "Database error", "details": str(e)}), 500
-    
 
 if __name__ == "__main__":
     print("started APP")
