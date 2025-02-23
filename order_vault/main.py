@@ -55,6 +55,10 @@ def home():
 def rules_ui():
     return render_template('rules.html')
 
+@app.route('/island')
+def customer_ui():
+    return render_template('island.html')
+
 @app.route("/api/fingerprint", methods=["GET", "POST","OPTIONS"])
 def fingerprint():
     if request.method == "OPTIONS":
