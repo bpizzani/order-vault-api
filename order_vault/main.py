@@ -462,12 +462,26 @@ def get_customer_network_attributes():
 
     query = """
     MATCH (c:Customer {email: $email})-[:HAS_ATTRIBUTE]->(attr)
-    WHERE attr.type IN ['device_id', 'phone', 'card_details','id','email']
+    WHERE attr.type IN ['device_id', 'phone', 'card_details', 'id', 'email']  # Attributes to look for
     WITH COLLECT(DISTINCT attr.value) AS shared_attributes
 
+    // Find all customers sharing any of the attributes
     MATCH (c2:Customer)-[:HAS_ATTRIBUTE]->(attr2)
     WHERE attr2.value IN shared_attributes
-    RETURN attr2.type AS attribute, COUNT(DISTINCT c2) AS count
+    WITH c2, COLLECT(DISTINCT attr2.type) AS connected_attributes, COLLECT(DISTINCT attr2.value) AS connected_values
+
+    // Count distinct IDs in the network (order IDs)
+    MATCH (c2)-[:HAS_ATTRIBUTE]->(id_attr)
+    WHERE id_attr.type = 'id'  // Specifically look for order IDs
+    WITH c2, connected_attributes, connected_values, COLLECT(DISTINCT id_attr.value) AS order_ids
+
+    // Return results with counts for each attribute and order IDs
+    RETURN {
+        "network_count": COUNT(DISTINCT c2),
+        "connected_attributes": connected_attributes,
+        "connected_values": connected_values,
+        "distinct_order_ids": size(order_ids)
+    } AS result
     """
 
     params = {"email": email}
@@ -475,12 +489,17 @@ def get_customer_network_attributes():
     try:
         with driver.session() as session:
             result = session.run(query, params)
-            network_attributes = {record["attribute"]: record["count"] for record in result}
+            record = result.single()  # Since we're only interested in one result
 
-        if not network_attributes:
-            return jsonify({"message": "No network attributes found"}), 200
+            if record:
+                return jsonify({
+                    "network_count": record["result"]["network_count"],
+                    "connected_attributes": record["result"]["connected_attributes"],
+                    "connected_values": record["result"]["connected_values"],
+                    "distinct_order_ids": record["result"]["distinct_order_ids"]
+                }), 200
 
-        return jsonify(network_attributes), 200
+            return jsonify({"message": "No network found for this customer."}), 200
 
     except Exception as e:
         return jsonify({"error": "Database error", "details": str(e)}), 500
