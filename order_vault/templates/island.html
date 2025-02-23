@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta de Cliente</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #fff;
+            text-align: center;
+            padding: 20px;
+        }
+
+        h2 {
+            color: #0ff;
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+
+        form {
+            background: #222;
+            padding: 20px;
+            border-radius: 15px;
+            width: 80%;
+            max-width: 400px;
+            margin: 0 auto;
+            box-shadow: 0px 8px 20px rgba(0, 255, 255, 0.1);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 1rem;
+            color: #aaa;
+            text-align: left;
+        }
+
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border: 2px solid #333;
+            background-color: #333;
+            color: #fff;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        input:hover, button:hover {
+            border-color: #0ff;
+        }
+
+        button {
+            background-color: #0ff;
+            cursor: pointer;
+            font-weight: bold;
+            border: none;
+        }
+
+        button:hover {
+            background-color: #06b8b8;
+        }
+
+        table {
+            width: 80%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            background: #1f1f1f;
+            box-shadow: 0px 8px 20px rgba(0, 255, 255, 0.1);
+        }
+
+        th, td {
+            padding: 12px;
+            border: 1px solid #444;
+            text-align: center;
+            font-size: 1rem;
+        }
+
+        th {
+            background: #333;
+            color: #0ff;
+        }
+
+        td {
+            background: #222;
+            color: #bbb;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Consulta de Cliente</h2>
+
+    <form id="customerForm">
+        <label for="customer_id">Customer ID:</label>
+        <input type="text" id="customer_id" placeholder="Ingrese el Customer ID" required>
+        <button type="submit">Consultar</button>
+    </form>
+
+    <h3>Datos del Cliente</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Atributo</th>
+                <th>Valor</th>
+            </tr>
+        </thead>
+        <tbody id="customerData">
+            <!-- Los datos se llenarán aquí dinámicamente -->
+        </tbody>
+    </table>
+
+    <script>
+        document.getElementById("customerForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            fetchCustomerData();
+        });
+
+        function fetchCustomerData() {
+            const customerId = document.getElementById("customer_id").value;
+            fetch(`https://tu-api.com/api/customer/${customerId}`)
+                .then(response => response.json())
+                .then(data => {
+                    const tableBody = document.getElementById("customerData");
+                    tableBody.innerHTML = "";
+
+                    if (data.attributes && data.attributes.length > 0) {
+                        data.attributes.forEach(attr => {
+                            const row = document.createElement("tr");
+                            row.innerHTML = `<td>${attr.type}</td><td>${attr.value}</td>`;
+                            tableBody.appendChild(row);
+                        });
+                    } else {
+                        tableBody.innerHTML = `<tr><td colspan="2">No se encontraron datos</td></tr>`;
+                    }
+                })
+                .catch(error => {
+                    console.error("Error al obtener datos:", error);
+                    document.getElementById("customerData").innerHTML = `<tr><td colspan="2">Error al cargar datos</td></tr>`;
+                });
+        }
+    </script>
+
+</body>
+</html>
