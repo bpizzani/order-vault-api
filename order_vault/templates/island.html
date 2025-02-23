@@ -186,6 +186,22 @@ function fetchNetworkAttributes(email) {
                 <td>${networkData.distinct_emails}</td>
             `;
             tableBody.appendChild(rowEmails);
+
+            // Display distinct cards
+            const rowCards = document.createElement("tr");
+            rowEmails.innerHTML = `
+                <td>Emails Distintos</td>
+                <td>${networkData.distinct_cards}</td>
+            `;
+            tableBody.appendChild(rowCards);
+
+            // Display distinct promocodes
+            const rowPromos = document.createElement("tr");
+            rowEmails.innerHTML = `
+                <td>Emails Distintos</td>
+                <td>${networkData.distinct_promocodes}</td>
+            `;
+            tableBody.appendChild(rowPromos);
         })
         .catch(error => console.error("Error al obtener los atributos de la network:", error));
     }
