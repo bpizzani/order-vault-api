@@ -189,7 +189,7 @@ function fetchNetworkAttributes(email) {
 
             // Display distinct cards
             const rowCards = document.createElement("tr");
-            rowEmails.innerHTML = `
+            rowCards.innerHTML = `
                 <td>Emails Distintos</td>
                 <td>${networkData.distinct_cards}</td>
             `;
@@ -197,7 +197,7 @@ function fetchNetworkAttributes(email) {
 
             // Display distinct promocodes
             const rowPromos = document.createElement("tr");
-            rowEmails.innerHTML = `
+            rowPromos.innerHTML = `
                 <td>Emails Distintos</td>
                 <td>${networkData.distinct_promocodes}</td>
             `;
