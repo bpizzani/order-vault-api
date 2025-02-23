@@ -1,10 +1,8 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Consulta de Cliente</title>
-    <style>
+        <style>
         * {
             margin: 0;
             padding: 0;
@@ -96,60 +94,50 @@
             color: #bbb;
         }
     </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta de Cliente</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #121212; color: white; text-align: center; }
+        form { margin: 20px auto; padding: 20px; background: #222; border-radius: 10px; width: 50%; }
+        input, button { margin: 10px; padding: 10px; border-radius: 5px; border: none; }
+        button { background-color: #0ff; color: black; cursor: pointer; }
+        table { width: 60%; margin: 20px auto; border-collapse: collapse; background: #1f1f1f; }
+        th, td { padding: 10px; border: 1px solid #444; }
+        th { background: #333; color: #0ff; }
+    </style>
 </head>
 <body>
-
-    <h2>Consulta de Cliente</h2>
-
+    <h2>Consulta de Cliente en la Red</h2>
     <form id="customerForm">
-        <label for="customer_id">Customer ID:</label>
-        <input type="text" id="customer_id" placeholder="Ingrese el Customer ID" required>
+        <label for="email">Ingrese el Email del Cliente:</label>
+        <input type="email" id="email" required>
         <button type="submit">Consultar</button>
     </form>
-
-    <h3>Datos del Cliente</h3>
+    <h3>Atributos Asociados</h3>
     <table>
         <thead>
-            <tr>
-                <th>Atributo</th>
-                <th>Valor</th>
-            </tr>
+            <tr><th>Tipo de Atributo</th><th>Cantidad</th></tr>
         </thead>
-        <tbody id="customerData">
-            <!-- Los datos se llenarán aquí dinámicamente -->
-        </tbody>
+        <tbody id="resultsTable"></tbody>
     </table>
-
     <script>
         document.getElementById("customerForm").addEventListener("submit", function(event) {
             event.preventDefault();
-            fetchCustomerData();
-        });
-
-        function fetchCustomerData() {
-            const customerId = document.getElementById("customer_id").value;
-            fetch(`https://tu-api.com/api/customer/${customerId}`)
+            const email = document.getElementById("email").value;
+            fetch(`/api/customer-attributes?email=${email}`)
                 .then(response => response.json())
                 .then(data => {
-                    const tableBody = document.getElementById("customerData");
+                    const tableBody = document.getElementById("resultsTable");
                     tableBody.innerHTML = "";
-
-                    if (data.attributes && data.attributes.length > 0) {
-                        data.attributes.forEach(attr => {
-                            const row = document.createElement("tr");
-                            row.innerHTML = `<td>${attr.type}</td><td>${attr.value}</td>`;
-                            tableBody.appendChild(row);
-                        });
-                    } else {
-                        tableBody.innerHTML = `<tr><td colspan="2">No se encontraron datos</td></tr>`;
+                    for (const [attribute, count] of Object.entries(data)) {
+                        const row = `<tr><td>${attribute}</td><td>${count}</td></tr>`;
+                        tableBody.innerHTML += row;
                     }
                 })
-                .catch(error => {
-                    console.error("Error al obtener datos:", error);
-                    document.getElementById("customerData").innerHTML = `<tr><td colspan="2">Error al cargar datos</td></tr>`;
-                });
-        }
+                .catch(error => console.error("Error:", error));
+        });
     </script>
-
 </body>
 </html>
+
