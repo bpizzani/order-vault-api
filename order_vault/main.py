@@ -462,47 +462,41 @@ def get_customer_network_attributes():
 
     query = """
     MATCH (c:Customer {email: $email})-[:HAS_ATTRIBUTE]->(attr)
-    WHERE attr.type IN ['device_id', 'phone', 'card_details', 'id', 'email']  // Attributes to look for
+    WHERE attr.type IN ['phone', 'device_id', 'id', 'email']
     WITH COLLECT(DISTINCT attr.value) AS shared_attributes
-
-    // Find all customers sharing any of the attributes
+    
     MATCH (c2:Customer)-[:HAS_ATTRIBUTE]->(attr2)
-    WHERE attr2.value IN shared_attributes
-    WITH c2, COLLECT(DISTINCT attr2.type) AS connected_attributes, COLLECT(DISTINCT attr2.value) AS connected_values
-
-    // Count distinct IDs in the network (order IDs)
-    MATCH (c2)-[:HAS_ATTRIBUTE]->(id_attr)
-    WHERE id_attr.type = 'id'  // Specifically look for order IDs
-    WITH c2, connected_attributes, connected_values, COLLECT(DISTINCT id_attr.value) AS order_ids
-
-    // Return results with counts for each attribute and order IDs
-    RETURN {
-        "network_count": COUNT(DISTINCT c2),
-        "connected_attributes": connected_attributes,
-        "connected_values": connected_values,
-        "distinct_order_ids": size(order_ids)
-    } AS result
+    WHERE attr2.value IN shared_attributes AND attr2.type IN ['phone', 'device_id', 'id', 'email']
+    RETURN
+        COUNT(DISTINCT CASE WHEN attr2.type = 'phone' THEN attr2.value END) AS distinct_phones,
+        COUNT(DISTINCT CASE WHEN attr2.type = 'device_id' THEN attr2.value END) AS distinct_device_ids,
+        COUNT(DISTINCT CASE WHEN attr2.type = 'id' THEN attr2.value END) AS distinct_ids,
+        COUNT(DISTINCT CASE WHEN attr2.type = 'email' THEN attr2.value END) AS distinct_emails
     """
 
     params = {"email": email}
-
+    
     try:
         with driver.session() as session:
             result = session.run(query, params)
-            record = result.single()  # Since we're only interested in one result
-
-            if record:
-                return jsonify({
-                    "network_count": record["result"]["network_count"],
-                    "connected_attributes": record["result"]["connected_attributes"],
-                    "connected_values": record["result"]["connected_values"],
-                    "distinct_order_ids": record["result"]["distinct_order_ids"]
-                }), 200
-
-            return jsonify({"message": "No network found for this customer."}), 200
-
+            # Extract values from the result
+            network_attributes = {}
+            for record in result:
+                network_attributes = {
+                    "distinct_phones": record["distinct_phones"],
+                    "distinct_device_ids": record["distinct_device_ids"],
+                    "distinct_ids": record["distinct_ids"],
+                    "distinct_emails": record["distinct_emails"]
+                }
+    
+            if not network_attributes:
+                return jsonify({"message": "No network attributes found"}), 200
+    
+            return jsonify(network_attributes), 200
+    
     except Exception as e:
         return jsonify({"error": "Database error", "details": str(e)}), 500
+
 
 if __name__ == "__main__":
     print("started APP")
