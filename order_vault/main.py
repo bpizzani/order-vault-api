@@ -462,7 +462,7 @@ def get_customer_network_attributes():
 
     query = """
     MATCH (c:Customer {email: $email})-[:HAS_ATTRIBUTE]->(attr)
-    WHERE attr.type IN ['device_id', 'phone', 'card_details','email']
+    WHERE attr.type IN ['device_id', 'phone', 'card_details']
     WITH COLLECT(DISTINCT attr.value) AS shared_attributes
 
     MATCH (c2:Customer)-[:HAS_ATTRIBUTE]->(attr2)
