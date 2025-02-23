@@ -154,37 +154,38 @@ function fetchNetworkAttributes(email) {
 
             // Render the network attributes data
             const networkData = data;
-            const row = document.createElement("tr");
-            row.innerHTML = `
-                <td>Atributos compartidos</td>
-                <td>${networkData.connected_attributes.join(', ')}</td>
-            `;
-            tableBody.appendChild(row);
 
-            // Show connected values
-            const rowValues = document.createElement("tr");
-            rowValues.innerHTML = `
-                <td>Valores compartidos</td>
-                <td>${networkData.connected_values.join(', ')}</td>
+            // Display distinct phones
+            const rowPhones = document.createElement("tr");
+            rowPhones.innerHTML = `
+                <td>Teléfonos Distintos</td>
+                <td>${networkData.distinct_phones}</td>
             `;
-            tableBody.appendChild(rowValues);
+            tableBody.appendChild(rowPhones);
 
-            // Show distinct order IDs
-            const rowOrderIds = document.createElement("tr");
-            rowOrderIds.innerHTML = `
-                <td>Ordenes distintas</td>
-                <td>${networkData.distinct_order_ids}</td>
+            // Display distinct device IDs
+            const rowDeviceIds = document.createElement("tr");
+            rowDeviceIds.innerHTML = `
+                <td>Device IDs Distintos</td>
+                <td>${networkData.distinct_device_ids}</td>
             `;
-            tableBody.appendChild(rowOrderIds);
+            tableBody.appendChild(rowDeviceIds);
 
-            // Show total connected customers
-            const rowCount = document.createElement("tr");
-            rowCount.innerHTML = `
-                <td>Total clientes conectados</td>
-                <td>${networkData.network_count}</td>
+            // Display distinct order IDs
+            const rowIds = document.createElement("tr");
+            rowIds.innerHTML = `
+                <td>Ordenes Distintas</td>
+                <td>${networkData.distinct_ids}</td>
             `;
-            tableBody.appendChild(rowCount);
+            tableBody.appendChild(rowIds);
 
+            // Display distinct emails
+            const rowEmails = document.createElement("tr");
+            rowEmails.innerHTML = `
+                <td>Emails Distintos</td>
+                <td>${networkData.distinct_emails}</td>
+            `;
+            tableBody.appendChild(rowEmails);
         })
         .catch(error => console.error("Error al obtener los atributos de la network:", error));
     }
