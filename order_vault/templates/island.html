@@ -1,72 +1,51 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
-        <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Attributes</title>
+    <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: Arial, sans-serif;
             background-color: #121212;
-            color: #fff;
+            color: white;
             text-align: center;
+            margin: 0;
             padding: 20px;
         }
 
         h2 {
             color: #0ff;
-            font-size: 2rem;
-            margin-bottom: 20px;
         }
 
         form {
             background: #222;
             padding: 20px;
-            border-radius: 15px;
-            width: 80%;
+            margin: 20px auto;
+            border-radius: 10px;
+            width: 50%;
             max-width: 400px;
-            margin: 0 auto;
             box-shadow: 0px 8px 20px rgba(0, 255, 255, 0.1);
-        }
-
-        label {
-            display: block;
-            margin-bottom: 10px;
-            font-size: 1rem;
-            color: #aaa;
-            text-align: left;
         }
 
         input, button {
             width: 100%;
             padding: 10px;
-            margin-bottom: 15px;
-            border-radius: 8px;
-            border: 2px solid #333;
-            background-color: #333;
-            color: #fff;
-            font-size: 1rem;
-            outline: none;
-            transition: all 0.3s ease;
-        }
-
-        input:hover, button:hover {
-            border-color: #0ff;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #333;
+            background: #333;
+            color: white;
+            font-size: 16px;
         }
 
         button {
-            background-color: #0ff;
+            background: #0ff;
             cursor: pointer;
-            font-weight: bold;
-            border: none;
         }
 
         button:hover {
-            background-color: #06b8b8;
+            background: #06b8b8;
         }
 
         table {
@@ -74,14 +53,12 @@
             margin: 20px auto;
             border-collapse: collapse;
             background: #1f1f1f;
-            box-shadow: 0px 8px 20px rgba(0, 255, 255, 0.1);
+            color: white;
         }
 
         th, td {
-            padding: 12px;
+            padding: 10px;
             border: 1px solid #444;
-            text-align: center;
-            font-size: 1rem;
         }
 
         th {
@@ -91,53 +68,63 @@
 
         td {
             background: #222;
-            color: #bbb;
         }
-    </style>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Consulta de Cliente</title>
-    <style>
-        body { font-family: Arial, sans-serif; background-color: #121212; color: white; text-align: center; }
-        form { margin: 20px auto; padding: 20px; background: #222; border-radius: 10px; width: 50%; }
-        input, button { margin: 10px; padding: 10px; border-radius: 5px; border: none; }
-        button { background-color: #0ff; color: black; cursor: pointer; }
-        table { width: 60%; margin: 20px auto; border-collapse: collapse; background: #1f1f1f; }
-        th, td { padding: 10px; border: 1px solid #444; }
-        th { background: #333; color: #0ff; }
+
     </style>
 </head>
 <body>
-    <h2>Consulta de Cliente en la Red</h2>
-    <form id="customerForm">
-        <label for="email">Ingrese el Email del Cliente:</label>
+
+    <h2>Buscar Atributos de Cliente</h2>
+
+    <form id="emailForm">
+        <label for="email">Email del Cliente:</label>
         <input type="email" id="email" required>
-        <button type="submit">Consultar</button>
+        <button type="submit">Buscar</button>
     </form>
-    <h3>Atributos Asociados</h3>
-    <table>
+
+    <h3>Atributos del Cliente</h3>
+    <table id="attributesTable">
         <thead>
-            <tr><th>Tipo de Atributo</th><th>Cantidad</th></tr>
+            <tr>
+                <th>Atributo</th>
+                <th>Cantidad</th>
+            </tr>
         </thead>
-        <tbody id="resultsTable"></tbody>
+        <tbody>
+            <!-- Aquí se llenarán los datos dinámicamente -->
+        </tbody>
     </table>
+
     <script>
-        document.getElementById("customerForm").addEventListener("submit", function(event) {
-            event.preventDefault();
+        document.getElementById("emailForm").addEventListener("submit", function(event) {
+            event.preventDefault();  // Evita el refresco de la página
             const email = document.getElementById("email").value;
-            fetch(`/api/customer-attributes?email=${email}`)
+            fetchCustomerAttributes(email);
+        });
+
+        function fetchCustomerAttributes(email) {
+            fetch(`https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/customer-attributes?email=${encodeURIComponent(email)}`)
                 .then(response => response.json())
                 .then(data => {
-                    const tableBody = document.getElementById("resultsTable");
-                    tableBody.innerHTML = "";
+                    console.log("API Response:", data);
+                    const tableBody = document.querySelector("#attributesTable tbody");
+                    tableBody.innerHTML = "";  // Limpiar la tabla antes de agregar nuevos datos
+
+                    if (Object.keys(data).length === 0) {
+                        tableBody.innerHTML = "<tr><td colspan='2'>No se encontraron datos</td></tr>";
+                        return;
+                    }
+
                     for (const [attribute, count] of Object.entries(data)) {
-                        const row = `<tr><td>${attribute}</td><td>${count}</td></tr>`;
-                        tableBody.innerHTML += row;
+                        const row = document.createElement("tr");
+                        row.innerHTML = `<td>${attribute}</td><td>${count}</td>`;
+                        tableBody.appendChild(row);
                     }
                 })
-                .catch(error => console.error("Error:", error));
-        });
+                .catch(error => console.error("Error al obtener los atributos:", error));
+        }
     </script>
+
 </body>
 </html>
 
