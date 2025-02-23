@@ -138,8 +138,8 @@
                 .catch(error => console.error("Error al obtener los atributos del cliente:", error));
         }
 
-    function fetchNetworkAttributes(email) {
-        fetch(`https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/customer-attributes-network?email=${encodeURIComponent(email)}`)
+        function fetchNetworkAttributes(email) {
+            fetch(`https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/customer-attributes-network?email=${encodeURIComponent(email)}`)
             .then(response => response.json())
             .then(data => {
                 console.log("API Response - Network Attributes:", data);
@@ -153,13 +153,13 @@
                 }
     
                 // Render the network attributes data
-                const networkData = data;
+                const networkData = data.network_counts;
     
                 // Display distinct phones
                 const rowPhones = document.createElement("tr");
                 rowPhones.innerHTML = `
                     <td>Teléfonos Distintos</td>
-                    <td>${networkData.distinct_phones}</td>
+                    <td>${networkData.phone_count}</td>
                 `;
                 tableBody.appendChild(rowPhones);
     
@@ -167,7 +167,7 @@
                 const rowDeviceIds = document.createElement("tr");
                 rowDeviceIds.innerHTML = `
                     <td>Device IDs Distintos</td>
-                    <td>${networkData.distinct_device_ids}</td>
+                    <td>${networkData.device_id_count}</td>
                 `;
                 tableBody.appendChild(rowDeviceIds);
     
@@ -175,7 +175,7 @@
                 const rowCardDetails = document.createElement("tr");
                 rowCardDetails.innerHTML = `
                     <td>Detalles de Tarjetas Distintos</td>
-                    <td>${networkData.distinct_card_details}</td>
+                    <td>${networkData.card_details_count}</td>
                 `;
                 tableBody.appendChild(rowCardDetails);
     
@@ -183,7 +183,7 @@
                 const rowPromocodes = document.createElement("tr");
                 rowPromocodes.innerHTML = `
                     <td>Promocodes Distintos</td>
-                    <td>${networkData.distinct_promocodes}</td>
+                    <td>${networkData.promocode_count}</td>
                 `;
                 tableBody.appendChild(rowPromocodes);
     
@@ -191,7 +191,7 @@
                 const rowIds = document.createElement("tr");
                 rowIds.innerHTML = `
                     <td>Ordenes Distintas</td>
-                    <td>${networkData.distinct_ids}</td>
+                    <td>${networkData.distinct_order_ids}</td>
                 `;
                 tableBody.appendChild(rowIds);
             })
@@ -202,3 +202,4 @@
 
 </body>
 </html>
+
