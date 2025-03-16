@@ -48,7 +48,7 @@ logger = logging.getLogger(__name__)
 
 @app.route("/", methods=["GET", "POST"])
 def home():
-    return render_template("home.html")
+    return render_template("home2.html")
 
 @app.route('/rules')
 def rules_ui():
