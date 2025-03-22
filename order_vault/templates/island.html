@@ -4,109 +4,55 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Customer Attributes</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #121212;
-            color: white;
-            text-align: center;
-            margin: 0;
-            padding: 20px;
-        }
-
-        h2 {
-            color: #0ff;
-        }
-
-        form {
-            background: #222;
-            padding: 20px;
-            margin: 20px auto;
-            border-radius: 10px;
-            width: 50%;
-            max-width: 400px;
-            box-shadow: 0px 8px 20px rgba(0, 255, 255, 0.1);
-        }
-
-        input, button {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 5px;
-            border: 1px solid #333;
-            background: #333;
-            color: white;
-            font-size: 16px;
-        }
-
-        button {
-            background: #0ff;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background: #06b8b8;
-        }
-
-        table {
-            width: 80%;
-            margin: 20px auto;
-            border-collapse: collapse;
-            background: #1f1f1f;
-            color: white;
-        }
-
-        th, td {
-            padding: 10px;
-            border: 1px solid #444;
-        }
-
-        th {
-            background: #333;
-            color: #0ff;
-        }
-
-        td {
-            background: #222;
-        }
-
-    </style>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
+<body class="font-sans bg-gray-900 text-white">
 
-    <h2>Buscar Atributos de Cliente</h2>
+    <!-- Header Section -->
+    <header class="text-center py-16">
+        <h2 class="text-4xl font-bold text-cyan-400">Buscar Atributos de Cliente</h2>
+    </header>
 
-    <form id="emailForm">
-        <label for="email">Email del Cliente:</label>
-        <input type="email" id="email" required>
-        <button type="submit">Buscar</button>
-    </form>
+    <!-- Search Form -->
+    <section class="flex justify-center mb-8">
+        <form id="emailForm" class="bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-lg">
+            <label for="email" class="block text-lg text-gray-300 mb-2">Email del Cliente:</label>
+            <input type="email" id="email" required class="w-full p-3 mb-4 rounded-md bg-gray-700 text-white placeholder-gray-400 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan-400">
+            <button type="submit" class="w-full p-3 rounded-md bg-cyan-400 text-black font-bold hover:bg-cyan-500 transition duration-300">Buscar</button>
+        </form>
+    </section>
 
-    <h3>Atributos del Cliente</h3>
-    <table id="attributesTable">
-        <thead>
-            <tr>
-                <th>Atributo</th>
-                <th>Cantidad</th>
-            </tr>
-        </thead>
-        <tbody>
-            <!-- Aquí se llenarán los datos dinámicamente -->
-        </tbody>
-    </table>
+    <!-- Customer Attributes Table -->
+    <section class="my-8">
+        <h3 class="text-3xl font-bold text-center text-cyan-400 mb-4">Atributos del Cliente</h3>
+        <table id="attributesTable" class="w-4/5 mx-auto bg-gray-800 rounded-lg shadow-lg">
+            <thead>
+                <tr>
+                    <th class="py-3 px-6 bg-gray-700 text-cyan-400 text-lg">Atributo</th>
+                    <th class="py-3 px-6 bg-gray-700 text-cyan-400 text-lg">Cantidad</th>
+                </tr>
+            </thead>
+            <tbody class="text-gray-300">
+                <!-- Aquí se llenarán los datos dinámicamente -->
+            </tbody>
+        </table>
+    </section>
 
-    <h3>Atributos de la Network</h3>
-    <table id="networkAttributesTable">
-        <thead>
-            <tr>
-                <th>Atributo</th>
-                <th>Cantidad</th>
-            </tr>
-        </thead>
-        <tbody>
-            <!-- Aquí se llenarán los datos dinámicamente -->
-        </tbody>
-    </table>
+    <!-- Network Attributes Table -->
+    <section class="my-8">
+        <h3 class="text-3xl font-bold text-center text-cyan-400 mb-4">Atributos de la Network</h3>
+        <table id="networkAttributesTable" class="w-4/5 mx-auto bg-gray-800 rounded-lg shadow-lg">
+            <thead>
+                <tr>
+                    <th class="py-3 px-6 bg-gray-700 text-cyan-400 text-lg">Atributo</th>
+                    <th class="py-3 px-6 bg-gray-700 text-cyan-400 text-lg">Cantidad</th>
+                </tr>
+            </thead>
+            <tbody class="text-gray-300">
+                <!-- Aquí se llenarán los datos dinámicamente -->
+            </tbody>
+        </table>
+    </section>
 
     <script>
         document.getElementById("emailForm").addEventListener("submit", function(event) {
@@ -125,13 +71,13 @@
                     tableBody.innerHTML = "";  
 
                     if (Object.keys(data).length === 0) {
-                        tableBody.innerHTML = "<tr><td colspan='2'>No se encontraron datos</td></tr>";
+                        tableBody.innerHTML = "<tr><td colspan='2' class='text-center text-gray-500'>No se encontraron datos</td></tr>";
                         return;
                     }
 
                     for (const [attribute, count] of Object.entries(data)) {
                         const row = document.createElement("tr");
-                        row.innerHTML = `<td>${attribute}</td><td>${count}</td>`;
+                        row.innerHTML = `<td class="py-3 px-6">${attribute}</td><td class="py-3 px-6">${count}</td>`;
                         tableBody.appendChild(row);
                     }
                 })
@@ -148,7 +94,7 @@
                 tableBody.innerHTML = "";  // Clear previous data
 
                 if (data.message || Object.keys(data).length === 0) {
-                    tableBody.innerHTML = "<tr><td colspan='2'>No se encontraron datos</td></tr>";
+                    tableBody.innerHTML = "<tr><td colspan='2' class='text-center text-gray-500'>No se encontraron datos</td></tr>";
                     return;
                 }
 
@@ -158,16 +104,16 @@
                 // Display distinct order IDs
                 const rowIds = document.createElement("tr");
                 rowIds.innerHTML = `
-                    <td>Ordenes Distintas</td>
-                    <td>${networkData.distinct_order_ids}</td>
+                    <td class="py-3 px-6">Ordenes Distintas</td>
+                    <td class="py-3 px-6">${networkData.distinct_order_ids}</td>
                 `;
                 tableBody.appendChild(rowIds);
 
                 // Display distinct promocodes
                 const rowPromocodes = document.createElement("tr");
                 rowPromocodes.innerHTML = `
-                    <td>Promocodes Distintos</td>
-                    <td>${networkData.distinct_promocodes}</td>
+                    <td class="py-3 px-6">Promocodes Distintos</td>
+                    <td class="py-3 px-6">${networkData.distinct_promocodes}</td>
                 `;
                 tableBody.appendChild(rowPromocodes);
             })
@@ -177,6 +123,7 @@
 
 </body>
 </html>
+
 
 </body>
 </html>
