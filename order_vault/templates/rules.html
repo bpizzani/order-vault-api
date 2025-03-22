@@ -4,182 +4,56 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de Reglas</title>
-    <style>
-        /* Basic Reset */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #121212;
-            color: #fff;
-            text-align: center;
-            margin: 0;
-            padding: 0;
-        }
-
-        h2, h3 {
-            color: #0ff;
-            margin-bottom: 20px;
-        }
-
-        h2 {
-            font-size: 2rem;
-            letter-spacing: 2px;
-        }
-
-        h3 {
-            font-size: 1.5rem;
-        }
-
-        form {
-            background: #222;
-            padding: 30px;
-            margin: 50px auto;
-            border-radius: 15px;
-            width: 80%;
-            max-width: 400px;
-            box-shadow: 0px 8px 20px rgba(0, 255, 255, 0.1);
-            transition: all 0.3s ease-in-out;
-        }
-
-        form:hover {
-            transform: scale(1.02);
-        }
-
-        label {
-            display: block;
-            margin-bottom: 10px;
-            font-size: 1rem;
-            text-align: left;
-            color: #aaa;
-        }
-
-        select, input, button {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 15px;
-            border-radius: 10px;
-            border: 2px solid #333;
-            background-color: #333;
-            color: #fff;
-            font-size: 1rem;
-            outline: none;
-            transition: all 0.3s ease;
-        }
-
-        select:hover, input:hover, button:hover {
-            border-color: #0ff;
-        }
-
-        button {
-            background-color: #0ff;
-            cursor: pointer;
-            font-weight: bold;
-            border: none;
-            transition: background-color 0.3s ease;
-        }
-
-        button:hover {
-            background-color: #06b8b8;
-        }
-
-        table {
-            width: 80%;
-            margin: 50px auto;
-            background: #1f1f1f;
-            border-collapse: collapse;
-            border-radius: 10px;
-            box-shadow: 0px 8px 20px rgba(0, 255, 255, 0.1);
-        }
-
-        th, td {
-            padding: 15px;
-            border: 1px solid #444;
-            text-align: center;
-            font-size: 1rem;
-        }
-
-        th {
-            background: #333;
-            color: #0ff;
-            font-weight: bold;
-        }
-
-        td {
-            background: #222;
-            color: #bbb;
-        }
-
-        .delete-btn {
-            background: red;
-            color: white;
-            padding: 6px 12px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        .delete-btn:hover {
-            background: darkred;
-        }
-
-        /* Adding smooth animations */
-        .fade-in {
-            animation: fadeIn 1s ease-in-out;
-        }
-
-        @keyframes fadeIn {
-            0% {
-                opacity: 0;
-            }
-            100% {
-                opacity: 1;
-            }
-        }
-
-    </style>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
+<body class="font-sans bg-gray-900 text-white">
 
-    <h2>NodeTrail - Gestión de Reglas</h2>
+    <header class="text-center py-16 bg-white">
+        <h1 class="text-4xl font-bold text-gray-900">NodeTrail - Gestión de Reglas</h1>
+    </header>
 
-    <form id="ruleForm" class="fade-in">
-        <label>Atributo:</label>
-        <select id="attribute">
-            <option value="device_id">Device ID</option>
-            <option value="email">Email</option>
-            <option value="phone">Phone</option>
-            <option value="card_details">Card Details</option>
-        </select>
+    <!-- Form Section -->
+    <section class="py-16 bg-gray-800">
+        <div class="max-w-lg mx-auto bg-gray-900 p-8 rounded-lg shadow-lg">
+            <form id="ruleForm">
+                <label class="block text-gray-300 text-sm mb-2">Atributo:</label>
+                <select id="attribute" class="w-full p-3 mb-4 bg-gray-700 text-white rounded-md">
+                    <option value="device_id">Device ID</option>
+                    <option value="email">Email</option>
+                    <option value="phone">Phone</option>
+                    <option value="card_details">Card Details</option>
+                </select>
 
-        <label>Umbral (Threshold):</label>
-        <input type="number" id="threshold" required>
+                <label class="block text-gray-300 text-sm mb-2">Umbral (Threshold):</label>
+                <input type="number" id="threshold" class="w-full p-3 mb-4 bg-gray-700 text-white rounded-md" required>
 
-        <label>Promocode:</label>
-        <input type="text" id="promocode" required>
-        
-        <button type="submit">Agregar Regla</button>
-    </form>
+                <label class="block text-gray-300 text-sm mb-2">Promocode:</label>
+                <input type="text" id="promocode" class="w-full p-3 mb-6 bg-gray-700 text-white rounded-md" required>
+                
+                <button type="submit" class="w-full bg-[rgb(26,233,112)] text-black font-bold py-3 px-6 rounded-md hover:bg-[rgb(20,190,80)] transition duration-300">Agregar Regla</button>
+            </form>
+        </div>
+    </section>
 
-    <h3>Reglas Configuradas</h3>
-    <table class="fade-in">
-        <thead>
-            <tr>
-                <th>Atributo</th>
-                <th>Umbral</th>
-                <th>Promocode</th>
-                <th>Acción</th>
-            </tr>
-        </thead>
-        <tbody id="rulesTable">
-            <!-- Aquí se mostrarán las reglas dinámicamente -->
-        </tbody>
-    </table>
+    <!-- Rules Table -->
+    <section class="py-16 bg-gray-800">
+        <h2 class="text-3xl font-bold text-center text-gray-300 mb-8">Reglas Configuradas</h2>
+        <div class="overflow-x-auto bg-gray-900 p-8 rounded-lg shadow-lg">
+            <table class="min-w-full text-sm text-center text-gray-400">
+                <thead>
+                    <tr>
+                        <th class="px-6 py-3 bg-gray-700">Atributo</th>
+                        <th class="px-6 py-3 bg-gray-700">Umbral</th>
+                        <th class="px-6 py-3 bg-gray-700">Promocode</th>
+                        <th class="px-6 py-3 bg-gray-700">Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="rulesTable">
+                    <!-- Aquí se mostrarán las reglas dinámicamente -->
+                </tbody>
+            </table>
+        </div>
+    </section>
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
@@ -201,11 +75,11 @@
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ attribute, threshold, promocode })
             })
-            .then(response => response.text())  // Fetch the response as text
+            .then(response => response.text())
             .then(text => {
-                console.log("Response Text:", text);  // Log the raw response text
+                console.log("Response Text:", text); 
                 try {
-                    const data = JSON.parse(text);  // Attempt to parse JSON
+                    const data = JSON.parse(text);
                     loadRules();
                     document.getElementById("ruleForm").reset();
                 } catch (error) {
@@ -217,20 +91,20 @@
 
         function loadRules() {
             fetch("https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/rules", { method: "GET" })
-            .then(response => response.text())  // Fetch the response as text
+            .then(response => response.text())
             .then(text => {
-                console.log("Response Text:", text);  // Log the raw response text
+                console.log("Response Text:", text);
                 try {
-                    const data = JSON.parse(text);  // Attempt to parse JSON
+                    const data = JSON.parse(text);
                     const rulesTable = document.getElementById("rulesTable");
                     rulesTable.innerHTML = "";
                     data.forEach(rule => {
                         const row = document.createElement("tr");
                         row.innerHTML = `
-                            <td>${rule.attribute}</td>
-                            <td>${rule.threshold}</td>
-                            <td>${rule.promocode}</td>
-                            <td><button class="delete-btn" onclick="deleteRule(${rule.id})">Eliminar</button></td>
+                            <td class="px-6 py-4 bg-gray-700">${rule.attribute}</td>
+                            <td class="px-6 py-4 bg-gray-700">${rule.threshold}</td>
+                            <td class="px-6 py-4 bg-gray-700">${rule.promocode}</td>
+                            <td class="px-6 py-4 bg-gray-700"><button class="bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700" onclick="deleteRule(${rule.id})">Eliminar</button></td>
                         `;
                         rulesTable.appendChild(row);
                     });
@@ -252,4 +126,5 @@
 
 </body>
 </html>
+
 
