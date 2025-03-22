@@ -40,7 +40,8 @@
     <section class="text-center py-16 bg-white">
         <h2 class="text-3xl font-bold">Control promo usage</h2>
         <p class="mt-4 text-gray-600">Prevent promo code abuse by setting precise limits on how often a unique promo ID can be used.</p>
-        <img src="Promo-abuse-fraud.png" alt="Promo Abuse Rate Dashboard" class="mt-6 mx-auto w-3/4 rounded-lg shadow-lg">
+        <img src="{{ url_for('static', filename='images/Promo-abuse-fraud.png') }}" alt="Promo Abuse Rate Dashboard" class="mt-6 mx-auto w-3/4 rounded-lg shadow-lg">
+
     </section>
 
     <!-- Monitor Performance -->
@@ -53,7 +54,7 @@
     <section class="text-center py-16 bg-white">
         <h2 class="text-3xl font-bold">Set up rule-based protection</h2>
         <p class="mt-4 text-gray-600">Easily create and manage rules to prevent unauthorized promo usage.</p>
-        <img src="fake-rule-creation-dashboard.png" alt="Rule Creation Dashboard" class="mt-6 mx-auto w-3/4 rounded-lg shadow-lg">
+        <img src="{{ url_for('static', filename='images/fake-rule-creation-dashboard.png') }}" alt="Rule Creation Dashboard" class="mt-6 mx-auto w-3/4 rounded-lg shadow-lg">
     </section>
 
     <!-- Call to Action -->
