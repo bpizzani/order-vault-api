@@ -556,16 +556,16 @@ def get_promocode_order_count():
     query = """
     // Step 1: Find the customer's shared attributes (phone, device_id, card_details, promocode)
     MATCH (c:Customer {email: $email})-[:PLACED]->(order:Order)-[:HAS_ATTRIBUTE]->(attr)
-    WHERE attr.type IN ['phone', 'device_id', 'card_details', 'promocode']
+    WHERE attr.type IN ['phone', 'device_id', 'card_details']
     WITH COLLECT(DISTINCT attr.value) AS shared_attributes  // Collect shared attributes
 
     // Step 2: Find all customers connected by shared attributes (same phone, device_id, card_details, promocode)
     MATCH (c2:Customer)-[:PLACED]->(order2:Order)-[:HAS_ATTRIBUTE]->(attr2)
-    WHERE attr2.value IN shared_attributes AND attr2.type IN ['phone', 'device_id', 'card_details', 'promocode']
+    WHERE attr2.value IN shared_attributes AND attr2.type IN ['phone', 'device_id', 'card_details']
 
     // Step 3: Group by promocode and count the number of orders for each promocode
     MATCH (order2)-[:HAS_ATTRIBUTE]->(promocode_attr:Attribute {type: 'promocode'})
-    WITH promocode_attr.value AS promocode, COUNT(order2) AS total_orders
+    WITH promocode_attr.value AS promocode, COUNT(DISTINCT order2.id) AS total_orders
     ORDER BY total_orders DESC
 
     // Step 4: Return the list of promocodes and their associated total order counts
