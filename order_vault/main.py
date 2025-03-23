@@ -182,11 +182,12 @@ def create_graph(tx, G):
                 MERGE (c)-[:PLACED]->(o)
                 """, email=node_id.split(" ")[1], order_id=neighbor.split(" ")[1])
 
-            # Link orders to attributes
-            elif neighbor_type in ['card_details', 'email', 'device_id', 'phone', 'ip', 'promocode']:
+            # Link orders to attributes (ENSURE IT HAPPENS)
+            elif node_label == 'order' and neighbor_type in ['card_details', 'email', 'device_id', 'phone', 'ip', 'promocode']:
                 tx.run("""
-                MATCH (o:Order {id: $order_id}), (a:Attribute {type: $type, value: $value})
-                MERGE (o)-[:HAS_ATTRIBUTE]->(a)
+                MATCH (o:Order {id: $order_id})
+                MERGE (a:Attribute {type: $type, value: $value})
+                MERGE (o)-[:HAS_ATTRIBUTE]->(a)  // Ensure attribute is linked
                 """, order_id=node_id.split(" ")[1], type=neighbor_type, value=neighbor.split(" ", 1)[1])
 
             # Link attributes to each other (cross-linking)
