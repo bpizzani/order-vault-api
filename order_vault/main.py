@@ -358,6 +358,7 @@ def delete_rule(rule_id):
         return jsonify({"message": "Rule deleted successfully"}), 200
     return jsonify({"error": "Rule not found"}), 404
 
+
 @app.route('/api/evaluate', methods=['GET'])
 def evaluate():
     try:
@@ -378,58 +379,87 @@ def evaluate():
         # Initialize an empty dictionary to store results for each attribute
         evaluation_results = {}
 
-        # Iterate over the attribute types and evaluate based on the rules
-        for attribute_type in attribute_types:
-            # Get the rule for the attribute type and promocode
-            rule = Rule.query.filter_by(attribute=attribute_type, promocode=promocode).first()
-            print(f"Rule to evaluate : {rule}")
-            
-            # If no rule is found, log it and proceed with a default threshold (e.g., 0)
-            if not rule:
-                print(f"No rule found for attribute {attribute_type}.")
-                evaluation_results[attribute_type] = {
-                    "value": values.get(attribute_type),
-                    "promocode": promocode,
-                    "count": 0,
-                    "abusive": False
-                }
-            else:
-                # Query Neo4j to count occurrences of the attribute value + promocode
-                with driver.session() as session:
-                    # Base Neo4j query to count attributes linked to customers
-                    query = """
-                        MATCH (c:Customer)-[:HAS_ATTRIBUTE]->(attr:Attribute {type: $attribute_type, value: $value})
+        # Neo4j Query: Aggregate orders by attribute type and promocode
+        with driver.session() as session:
+            for attribute_type in attribute_types:
+                # Base query to match the order attributes
+                query = """
+                    MATCH (o:Order)-[:HAS_ATTRIBUTE]->(attr:Attribute)
+                    WHERE attr.type IN $attribute_types AND attr.value IS NOT NULL
+                """
+                
+                # If promocode is provided, include the promocode condition in the query
+                if promocode:
+                    query += """
+                        MATCH (o)-[:HAS_ATTRIBUTE]->(p:Attribute {type: 'promocode', value: $promocode})
                     """
-                    # Add promocode condition to the query if it's provided
-                    if promocode:
-                        query += """
-                            MATCH (c)-[:HAS_ATTRIBUTE]->(p:Attribute {type: 'promocode', value: $promocode})
-                        """
-                    query += "RETURN COUNT(DISTINCT c.email) AS count"
 
-                    # Execute the query
-                    result = session.run(query, attribute_type=attribute_type, value=values.get(attribute_type), promocode=promocode)
+                # Aggregate the results by attribute type and count the orders
+                query += """
+                    RETURN attr.type AS attribute_type,
+                           attr.value AS attribute_value,
+                           COUNT(DISTINCT o.id) AS order_count
+                    ORDER BY order_count DESC
+                """
 
-                    # Safeguard in case no result is returned
-                    count = result.single()["count"] if result else 0
-
-                # Compare the count with the rule threshold
-                is_abusive = count >= rule.threshold
-                evaluation_results[attribute_type] = {
-                    "value": values.get(attribute_type),
-                    "promocode": promocode,
-                    "count": count,
-                    "abusive": is_abusive
+                params = {
+                    "attribute_types": attribute_types,
+                    "promocode": promocode
                 }
+
+                # Execute the query and collect results
+                results = session.run(query, params)
+
+                # Process the query results into a dictionary
+                for record in results:
+                    attribute_type = record["attribute_type"]
+                    attribute_value = record["attribute_value"]
+                    order_count = record["order_count"]
+
+                    # Store the results in the dictionary
+                    if attribute_type not in evaluation_results:
+                        evaluation_results[attribute_type] = []
+                    evaluation_results[attribute_type].append({
+                        "attribute_value": attribute_value,
+                        "order_count": order_count
+                    })
+
+        # Now apply the rules based on the threshold
+        final_results = {}
+        for attribute_type, records in evaluation_results.items():
+            for record in records:
+                value = record["attribute_value"]
+                count = record["order_count"]
+
+                # Get the rule for the attribute type and promocode
+                rule = Rule.query.filter_by(attribute=attribute_type, promocode=promocode).first()
+                if not rule:
+                    final_results[attribute_type] = {
+                        "value": value,
+                        "promocode": promocode,
+                        "count": count,
+                        "abusive": False
+                    }
+                else:
+                    # Compare the count with the rule threshold
+                    is_abusive = count >= rule.threshold
+                    final_results[attribute_type] = {
+                        "value": value,
+                        "promocode": promocode,
+                        "count": count,
+                        "abusive": is_abusive
+                    }
 
         # Determine the overall result (if any attribute is abusive, return overall_abusive as True)
-        overall_abusive = any(result["abusive"] for result in evaluation_results.values())
-        print("Evaluation results:", evaluation_results)
-        return jsonify({"evaluation_results": evaluation_results, "overall_abusive": overall_abusive})
+        overall_abusive = any(result["abusive"] for result in final_results.values())
+        print("Final Evaluation Results:", final_results)
+
+        return jsonify({"evaluation_results": final_results, "overall_abusive": overall_abusive})
 
     except Exception as e:
         # Handle unexpected errors
         return jsonify({"error": "An unexpected error occurred", "details": str(e)}), 500
+        
 
 @app.route("/api/customer-attributes", methods=["GET"])
 def get_customer_attributes():
