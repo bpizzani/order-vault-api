@@ -96,31 +96,62 @@
             }
         }
 
-        function fetchCustomerAttributes(email) {
-            fetch(`https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/customer-attributes?email=${encodeURIComponent(email)}`)
-                .then(response => response.json())
-                .then(data => {
-                    console.log("API Response - Customer Attributes:", data);
-                    const tableBody = document.querySelector("#attributesTable tbody");
-                    tableBody.innerHTML = "";  
-
-                    if (Object.keys(data).length === 0) {
-                        tableBody.innerHTML = "<tr><td colspan='2' class='text-center text-gray-500'>No se encontraron atributos para este cliente.</td></tr>";
-                        return;
-                    }
-
-                    for (const [attribute, count] of Object.entries(data)) {
-                        const row = document.createElement("tr");
-                        row.innerHTML = `<td class="py-3 px-6">${attribute}</td><td class="py-3 px-6">${count}</td>`;
-                        tableBody.appendChild(row);
-                    }
-                })
-                .catch(error => {
-                    console.error("Error al obtener los atributos del cliente:", error);
-                    const tableBody = document.querySelector("#attributesTable tbody");
-                    tableBody.innerHTML = "<tr><td colspan='2' class='text-center text-red-500'>Error al obtener los atributos.</td></tr>";
-                });
-        }
+    function fetchCustomerAttributes(email) {
+        fetch(`https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/customer-attributes-summary?email=${encodeURIComponent(email)}`)
+            .then(response => response.json())
+            .then(data => {
+                console.log("API Response - Customer Attributes Summary:", data);
+    
+                const tableBody = document.querySelector("#customerAttributesTable tbody");
+                tableBody.innerHTML = "";  // Clear previous data
+    
+                if (data.message || Object.keys(data).length === 0) {
+                    tableBody.innerHTML = "<tr><td colspan='2' class='text-center text-gray-500'>No se encontraron datos.</td></tr>";
+                    return;
+                }
+    
+                // Display total orders
+                const rowOrders = document.createElement("tr");
+                rowOrders.innerHTML = `
+                    <td class="py-3 px-6">Total de Ordenes</td>
+                    <td class="py-3 px-6">${data.total_orders}</td>
+                `;
+                tableBody.appendChild(rowOrders);
+    
+                // Display distinct cards
+                const rowCards = document.createElement("tr");
+                rowCards.innerHTML = `
+                    <td class="py-3 px-6">Tarjetas Distintas</td>
+                    <td class="py-3 px-6">${data.distinct_cards}</td>
+                `;
+                tableBody.appendChild(rowCards);
+    
+                // Display distinct phones
+                const rowPhones = document.createElement("tr");
+                rowPhones.innerHTML = `
+                    <td class="py-3 px-6">Teléfonos Distintos</td>
+                    <td class="py-3 px-6">${data.distinct_phones}</td>
+                `;
+                tableBody.appendChild(rowPhones);
+    
+                // Display distinct devices
+                const rowDevices = document.createElement("tr");
+                rowDevices.innerHTML = `
+                    <td class="py-3 px-6">Dispositivos Distintos</td>
+                    <td class="py-3 px-6">${data.distinct_devices}</td>
+                `;
+                tableBody.appendChild(rowDevices);
+            })
+            .catch(error => {
+                console.error("Error fetching customer attributes:", error);
+                const tableBody = document.querySelector("#customerAttributesTable tbody");
+                tableBody.innerHTML = "<tr><td colspan='2' class='text-center text-red-500'>Error al obtener datos.</td></tr>";
+            })
+            .finally(() => {
+                showLoading(false);  // Hide loading indicator
+            });
+    }
+        
         function fetchNetworkAttributes(email) {
             fetch(`https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/customer-attributes-network?email=${encodeURIComponent(email)}`)
                 .then(response => response.json())
