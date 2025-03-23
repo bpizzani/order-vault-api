@@ -380,9 +380,10 @@ def evaluate():
 
         # Iterate over the attribute types and evaluate based on the rules
         for attribute_type in attribute_types:
-            # Get the rule for the attribute type
-            rule = Rule.query.filter_by(attribute=attribute_type,promocode=promocode).first()
+            # Get the rule for the attribute type and promocode
+            rule = Rule.query.filter_by(attribute=attribute_type, promocode=promocode).first()
             print(f"Rule to evaluate : {rule}")
+            
             # If no rule is found, log it and proceed with a default threshold (e.g., 0)
             if not rule:
                 print(f"No rule found for attribute {attribute_type}.")
@@ -395,14 +396,18 @@ def evaluate():
             else:
                 # Query Neo4j to count occurrences of the attribute value + promocode
                 with driver.session() as session:
-
+                    # Base Neo4j query to count attributes linked to customers
                     query = """
-                        MATCH (c:Customer)-[:HAS_ATTRIBUTE]->(attr {type: $attribute_type, value: $value})
-                        """
+                        MATCH (c:Customer)-[:HAS_ATTRIBUTE]->(attr:Attribute {type: $attribute_type, value: $value})
+                    """
+                    # Add promocode condition to the query if it's provided
                     if promocode:
-                        query += "MATCH (c)-[:HAS_ATTRIBUTE]->(p {type: 'promocode', value: $promocode})"
+                        query += """
+                            MATCH (c)-[:HAS_ATTRIBUTE]->(p:Attribute {type: 'promocode', value: $promocode})
+                        """
                     query += "RETURN COUNT(DISTINCT c.email) AS count"
-                    
+
+                    # Execute the query
                     result = session.run(query, attribute_type=attribute_type, value=values.get(attribute_type), promocode=promocode)
 
                     # Safeguard in case no result is returned
@@ -419,10 +424,11 @@ def evaluate():
 
         # Determine the overall result (if any attribute is abusive, return overall_abusive as True)
         overall_abusive = any(result["abusive"] for result in evaluation_results.values())
-        print(evaluation_results)
+        print("Evaluation results:", evaluation_results)
         return jsonify({"evaluation_results": evaluation_results, "overall_abusive": overall_abusive})
 
     except Exception as e:
+        # Handle unexpected errors
         return jsonify({"error": "An unexpected error occurred", "details": str(e)}), 500
 
 @app.route("/api/customer-attributes", methods=["GET"])
