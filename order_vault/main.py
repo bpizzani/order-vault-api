@@ -121,29 +121,21 @@ def trigger_process_and_update(order_data):
     except Exception as e:
         print(f"Error occurred while triggering process-and-update: {str(e)}")
 
+
 def save_order_in_neo4j(session, order_data):
     """ Save the confirmed order into Neo4j """
     G = nx.Graph()
 
-    order_id = order_data['id']  # Order ID as the main entity
-    order_node = f"Order {order_id}"
-    G.add_node(order_node, type='order')
-
     customer_node = f"Customer {order_data['email']}"
     G.add_node(customer_node, type='customer')
 
-    # Link the customer to the order
-    G.add_edge(customer_node, order_node)
-
     # Add order attributes as nodes and edges in the graph
-    attributes = ['card_details', 'email', 'device_id', 'phone', 'ip', 'promocode']
-
-    for attribute in attributes:
+    for attribute in ['card_details', 'email', 'device_id', 'phone', 'promocode', 'id']:
         attr_value = order_data.get(attribute)
         if attr_value:
-            attribute_node = f"{attribute} {attr_value}"
+            attribute_node = f"{attr_value}"
             G.add_node(attribute_node, type=attribute)
-            G.add_edge(order_node, attribute_node)  # Connect order to attribute
+            G.add_edge(customer_node, attribute_node)
 
     # Write the graph to Neo4j
     with session:
@@ -154,34 +146,22 @@ def create_graph(tx, G):
     """ Helper function to create or update nodes in Neo4j from the NetworkX graph """
     for node_id, node_data in G.nodes(data=True):
         if node_data['type'] == 'customer':
-            tx.run("MERGE (c:Customer {email: $email})", email=node_id.split(" ")[1])
+            tx.run("MERGE (c:Customer {email: $email, type:'customer'})", email=node_id)
 
-        elif node_data['type'] == 'order':
-            tx.run("MERGE (o:Order {id: $order_id})", order_id=node_id.split(" ")[1])
-
-        else:
-            attr_type, attr_value = node_id.split(" ", 1)
-            tx.run("MERGE (a:Attribute {type: $type, value: $value})", type=attr_type, value=attr_value)
-
-        # Create relationships
         for neighbor in G.neighbors(node_id):
-            if G.nodes[neighbor]['type'] == 'order':
+            if node_data['type'] == 'customer':
                 tx.run("""
-                MATCH (c:Customer {email: $email}), (o:Order {id: $order_id})
-                MERGE (c)-[:PLACED]->(o)
-                """, email=node_id.split(" ")[1], order_id=neighbor.split(" ")[1])
-
-            elif G.nodes[neighbor]['type'] in ['card_details', 'email', 'device_id', 'phone', 'ip', 'promocode']:
-                tx.run("""
-                MATCH (o:Order {id: $order_id}), (a:Attribute {type: $type, value: $value})
-                MERGE (o)-[:HAS_ATTRIBUTE]->(a)
-                """, order_id=node_id.split(" ")[1], type=G.nodes[neighbor]['type'], value=neighbor.split(" ", 1)[1])
-
-            elif G.nodes[node_id]['type'] in ['card_details', 'email', 'device_id', 'phone', 'ip', 'promocode']:
-                tx.run("""
-                MATCH (a1:Attribute {type: $type, value: $value1}), (a2:Attribute {type: $type, value: $value2})
-                MERGE (a1)-[:CONNECTED_TO]->(a2)
-                """, type=G.nodes[node_id]['type'], value1=node_id.split(" ", 1)[1], value2=neighbor.split(" ", 1)[1])
+                MERGE (c:Customer {email: $email, type:"customer"})
+                MERGE (a {value: $value, type:$type})
+                MERGE (c)-[:HAS_ATTRIBUTE]->(a)
+                """, email=node_id, value=neighbor, type=G.nodes[neighbor]['type'])
+            else:
+                if G.nodes[neighbor]['type'] != 'customer':
+                    tx.run("""
+                    MERGE (a1 {value: $value1, type:$type})
+                    MERGE (a2 {value: $value2, type:$type})
+                    MERGE (a1)-[:CONNECTED_TO]->(a2)
+                    """, value1=node_id, value2=neighbor, type=G.nodes[neighbor]['type'])
 
 
 # Flask Route to Handle Order Finalization
@@ -236,74 +216,101 @@ def process_and_update():
     except Exception as e:
         return jsonify({"error": "An unexpected error occurred", "details": str(e)}), 500
 
+
 @app.route("/aggregated-by-attributes", methods=["GET"])
 def aggregated_by_attributes():
     try:
-        # Get attributes from request, defaulting to "device_id"
-        attribute_types = request.args.get("attribute_types", "device_id").split(",") or ["device_id"]
-        values = {attr: request.args.get(attr, None) for attr in attribute_types if request.args.get(attr, None)}
-        promocode = request.args.get("promocode", None)  # Optional filter
+        # Get the attribute types (can be multiple) and optional filters (phone, device_id) from the query parameters
+        attribute_types = request.args.get("attribute_types", "device_id").split(",")  # Defaults to "device_id"
 
-        # Neo4j Query: Aggregate attributes with optional promocode filter
-        query = """
-        MATCH (c:Customer)-[:HAS_ATTRIBUTE]->(attr)
-        MATCH (c)-[:HAS_ATTRIBUTE]->(p {type: 'promocode'})
-        WHERE attr.type IN $attribute_types
-        AND attr.value IS NOT NULL AND p.value IS NOT NULL
-        """
-        if promocode:
-            query += " AND p.value = $promocode"
+        # Get the value for each attribute type (e.g., device_id and phone)
+        values = {}
+        for attribute_type in attribute_types:
+            value = request.args.get(attribute_type, None)
+            if value:
+                values[attribute_type] = value
 
-        query += """
-        RETURN 
-          attr.type AS attribute_type,
-          attr.value AS attribute_value,
-          p.value AS promocode,
-          COUNT(DISTINCT c.email) AS customer_count
-        ORDER BY customer_count DESC
-        """
+        promocode = request.args.get("promocode", None)  # Optional filter by promocode
 
-        params = {"attribute_types": attribute_types}
-        if promocode:
-            params["promocode"] = promocode
+        # Initialize an empty dictionary to store the results grouped by attribute type
+        grouped_results = {attribute_type: [] for attribute_type in attribute_types}
 
-        # Execute the query
-        grouped_results = {attr: [] for attr in attribute_types}
-        with driver.session() as session:
-            neo4j_results = session.run(query, params)
-            for record in neo4j_results:
-                grouped_results[record["attribute_type"]].append({
-                    "attribute_value": record["attribute_value"],
-                    "promocode": record["promocode"],
-                    "customer_count": record["customer_count"]
+        # Neo4j query to aggregate data by attribute + promocode, with optional filters
+        for attribute_type in attribute_types:
+            query = """
+            MATCH (c:Customer)-[:HAS_ATTRIBUTE]->(attr {type: $attribute_type})
+            MATCH (c)-[:HAS_ATTRIBUTE]->(p {type: 'promocode'})
+            WHERE attr.value IS NOT NULL AND p.value IS NOT NULL
+            """
+
+            # Add filtering based on value (phone, device_id) if provided
+            if attribute_type in values:
+                query += f" AND attr.value = ${attribute_type}"
+                query += " AND p.value = $promocode"
+
+            query += """
+            RETURN 
+              attr.value AS attribute_value,
+              p.value AS promocode,
+              COUNT(DISTINCT c.email) AS customer_count
+            ORDER BY customer_count DESC
+            """
+
+            # Prepare parameters for Neo4j query
+            params = {"attribute_type": attribute_type, "promocode": promocode}
+            if attribute_type in values:
+                params[attribute_type] = values[attribute_type]
+
+            # Execute the query
+            with driver.session() as session:
+                neo4j_results = session.run(query, params)
+                for record in neo4j_results:
+                    grouped_results[attribute_type].append({
+                        "attribute_value": record["attribute_value"],
+                        "promocode": record["promocode"],
+                        "customer_count": record["customer_count"]
+                    })
+
+        # Trigger background process for next time
+        aggregated_results = {attribute_type: [] for attribute_type in attribute_types}
+
+        # Group the aggregated data by attribute type
+        for k,aggregate in grouped_results.items():
+            if len(aggregate) > 0:
+                aggregate = aggregate[0]
+                attribute_type = k
+                aggregated_results[attribute_type].append({
+                    "attribute_value": aggregate["attribute_value"],
+                    "promocode": aggregate["promocode"],
+                    "customer_count": aggregate["customer_count"]
                 })
 
-        # Aggregate results by attribute type
-        aggregated_results = {}
-        for attribute_type, records in grouped_results.items():
-            total_customers = sum(record["customer_count"] for record in records)
-            aggregated_results[attribute_type] = {
-                "customer_count": total_customers,
-                "promocode": records[0]["promocode"] if records else None
-            }
+         # Get aggregated data 
+        aggregated_device_data = aggregated_results.get("device_id", [])[0] if "device_id" in aggregated_results and len(aggregated_results["device_id"]) > 0 else None
+        aggregated_phone_data = aggregated_results.get("phone", [])[0] if "phone" in aggregated_results and len(aggregated_results["phone"]) > 0 else None
+        aggregated_card_data = aggregated_results.get("card_details", [])[0] if "card_details" in aggregated_results and len(aggregated_results["card_details"]) > 0 else None
+        aggregated_email_data = aggregated_results.get("email", [])[0] if "email" in aggregated_results and len(aggregated_results["email"]) > 0 else None
 
-        # Get customer counts
-        device_customer_count = aggregated_results.get("device_id", {}).get("customer_count", 0)
-        phone_customer_count = aggregated_results.get("phone", {}).get("customer_count", 0)
-        card_customer_count = aggregated_results.get("card_details", {}).get("customer_count", 0)
-        email_customer_count = aggregated_results.get("email", {}).get("customer_count", 0)
+        # Extract the customer count for each, defaulting to 0 if not available
+        device_customer_count = aggregated_device_data["customer_count"] if aggregated_device_data else 0
+        phone_customer_count = aggregated_phone_data["customer_count"] if aggregated_phone_data else 0
+        card_customer_count = aggregated_card_data["customer_count"] if aggregated_card_data else 0
+        email_customer_count = aggregated_email_data["customer_count"] if aggregated_email_data else 0
 
-        # Fraud detection check
+        #threading.Thread(target=trigger_process_and_update).start()
+
         if device_customer_count >= 1 or phone_customer_count >= 1 or card_customer_count >= 1 or email_customer_count >= 1:
-            print("FRAUD DETECTED")
+            print("FRAUD")
             return jsonify({"aggregates": "ABUSIVE"}), 200
         else:
-            print("GENUINE CUSTOMER")
+            print("GENUINE")
             return jsonify({"aggregates": "GENUINE"}), 200
+        # Return the aggregated results grouped by attribute type
+        #return jsonify({"aggregates": grouped_results}), 200
 
     except Exception as e:
-        print("Error in /aggregated-by-attributes:", str(e))
         return jsonify({"error": "An unexpected error occurred while fetching aggregates", "details": str(e)}), 500
+
 
 @app.route('/api/rules', methods=['GET', 'POST'])
 def manage_rules():
