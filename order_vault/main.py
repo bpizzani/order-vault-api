@@ -459,17 +459,17 @@ def evaluate():
     except Exception as e:
         # Handle unexpected errors
         return jsonify({"error": "An unexpected error occurred", "details": str(e)}), 500
-        
 
 @app.route("/api/customer-attributes", methods=["GET"])
 def get_customer_attributes():
-    email = request.args.get("email", "").strip().lower()  # Normalize input
+    email = request.args.get("email", "").strip().lower()  # Normalize the email input
 
     if not email:
         return jsonify({"error": "Missing email parameter"}), 400
 
-    print(f"Received email: {email}")  # Add this to check what email is received
-    email = "Customer "+email
+    print(f"Received email: {email}")  # Log the email received for debugging
+    email = "Customer " + email  # Assuming the 'Customer ' prefix is part of your Neo4j data
+    
     query = """
     MATCH (c:Customer {email: $email})-[:HAS_ATTRIBUTE]->(attr)
     RETURN attr.type AS attribute, COUNT(attr) AS count
@@ -480,6 +480,7 @@ def get_customer_attributes():
     try:
         with driver.session() as session:
             result = session.run(query, params)
+            # Create a dictionary with attribute type as the key and its count as the value
             attributes = {record["attribute"]: record["count"] for record in result}
 
         if not attributes:
@@ -500,8 +501,9 @@ def get_network_attributes():
 
     email = "Customer " + email  # Normalize the email as per your Neo4j data
 
+    # Updated Cypher query to count distinct order ids and promocodes in the customer's network
     query = """
-    // Step 1: Find the customer's attributes
+    // Step 1: Find the customer's shared attributes (phone, device_id, card_details)
     MATCH (c:Customer {email: $email})-[:HAS_ATTRIBUTE]->(attr)
     WHERE attr.type IN ['phone', 'device_id', 'card_details']
     WITH COLLECT(DISTINCT attr.value) AS shared_attributes
@@ -509,16 +511,15 @@ def get_network_attributes():
     // Step 2: Find all customers connected by shared attributes
     MATCH (c2:Customer)-[:HAS_ATTRIBUTE]->(attr2)
     WHERE attr2.value IN shared_attributes AND attr2.type IN ['phone', 'device_id', 'card_details']
-    WITH COLLECT(DISTINCT attr2.value) AS connected_values
-
-    // Step 3: Find all "id" and "promocode" attributes in the entire connected network
+    
+    // Step 3: Find all order_ids and promocodes in the entire connected network
     MATCH (c2)-[:HAS_ATTRIBUTE]->(order_attr)
     WHERE order_attr.type = 'id'
 
     MATCH (c2)-[:HAS_ATTRIBUTE]->(promocode_attr)
     WHERE promocode_attr.type = 'promocode'
 
-    // Step 4: Return the count of distinct "ids" and "promocodes"
+    // Step 4: Return the count of distinct "order_ids" and "promocodes" in the network
     RETURN 
         COUNT(DISTINCT order_attr.value) AS distinct_order_ids,
         COUNT(DISTINCT promocode_attr.value) AS distinct_promocodes
@@ -541,7 +542,6 @@ def get_network_attributes():
 
     except Exception as e:
         return jsonify({"error": "Database error", "details": str(e)}), 500
-
         
 if __name__ == "__main__":
     print("started APP")
