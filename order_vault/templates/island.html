@@ -103,32 +103,63 @@
                     tableBody.innerHTML = "<tr><td colspan='2' class='text-center text-red-500'>Error al obtener los atributos.</td></tr>";
                 });
         }
-    
         function fetchNetworkAttributes(email) {
             fetch(`https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/customer-attributes-network?email=${encodeURIComponent(email)}`)
                 .then(response => response.json())
                 .then(data => {
                     console.log("API Response - Network Attributes:", data);
-
+        
                     const tableBody = document.querySelector("#networkAttributesTable tbody");
                     tableBody.innerHTML = "";  // Clear previous data
-
+        
                     if (data.message || Object.keys(data).length === 0) {
                         tableBody.innerHTML = "<tr><td colspan='2' class='text-center text-gray-500'>No se encontraron datos en la network.</td></tr>";
                         return;
                     }
-
+        
                     // Render the network attributes data
                     const networkData = data;
-
-                    // Display distinct order IDs
-                    const rowIds = document.createElement("tr");
-                    rowIds.innerHTML = `
-                        <td class="py-3 px-6">Ordenes Distintas</td>
-                        <td class="py-3 px-6">${networkData.distinct_order_ids}</td>
+        
+                    // Display connected customers
+                    const rowCustomers = document.createElement("tr");
+                    rowCustomers.innerHTML = `
+                        <td class="py-3 px-6">Clientes Conectados</td>
+                        <td class="py-3 px-6">${networkData.connected_customers}</td>
                     `;
-                    tableBody.appendChild(rowIds);
-
+                    tableBody.appendChild(rowCustomers);
+        
+                    // Display connected orders
+                    const rowOrders = document.createElement("tr");
+                    rowOrders.innerHTML = `
+                        <td class="py-3 px-6">Ordenes Conectadas</td>
+                        <td class="py-3 px-6">${networkData.connected_orders}</td>
+                    `;
+                    tableBody.appendChild(rowOrders);
+        
+                    // Display distinct cards
+                    const rowCards = document.createElement("tr");
+                    rowCards.innerHTML = `
+                        <td class="py-3 px-6">Tarjetas Distintas</td>
+                        <td class="py-3 px-6">${networkData.distinct_cards}</td>
+                    `;
+                    tableBody.appendChild(rowCards);
+        
+                    // Display distinct phones
+                    const rowPhones = document.createElement("tr");
+                    rowPhones.innerHTML = `
+                        <td class="py-3 px-6">Teléfonos Distintos</td>
+                        <td class="py-3 px-6">${networkData.distinct_phones}</td>
+                    `;
+                    tableBody.appendChild(rowPhones);
+        
+                    // Display distinct devices
+                    const rowDevices = document.createElement("tr");
+                    rowDevices.innerHTML = `
+                        <td class="py-3 px-6">Dispositivos Distintos</td>
+                        <td class="py-3 px-6">${networkData.distinct_devices}</td>
+                    `;
+                    tableBody.appendChild(rowDevices);
+        
                     // Display distinct promocodes
                     const rowPromocodes = document.createElement("tr");
                     rowPromocodes.innerHTML = `
@@ -136,6 +167,15 @@
                         <td class="py-3 px-6">${networkData.distinct_promocodes}</td>
                     `;
                     tableBody.appendChild(rowPromocodes);
+        
+                    // Display total promocodes
+                    const rowTotalPromocodes = document.createElement("tr");
+                    rowTotalPromocodes.innerHTML = `
+                        <td class="py-3 px-6">Total Promocodes</td>
+                        <td class="py-3 px-6">${networkData.total_promocodes}</td>
+                    `;
+                    tableBody.appendChild(rowTotalPromocodes);
+        
                 })
                 .catch(error => {
                     console.error("Error al obtener los atributos de la network:", error);
