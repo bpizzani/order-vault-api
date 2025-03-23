@@ -502,8 +502,6 @@ def get_network_attributes():
     if not email:
         return jsonify({"error": "Missing email parameter"}), 400
 
-    email = "Customer " + email  # Normalize the email as per your Neo4j data
-
     # Updated Cypher query to count distinct order ids and promocodes in the customer's network
     query = """
     // Step 1: Find the customer's shared attributes (phone, device_id, card_details)
