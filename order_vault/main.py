@@ -460,6 +460,7 @@ def evaluate():
         # Handle unexpected errors
         return jsonify({"error": "An unexpected error occurred", "details": str(e)}), 500
 
+
 @app.route("/api/customer-attributes", methods=["GET"])
 def get_customer_attributes():
     email = request.args.get("email", "").strip().lower()  # Normalize the email input
@@ -469,9 +470,12 @@ def get_customer_attributes():
 
     print(f"Received email: {email}")  # Log the email received for debugging
     email = "Customer " + email  # Assuming the 'Customer ' prefix is part of your Neo4j data
-    
+
+    print(f"Final email format for query: {email}")  # Debugging the final email format
+
+    # Modified query to reflect the 'PLACED' relationship
     query = """
-    MATCH (c:Customer {email: $email})-[:HAS_ATTRIBUTE]->(attr)
+    MATCH (c:Customer {email: $email})-[:PLACED]->(order:Order)-[:HAS_ATTRIBUTE]->(attr)
     RETURN attr.type AS attribute, COUNT(attr) AS count
     """
 
