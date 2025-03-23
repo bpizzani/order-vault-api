@@ -126,25 +126,16 @@ def save_order_in_neo4j(session, order_data):
     """ Save the confirmed order into Neo4j """
     G = nx.Graph()
 
-    order_id = order_data['id']  # Order ID as the main entity
-    order_node = f"Order {order_id}"
-    G.add_node(order_node, type='order')
-
     customer_node = f"Customer {order_data['email']}"
     G.add_node(customer_node, type='customer')
 
-    # Link the customer to the order
-    G.add_edge(customer_node, order_node)
-
     # Add order attributes as nodes and edges in the graph
-    attributes = ['card_details', 'email', 'device_id', 'phone', 'ip', 'promocode']
-
-    for attribute in attributes:
+    for attribute in ['card_details', 'email', 'device_id', 'phone', 'promocode', 'id']:
         attr_value = order_data.get(attribute)
         if attr_value:
-            attribute_node = f"{attribute} {attr_value}"
+            attribute_node = f"{attr_value}"
             G.add_node(attribute_node, type=attribute)
-            G.add_edge(order_node, attribute_node)  # Connect order to attribute
+            G.add_edge(customer_node, attribute_node)
 
     # Write the graph to Neo4j
     with session:
@@ -155,34 +146,23 @@ def create_graph(tx, G):
     """ Helper function to create or update nodes in Neo4j from the NetworkX graph """
     for node_id, node_data in G.nodes(data=True):
         if node_data['type'] == 'customer':
-            tx.run("MERGE (c:Customer {email: $email})", email=node_id.split(" ")[1])
+            tx.run("MERGE (c:Customer {email: $email, type:'customer'})", email=node_id)
 
-        elif node_data['type'] == 'order':
-            tx.run("MERGE (o:Order {id: $order_id})", order_id=node_id.split(" ")[1])
-
-        else:
-            attr_type, attr_value = node_id.split(" ", 1)
-            tx.run("MERGE (a:Attribute {type: $type, value: $value})", type=attr_type, value=attr_value)
-
-        # Create relationships
         for neighbor in G.neighbors(node_id):
-            if G.nodes[neighbor]['type'] == 'order':
+            if node_data['type'] == 'customer':
                 tx.run("""
-                MATCH (c:Customer {email: $email}), (o:Order {id: $order_id})
-                MERGE (c)-[:PLACED]->(o)
-                """, email=node_id.split(" ")[1], order_id=neighbor.split(" ")[1])
+                MERGE (c:Customer {email: $email, type:"customer"})
+                MERGE (a {value: $value, type:$type})
+                MERGE (c)-[:HAS_ATTRIBUTE]->(a)
+                """, email=node_id, value=neighbor, type=G.nodes[neighbor]['type'])
+            else:
+                if G.nodes[neighbor]['type'] != 'customer':
+                    tx.run("""
+                    MERGE (a1 {value: $value1, type:$type})
+                    MERGE (a2 {value: $value2, type:$type})
+                    MERGE (a1)-[:CONNECTED_TO]->(a2)
+                    """, value1=node_id, value2=neighbor, type=G.nodes[neighbor]['type'])
 
-            elif G.nodes[neighbor]['type'] in ['card_details', 'email', 'device_id', 'phone', 'ip', 'promocode']:
-                tx.run("""
-                MATCH (o:Order {id: $order_id}), (a:Attribute {type: $type, value: $value})
-                MERGE (o)-[:HAS_ATTRIBUTE]->(a)
-                """, order_id=node_id.split(" ")[1], type=G.nodes[neighbor]['type'], value=neighbor.split(" ", 1)[1])
-
-            elif G.nodes[node_id]['type'] in ['card_details', 'email', 'device_id', 'phone', 'ip', 'promocode']:
-                tx.run("""
-                MATCH (a1:Attribute {type: $type, value: $value1}), (a2:Attribute {type: $type, value: $value2})
-                MERGE (a1)-[:CONNECTED_TO]->(a2)
-                """, type=G.nodes[node_id]['type'], value1=node_id.split(" ", 1)[1], value2=neighbor.split(" ", 1)[1])
 
 # Flask Route to Handle Order Finalization
 @app.route("/finalize-order", methods=["POST"])
