@@ -460,9 +460,8 @@ def evaluate():
         # Handle unexpected errors
         return jsonify({"error": "An unexpected error occurred", "details": str(e)}), 500
 
-
-@app.route("/api/customer-attributes", methods=["GET"])
-def get_customer_attributes():
+@app.route("/api/customer-attributes-summary", methods=["GET"])
+def get_customer_attributes_summary():
     email = request.args.get("email", "").strip().lower()  # Normalize the email input
 
     if not email:
@@ -470,12 +469,14 @@ def get_customer_attributes():
 
     print(f"Received email: {email}")  # Log the email received for debugging
 
-    print(f"Final email format for query: {email}")  # Debugging the final email format
-
-    # Modified query to reflect the 'PLACED' relationship
     query = """
     MATCH (c:Customer {email: $email})-[:PLACED]->(order:Order)-[:HAS_ATTRIBUTE]->(attr)
-    RETURN attr.type AS attribute, COUNT(DISTINCT order) AS count
+    WHERE attr.type IN ['phone', 'device_id', 'card_details']
+    RETURN 
+        COUNT(DISTINCT order) AS total_orders,  // Total orders placed by the customer
+        COUNT(DISTINCT CASE WHEN attr.type = 'card_details' THEN attr.value END) AS distinct_cards,
+        COUNT(DISTINCT CASE WHEN attr.type = 'phone' THEN attr.value END) AS distinct_phones,
+        COUNT(DISTINCT CASE WHEN attr.type = 'device_id' THEN attr.value END) AS distinct_devices
     """
 
     params = {"email": email}
@@ -483,13 +484,17 @@ def get_customer_attributes():
     try:
         with driver.session() as session:
             result = session.run(query, params)
-            # Create a dictionary with attribute type as the key and its count as the value
-            attributes = {record["attribute"]: record["count"] for record in result}
+            record = result.single()
 
-        if not attributes:
-            return jsonify({"message": "No attributes found for this email"}), 200
-
-        return jsonify(attributes), 200
+            if record:
+                return jsonify({
+                    "total_orders": record["total_orders"],
+                    "distinct_cards": record["distinct_cards"],
+                    "distinct_phones": record["distinct_phones"],
+                    "distinct_devices": record["distinct_devices"]
+                }), 200
+            else:
+                return jsonify({"message": "No data found for this email"}), 200
 
     except Exception as e:
         return jsonify({"error": "Database error", "details": str(e)}), 500
