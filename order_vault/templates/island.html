@@ -22,6 +22,11 @@
         </form>
     </section>
 
+    <!-- Loading Indicator -->
+    <div id="loading" class="text-center text-cyan-400 text-xl hidden">
+        Cargando datos, por favor espera...
+    </div>
+
     <!-- Customer Attributes Table -->
     <section class="my-8">
         <h3 class="text-3xl font-bold text-center text-cyan-400 mb-4">Atributos del Cliente</h3>
@@ -33,7 +38,7 @@
                 </tr>
             </thead>
             <tbody class="text-gray-300">
-                <!-- Aquí se llenarán los datos dinámicamente -->
+                <!-- Here the data will be filled dynamically -->
             </tbody>
         </table>
     </section>
@@ -49,18 +54,29 @@
                 </tr>
             </thead>
             <tbody class="text-gray-300">
-                <!-- Aquí se llenarán los datos dinámicamente -->
+                <!-- Here the data will be filled dynamically -->
             </tbody>
         </table>
     </section>
 
     <script>
         document.getElementById("emailForm").addEventListener("submit", function(event) {
-            event.preventDefault();  // Evita el refresco de la página
+            event.preventDefault();  // Prevent page refresh
             const email = document.getElementById("email").value;
+            showLoading(true);  // Show loading indicator
             fetchCustomerAttributes(email);
             fetchNetworkAttributes(email);
         });
+
+        // Show or hide the loading indicator
+        function showLoading(show) {
+            const loadingElement = document.getElementById("loading");
+            if (show) {
+                loadingElement.classList.remove("hidden");
+            } else {
+                loadingElement.classList.add("hidden");
+            }
+        }
 
         function fetchCustomerAttributes(email) {
             fetch(`https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/customer-attributes?email=${encodeURIComponent(email)}`)
@@ -71,7 +87,7 @@
                     tableBody.innerHTML = "";  
 
                     if (Object.keys(data).length === 0) {
-                        tableBody.innerHTML = "<tr><td colspan='2' class='text-center text-gray-500'>No se encontraron datos</td></tr>";
+                        tableBody.innerHTML = "<tr><td colspan='2' class='text-center text-gray-500'>No se encontraron atributos para este cliente.</td></tr>";
                         return;
                     }
 
@@ -81,49 +97,56 @@
                         tableBody.appendChild(row);
                     }
                 })
-                .catch(error => console.error("Error al obtener los atributos del cliente:", error));
+                .catch(error => {
+                    console.error("Error al obtener los atributos del cliente:", error);
+                    const tableBody = document.querySelector("#attributesTable tbody");
+                    tableBody.innerHTML = "<tr><td colspan='2' class='text-center text-red-500'>Error al obtener los atributos.</td></tr>";
+                });
         }
     
         function fetchNetworkAttributes(email) {
             fetch(`https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/customer-attributes-network?email=${encodeURIComponent(email)}`)
-            .then(response => response.json())
-            .then(data => {
-                console.log("API Response - Network Attributes:", data);
+                .then(response => response.json())
+                .then(data => {
+                    console.log("API Response - Network Attributes:", data);
 
-                const tableBody = document.querySelector("#networkAttributesTable tbody");
-                tableBody.innerHTML = "";  // Clear previous data
+                    const tableBody = document.querySelector("#networkAttributesTable tbody");
+                    tableBody.innerHTML = "";  // Clear previous data
 
-                if (data.message || Object.keys(data).length === 0) {
-                    tableBody.innerHTML = "<tr><td colspan='2' class='text-center text-gray-500'>No se encontraron datos</td></tr>";
-                    return;
-                }
+                    if (data.message || Object.keys(data).length === 0) {
+                        tableBody.innerHTML = "<tr><td colspan='2' class='text-center text-gray-500'>No se encontraron datos en la network.</td></tr>";
+                        return;
+                    }
 
-                // Render the network attributes data
-                const networkData = data;
+                    // Render the network attributes data
+                    const networkData = data;
 
-                // Display distinct order IDs
-                const rowIds = document.createElement("tr");
-                rowIds.innerHTML = `
-                    <td class="py-3 px-6">Ordenes Distintas</td>
-                    <td class="py-3 px-6">${networkData.distinct_order_ids}</td>
-                `;
-                tableBody.appendChild(rowIds);
+                    // Display distinct order IDs
+                    const rowIds = document.createElement("tr");
+                    rowIds.innerHTML = `
+                        <td class="py-3 px-6">Ordenes Distintas</td>
+                        <td class="py-3 px-6">${networkData.distinct_order_ids}</td>
+                    `;
+                    tableBody.appendChild(rowIds);
 
-                // Display distinct promocodes
-                const rowPromocodes = document.createElement("tr");
-                rowPromocodes.innerHTML = `
-                    <td class="py-3 px-6">Promocodes Distintos</td>
-                    <td class="py-3 px-6">${networkData.distinct_promocodes}</td>
-                `;
-                tableBody.appendChild(rowPromocodes);
-            })
-            .catch(error => console.error("Error al obtener los atributos de la network:", error));
+                    // Display distinct promocodes
+                    const rowPromocodes = document.createElement("tr");
+                    rowPromocodes.innerHTML = `
+                        <td class="py-3 px-6">Promocodes Distintos</td>
+                        <td class="py-3 px-6">${networkData.distinct_promocodes}</td>
+                    `;
+                    tableBody.appendChild(rowPromocodes);
+                })
+                .catch(error => {
+                    console.error("Error al obtener los atributos de la network:", error);
+                    const tableBody = document.querySelector("#networkAttributesTable tbody");
+                    tableBody.innerHTML = "<tr><td colspan='2' class='text-center text-red-500'>Error al obtener los atributos de la network.</td></tr>";
+                })
+                .finally(() => {
+                    showLoading(false);  // Hide loading indicator
+                });
         }
     </script>
-
-</body>
-</html>
-
 
 </body>
 </html>
