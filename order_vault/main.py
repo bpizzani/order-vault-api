@@ -476,7 +476,7 @@ def get_customer_attributes():
     # Modified query to reflect the 'PLACED' relationship
     query = """
     MATCH (c:Customer {email: $email})-[:PLACED]->(order:Order)-[:HAS_ATTRIBUTE]->(attr)
-    RETURN attr.type AS attribute, COUNT(attr) AS count
+    RETURN attr.type AS attribute, COUNT(DISTINCT order) AS count
     """
 
     params = {"email": email}
