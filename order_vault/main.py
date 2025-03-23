@@ -469,7 +469,6 @@ def get_customer_attributes():
         return jsonify({"error": "Missing email parameter"}), 400
 
     print(f"Received email: {email}")  # Log the email received for debugging
-    email = "Customer " + email  # Assuming the 'Customer ' prefix is part of your Neo4j data
 
     print(f"Final email format for query: {email}")  # Debugging the final email format
 
