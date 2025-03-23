@@ -249,22 +249,22 @@ def process_and_update():
     except Exception as e:
         return jsonify({"error": "An unexpected error occurred", "details": str(e)}), 500
 
-
 @app.route("/aggregated-by-attributes", methods=["GET"])
 def aggregated_by_attributes():
     try:
-        # Get attributes from request, defaulting to "device_id"
+        # Get requested attributes (default: "device_id")
         attribute_types = request.args.get("attribute_types", "device_id").split(",") or ["device_id"]
         values = {attr: request.args.get(attr, None) for attr in attribute_types if request.args.get(attr, None)}
         promocode = request.args.get("promocode", None)  # Optional filter
 
-        # Neo4j Query: Aggregate attributes with optional promocode filter
+        # 🛠️ FIXED QUERY: Corrected relationships (Orders hold attributes, not Customers)
         query = """
-        MATCH (c:Customer)-[:HAS_ATTRIBUTE]->(attr)
-        MATCH (c)-[:HAS_ATTRIBUTE]->(p {type: 'promocode'})
-        WHERE attr.type IN $attribute_types
-        AND attr.value IS NOT NULL AND p.value IS NOT NULL
+        MATCH (o:Order)-[:HAS_ATTRIBUTE]->(attr:Attribute)
+        OPTIONAL MATCH (o)-[:HAS_ATTRIBUTE]->(p:Attribute {type: 'promocode'}) 
+        WHERE attr.type IN $attribute_types 
         """
+
+        # Apply optional promocode filtering
         if promocode:
             query += " AND p.value = $promocode"
 
@@ -272,9 +272,9 @@ def aggregated_by_attributes():
         RETURN 
           attr.type AS attribute_type,
           attr.value AS attribute_value,
-          p.value AS promocode,
-          COUNT(DISTINCT c.email) AS customer_count
-        ORDER BY customer_count DESC
+          COALESCE(p.value, 'None') AS promocode, 
+          COUNT(DISTINCT o.id) AS order_count
+        ORDER BY order_count DESC
         """
 
         params = {"attribute_types": attribute_types}
@@ -289,37 +289,35 @@ def aggregated_by_attributes():
                 grouped_results[record["attribute_type"]].append({
                     "attribute_value": record["attribute_value"],
                     "promocode": record["promocode"],
-                    "customer_count": record["customer_count"]
+                    "order_count": record["order_count"]
                 })
 
-        # Aggregate results by attribute type
+        # Aggregate results
         aggregated_results = {}
         for attribute_type, records in grouped_results.items():
-            total_customers = sum(record["customer_count"] for record in records)
+            total_orders = sum(record["order_count"] for record in records)
             aggregated_results[attribute_type] = {
-                "customer_count": total_customers,
+                "order_count": total_orders,
                 "promocode": records[0]["promocode"] if records else None
             }
 
-        # Get customer counts
-        device_customer_count = aggregated_results.get("device_id", {}).get("customer_count", 0)
-        phone_customer_count = aggregated_results.get("phone", {}).get("customer_count", 0)
-        card_customer_count = aggregated_results.get("card_details", {}).get("customer_count", 0)
-        email_customer_count = aggregated_results.get("email", {}).get("customer_count", 0)
+        # 🛠️ FIXED FRAUD CHECK (Now Based on Orders, Not Customers)
+        device_order_count = aggregated_results.get("device_id", {}).get("order_count", 0)
+        phone_order_count = aggregated_results.get("phone", {}).get("order_count", 0)
+        card_order_count = aggregated_results.get("card_details", {}).get("order_count", 0)
+        email_order_count = aggregated_results.get("email", {}).get("order_count", 0)
 
-        # Fraud detection check
-        if device_customer_count >= 1 or phone_customer_count >= 1 or card_customer_count >= 1 or email_customer_count >= 1:
-            print("FRAUD DETECTED")
+        if device_order_count >= 1 or phone_order_count >= 1 or card_order_count >= 1 or email_order_count >= 1:
+            print("🚨 FRAUD DETECTED 🚨")
             return jsonify({"aggregates": "ABUSIVE"}), 200
         else:
-            print("GENUINE CUSTOMER")
+            print("✅ GENUINE CUSTOMER ✅")
             return jsonify({"aggregates": "GENUINE"}), 200
 
     except Exception as e:
         print("Error in /aggregated-by-attributes:", str(e))
         return jsonify({"error": "An unexpected error occurred while fetching aggregates", "details": str(e)}), 500
-
-
+        
 @app.route('/api/rules', methods=['GET', 'POST'])
 def manage_rules():
     if request.method == 'POST':
