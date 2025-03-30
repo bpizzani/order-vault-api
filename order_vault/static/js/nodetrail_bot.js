@@ -29,16 +29,41 @@ export async function detectBots() {
             return isBot ? "Yes" : "No"
         }
 
-        let userInteracted = false;
-        window.addEventListener("mousemove", () => userInteracted = true);
-        window.addEventListener("keydown", () => userInteracted = true);
+    // Track user interaction indirectly
+    let userInteracted = false;
+    // Track focus and blur events on interactive elements
+    document.querySelectorAll('button, input, a').forEach(element => {
+        element.addEventListener('focus', () => userInteracted = true);
+        element.addEventListener('blur', () => userInteracted = true);
+        element.addEventListener('mouseover', () => userInteracted = true);
+        element.addEventListener('mousedown', () => userInteracted = true);
+    });
 
-        //setTimeout(() => {
-        //    if (!userInteracted) {
-        //        console.warn("🚨 Bot detected: No user interaction");
-        //        isBot = true;
-        //        return isBot ? "Yes" : "No"
-        //    }
-        //}, 1000); 
+    // Monitor animation or CSS state changes
+    const observer = new MutationObserver(() => {
+        userInteracted = true;
+    });
+    document.querySelectorAll('button, input, a').forEach(element => {
+        observer.observe(element, { attributes: true, attributeFilter: ['class', 'style'] });
+    });
+
+    // Use IntersectionObserver to check if user views interactive elements
+    const intersectionObserver = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                userInteracted = true;
+            }
+        });
+    });
+    document.querySelectorAll('button, input, a').forEach(el => intersectionObserver.observe(el));
+
+    // Set timeout to detect lack of user interaction
+    
+    if (!userInteracted) {
+            console.warn("🚨 Bot detected: No user interaction or indirect interaction");
+            isBot = true;
+            return isBot ? "Yes" : "No";
+        });
+        
     return isBot ? "Yes" : "No"
     }
