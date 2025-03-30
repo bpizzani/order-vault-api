@@ -46,8 +46,6 @@ export async function detectBots() {
                 // Check if there was no user interaction before input
                 if (!userInteracted) {
                     console.warn("🚨 Bot detected: Text input without user interaction");
-                    // Optionally, clear the field or prevent further input
-                    event.target.value = '';  // Clear the text field
                     isBot = true;
                     return isBot ? "Yes" : "No"
                 }
@@ -58,8 +56,6 @@ export async function detectBots() {
         document.querySelector("form").addEventListener("submit", (event) => {
             if (!userInteracted) {
                 console.warn("🚨 Bot detected: Submit button clicked without user interaction");
-                // Prevent the form submission if it's a bot
-                event.preventDefault();
                 isBot = true;
                 return isBot ? "Yes" : "No"
             }
