@@ -35,7 +35,7 @@ export async function detectBots() {
         document.addEventListener("mousemove", () => userInteracted = true);
         document.addEventListener("keydown", () => userInteracted = true);
         document.addEventListener("focusin", () => userInteracted = true);
-        document.addEventListener("click", () => userInteracted = true);  // Detect clicks
+        //document.addEventListener("click", () => userInteracted = true);  // Detect clicks
         
         
         // Form fields you want to track
