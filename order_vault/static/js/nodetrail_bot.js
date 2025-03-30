@@ -52,8 +52,10 @@ export async function detectBots() {
             if (formFillingTime < 3000 && formFillingTime > 0) {
                 console.warn("🚨 Bot detected: Form filled too quickly");
                 // You can flag the user as a bot here, show a warning, or prevent submission
+                isBot = true;
+                return isBot ? "Yes" : "No"
             }
-        }, 1000);  // Set a threshold for form filling speed, e.g., 3 seconds
+        }, 3000);  // Set a threshold for form filling speed, e.g., 3 seconds
         
         
     return isBot ? "Yes" : "No"
