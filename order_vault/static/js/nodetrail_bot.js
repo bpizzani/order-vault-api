@@ -51,7 +51,7 @@ export async function detectBots() {
                     const formFillingTime = formEndTime - formStartTime;
         
                     // Check if form was filled too quickly (e.g., under 3 seconds)
-                    if (formFillingTime < 3000) {  // 3 seconds threshold (adjust as needed)
+                    if (formFillingTime < 10000) {  // 3 seconds threshold (adjust as needed)
                         console.warn("🚨 Bot detected: Form filled too quickly");
                         isBot = true;
                     }
