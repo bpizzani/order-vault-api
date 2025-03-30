@@ -11,31 +11,37 @@
     <header class="text-center py-10">
         <h1 class="text-4xl font-bold text-cyan-400">Promocode Dashboard</h1>
     </header>
-    
+
     <div class="container mx-auto p-6">
+        <!-- Search Bar -->
+        <div class="mb-6 flex justify-center">
+            <input type="text" id="promocodeInput" class="p-3 w-1/3 bg-gray-800 text-white border border-cyan-400 rounded-l-lg outline-none" placeholder="Enter promocode...">
+            <button onclick="fetchPromocodeUsage()" class="bg-cyan-400 text-gray-900 px-5 py-3 rounded-r-lg font-bold hover:bg-cyan-300">Search</button>
+        </div>
+
         <!-- Summary Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            <div class="bg-gray-800 p-6 rounded-lg text-center shadow-lg">
-                <h2 class="text-xl text-cyan-400">Total Promocodes Used</h2>
-                <p id="totalPromocodes" class="text-3xl font-bold mt-2">0</p>
-            </div>
             <div class="bg-gray-800 p-6 rounded-lg text-center shadow-lg">
                 <h2 class="text-xl text-cyan-400">Total Orders</h2>
                 <p id="totalOrders" class="text-3xl font-bold mt-2">0</p>
             </div>
             <div class="bg-gray-800 p-6 rounded-lg text-center shadow-lg">
-                <h2 class="text-xl text-cyan-400">Abusive Usage</h2>
-                <p id="abusiveUsage" class="text-3xl font-bold mt-2">0</p>
+                <h2 class="text-xl text-cyan-400">Unique Users</h2>
+                <p id="uniqueUsers" class="text-3xl font-bold mt-2">0</p>
+            </div>
+            <div class="bg-gray-800 p-6 rounded-lg text-center shadow-lg">
+                <h2 class="text-xl text-red-400">Abusive Users</h2>
+                <p id="abusiveUsers" class="text-3xl font-bold mt-2">0</p>
             </div>
         </div>
-        
-        <!-- Promocode Usage Table -->
+
+        <!-- Promocode Details Table -->
         <div class="overflow-x-auto">
             <table class="w-full bg-gray-800 rounded-lg shadow-lg">
                 <thead>
                     <tr>
                         <th class="py-3 px-6 bg-gray-700 text-cyan-400">Promocode</th>
-                        <th class="py-3 px-6 bg-gray-700 text-cyan-400">Number of Orders</th>
+                        <th class="py-3 px-6 bg-gray-700 text-cyan-400">Total Orders</th>
                         <th class="py-3 px-6 bg-gray-700 text-cyan-400">Unique Users</th>
                         <th class="py-3 px-6 bg-gray-700 text-red-400">Abusive Users</th>
                     </tr>
@@ -45,40 +51,49 @@
                 </tbody>
             </table>
         </div>
+
+        <!-- Loading Indicator -->
+        <div id="loading" class="text-center text-cyan-400 mt-4 hidden">Loading...</div>
     </div>
     
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            fetch("https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/promocode-usage")
+        function fetchPromocodeUsage() {
+            const promocode = document.getElementById("promocodeInput").value.trim().toUpperCase();
+            if (!promocode) {
+                alert("Please enter a promocode");
+                return;
+            }
+
+            document.getElementById("loading").classList.remove("hidden");
+
+            fetch(`https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/promocode-usage?promocode=${promocode}`)
                 .then(response => response.json())
                 .then(data => {
                     console.log("API Response - Promocode Usage:", data);
-                    
-                    let totalPromocodes = data.length;
-                    let totalOrders = data.reduce((sum, item) => sum + item.total_orders, 0);
-                    let abusiveUsage = data.reduce((sum, item) => sum + item.abusive_users, 0);
-                    
-                    document.getElementById("totalPromocodes").innerText = totalPromocodes;
-                    document.getElementById("totalOrders").innerText = totalOrders;
-                    document.getElementById("abusiveUsage").innerText = abusiveUsage;
-                    
+
+                    document.getElementById("totalOrders").innerText = data.total_orders || 0;
+                    document.getElementById("uniqueUsers").innerText = data.unique_users || 0;
+                    document.getElementById("abusiveUsers").innerText = data.abusive_users || 0;
+
                     const tableBody = document.getElementById("promocodeTable");
-                    tableBody.innerHTML = "";
-                    
-                    data.forEach(promocode => {
-                        const row = document.createElement("tr");
-                        row.innerHTML = `
-                            <td class="py-3 px-6">${promocode.promocode}</td>
-                            <td class="py-3 px-6">${promocode.total_orders}</td>
-                            <td class="py-3 px-6">${promocode.unique_users}</td>
-                            <td class="py-3 px-6 text-red-400">${promocode.abusive_users}</td>
-                        `;
-                        tableBody.appendChild(row);
-                    });
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td class="py-3 px-6">${data.promocode || 'N/A'}</td>
+                            <td class="py-3 px-6">${data.total_orders || 0}</td>
+                            <td class="py-3 px-6">${data.unique_users || 0}</td>
+                            <td class="py-3 px-6 text-red-400">${data.abusive_users || 0}</td>
+                        </tr>
+                    `;
+
+                    document.getElementById("loading").classList.add("hidden");
                 })
-                .catch(error => console.error("Error fetching promocode usage data:", error));
-        });
+                .catch(error => {
+                    console.error("Error fetching promocode usage data:", error);
+                    document.getElementById("loading").classList.add("hidden");
+                    alert("Failed to fetch data. Please try again later.");
+                });
+        }
     </script>
-    
+
 </body>
 </html>
