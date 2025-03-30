@@ -61,14 +61,6 @@ export async function detectBots() {
             }
         });
         
-        // Set a timeout just in case the form submission is delayed or happens too fast
-        setTimeout(() => {
-            if (formEndTime === 0) {
-                // If form hasn't been submitted in 3 seconds, assume suspicious
-                console.warn("🚨 Bot detected: Form submission took too long");
-                isBot = true;
-            }
-        }, 3000);
         
     return isBot ? "Yes" : "No"
     }
