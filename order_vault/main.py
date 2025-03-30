@@ -604,7 +604,7 @@ def get_promocode_order_count():
 
 @app.route("/api/promocode-usage", methods=["GET"])
 def get_promocode_usage():
-    promocode = request.args.get("promocode", "").strip().upper()
+    promocode = request.args.get("promocode", "").strip()
 
     # Modified Cypher Query to check abusive usage of the promocode
     query = """
