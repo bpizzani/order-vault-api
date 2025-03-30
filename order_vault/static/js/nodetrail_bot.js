@@ -31,34 +31,32 @@ export async function detectBots() {
 
         let formStartTime = 0;
         let formEndTime = 0;
-        let isBot = false;
+        let inputFields = document.querySelectorAll('input, textarea'); // Select all form fields
+        let totalFields = inputFields.length;
+        let filledFields = 0;  // To track how many fields have been filled
         
-        // Monitor when the form starts to be filled
-        document.querySelector('form').addEventListener('focus', function() {
-            if (formStartTime === 0) {  // Only set the start time once
-                formStartTime = Date.now();
-            }
-        }, true);
-        
-        // Monitor form filling (e.g., user interacts with fields)
-        document.querySelectorAll('input, textarea').forEach(input => {
-            input.addEventListener('input', function() {
-                // Do something when fields are filled (like tracking)
+        // Monitor when the user starts typing (start time)
+        inputFields.forEach(input => {
+            input.addEventListener('focus', function() {
+                if (formStartTime === 0) {  // Only set the start time once
+                    formStartTime = Date.now();
+                }
             });
-        });
         
-        // Monitor form submission
-        document.querySelector('form').addEventListener('submit', function(event) {
-            formEndTime = Date.now();
-            
-            const formFillingTime = formEndTime - formStartTime;
-            
-            // Check if form was filled too quickly
-            if (formFillingTime < 3000) {
-                console.warn("🚨 Bot detected: Form filled too quickly");
-                isBot = true;
-                event.preventDefault();  // Prevent form submission if you want to block it
-            }
+            // Monitor when user types in each field
+            input.addEventListener('input', function() {
+                filledFields++;  // Increase filled fields count when user interacts with a field
+                if (filledFields === totalFields) {  // All fields are filled
+                    formEndTime = Date.now();
+                    const formFillingTime = formEndTime - formStartTime;
+        
+                    // Check if form was filled too quickly (e.g., under 3 seconds)
+                    if (formFillingTime < 3000) {  // 3 seconds threshold (adjust as needed)
+                        console.warn("🚨 Bot detected: Form filled too quickly");
+                        isBot = true;
+                    }
+                }
+            });
         });
         
         
