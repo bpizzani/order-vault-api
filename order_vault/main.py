@@ -615,7 +615,7 @@ def get_promocode_usage():
 
     WITH p.value AS promocode, 
          COUNT(DISTINCT o) AS total_orders,
-         COUNT(DISTINCT c) AS unique_users,
+         COUNT(DISTINCT CASE WHEN attr.type = 'email' THEN attr.value END) AS unique_users,
          COUNT(DISTINCT CASE WHEN attr.type = 'email' THEN attr.value END) AS unique_emails,
          COUNT(DISTINCT CASE WHEN attr.type = 'device_id' THEN attr.value END) AS unique_devices,
          COUNT(DISTINCT CASE WHEN attr.type = 'card_details' THEN attr.value END) AS unique_cards,
