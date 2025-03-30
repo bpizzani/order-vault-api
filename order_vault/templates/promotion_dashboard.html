@@ -82,7 +82,6 @@
         
                     // Update summary cards
                     document.getElementById("totalOrders").innerText = promoData.total_usage_count || 0;
-                    document.getElementById("uniqueUsers").innerText = promoData.unique_users || 0;
                     document.getElementById("abusiveUsers").innerText = promoData.abusive_usage_count || 0;
         
                     // Calculate percentage of abusive users
@@ -95,7 +94,7 @@
                         labels: ['Total Orders', 'Unique Users', 'Abusive Users'],
                         datasets: [{
                             label: 'Promocode Usage Statistics',
-                            data: [promoData.total_usage_count, promoData.unique_users, promoData.abusive_usage_count],
+                            data: [promoData.total_usage_count, promoData.abusive_usage_count],
                             backgroundColor: ['#00bcd4', '#4caf50', '#f44336'],
                             borderColor: ['#0097a7', '#388e3c', '#d32f2f'],
                             borderWidth: 1
