@@ -54,6 +54,11 @@ def home():
 def rules_ui():
     return render_template('rules.html')
 
+
+@app.route('/promotion_dashboard')
+def rules_ui():
+    return render_template('promotion_dashboard.html')
+
 @app.route('/island')
 def customer_ui():
     return render_template('island.html')
