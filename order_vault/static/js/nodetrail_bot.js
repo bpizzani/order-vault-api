@@ -49,12 +49,12 @@ export async function detectBots() {
             // Monitor form filling speed (too fast means bot)
             setTimeout(() => {
                 // If the form filling time is too fast (i.e., less than 1 second), flag as bot
-                if (formFillingTime < 1000) {
+                if (formFillingTime < 3000) {
                     console.warn("🚨 Bot detected: Form filled too quickly");
                     isBot = true;
                     return isBot ? "Yes" : "No";
                 }
-            }, 1000);
+            }, 3000);
         
     return isBot ? "Yes" : "No"
     }
