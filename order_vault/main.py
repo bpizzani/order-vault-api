@@ -602,28 +602,42 @@ def get_promocode_order_count():
         return jsonify({"error": "Database error", "details": str(e)}), 500
 
 
-
 @app.route("/api/promocode-usage", methods=["GET"])
 def get_promocode_usage():
     promocode = request.args.get("promocode", "").strip().upper()
 
+    # Modified Cypher Query to check abusive usage of the promocode
     query = """
-    MATCH (o:Order)-[:HAS_ATTRIBUTE]->(p:Attribute {type: 'promocode', value: $promocode})
-    OPTIONAL MATCH (o)-[:PLACED_BY]->(c:Customer)
-    OPTIONAL MATCH (o)-[:HAS_ATTRIBUTE]->(attr)
-    WHERE attr.type IN ['device_id', 'card_details', 'email', 'phone'] AND attr.value IS NOT NULL
+    // Step 1: Find all customers who used the promocode
+    MATCH (c:Customer)-[:PLACED]->(order:Order)-[:HAS_ATTRIBUTE]->(promocode_attr:Attribute {value: $promocode, type: 'promocode'})
+    WITH c, order
 
-    WITH p.value AS promocode, 
-         COUNT(DISTINCT o) AS total_orders,
-         COUNT(DISTINCT CASE WHEN attr.type = 'email' THEN attr.value END) AS unique_users,
-         COUNT(DISTINCT CASE WHEN attr.type = 'email' THEN attr.value END) AS unique_emails,
-         COUNT(DISTINCT CASE WHEN attr.type = 'device_id' THEN attr.value END) AS unique_devices,
-         COUNT(DISTINCT CASE WHEN attr.type = 'card_details' THEN attr.value END) AS unique_cards,
-         COUNT(DISTINCT CASE WHEN attr.type = 'phone' THEN attr.value END) AS unique_phones
+    // Step 2: Collect shared attributes (email, phone, device_id, card_details) for the customer
+    MATCH (c)-[:PLACED]->(order)-[:HAS_ATTRIBUTE]->(attr)
+    WHERE attr.type IN ['phone', 'device_id', 'card_details', 'email']
+    WITH c, COLLECT(DISTINCT attr.value) AS shared_attributes, order
 
-    RETURN promocode, total_orders, unique_users, unique_emails, unique_devices, unique_cards, unique_phones,
-           (total_orders - unique_users) AS abusive_users
-    ORDER BY total_orders DESC;
+    // Step 3: Find other customers linked by shared attributes
+    MATCH (c2:Customer)-[:PLACED]->(order2:Order)-[:HAS_ATTRIBUTE]->(attr2)
+    WHERE attr2.value IN shared_attributes AND attr2.type IN ['phone', 'device_id', 'card_details', 'email']
+
+    // Step 4: Count how many times the linked customers have used the promocode
+    MATCH (c2)-[:PLACED]->(order2:Order)-[:HAS_ATTRIBUTE]->(promocode_attr:Attribute {value: $promocode, type: 'promocode'})
+    WITH c2, COUNT(DISTINCT order2.id) AS connected_orders, COLLECT(DISTINCT order2.id) AS all_order_ids
+
+    // Step 5: Flag networks as abusive if connected orders > 1
+    WITH c2, connected_orders, all_order_ids,
+         CASE WHEN connected_orders > 1 THEN 1 ELSE 0 END AS abusive
+
+    // Step 6: Count total orders with the promocode
+    MATCH (order)-[:HAS_ATTRIBUTE]->(promocode_attr:Attribute {value: $promocode, type: 'promocode'})
+    WITH COUNT(DISTINCT order.id) AS total_orders, abusive, all_order_ids
+
+    // Step 7: Aggregate abusive orders and total orders for abuse rate
+    RETURN 
+        COUNT(DISTINCT all_order_ids) AS total_usage_count,  // Total usage of the promocode across all orders (both abusive and non-abusive)
+        COUNT(DISTINCT CASE WHEN abusive = 1 THEN all_order_ids END) AS abusive_usage_count, // Count of abusive usage (connected orders > 1)
+        COUNT(DISTINCT CASE WHEN abusive = 1 THEN all_order_ids END) * 100.0 / COUNT(DISTINCT all_order_ids) AS abuse_rate_percentage  // Abuse rate percentage
     """
 
     params = {"promocode": promocode} if promocode else {}
