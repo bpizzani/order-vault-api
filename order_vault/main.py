@@ -611,7 +611,7 @@ def get_promocode_usage():
         return jsonify({"error": "Missing promocode parameter"}), 400
 
     query = """
-    MATCH (o:Order)-[:USED_PROMOCODE]->(p:Promocode {code: $promocode})
+    MATCH (o:Order)-[:USED_PROMOCODE]->(p:Promocode {value: $promocode})
     OPTIONAL MATCH (o)-[:PLACED_BY]->(c:Customer)
     OPTIONAL MATCH (c)-[:HAS_ATTRIBUTE]->(attr)
     WHERE attr.type IN ['phone', 'device_id', 'email', 'card_details']
@@ -620,7 +620,7 @@ def get_promocode_usage():
          COUNT(DISTINCT CASE WHEN attr.type = 'device_id' THEN attr.value END) AS unique_devices,
          COUNT(DISTINCT CASE WHEN attr.type = 'card_details' THEN attr.value END) AS unique_cards,
          COUNT(DISTINCT CASE WHEN attr.type = 'phone' THEN attr.value END) AS unique_phones
-    RETURN p.code AS promocode, total_orders, unique_users,
+    RETURN p.value AS promocode, total_orders, unique_users,
            unique_emails, unique_devices, unique_cards, unique_phones,
            (total_orders - unique_users) AS abusive_users
     """
