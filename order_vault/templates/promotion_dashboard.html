@@ -91,12 +91,12 @@
         
                     // Prepare data for bar chart
                     const chartData = {
-                        labels: ['Total Orders', 'Unique Users', 'Abusive Users'],
+                        labels: ['Total Users', 'Abusive Users'],
                         datasets: [{
                             label: 'Promocode Usage Statistics',
                             data: [promoData.total_usage_count, promoData.abusive_usage_count],
-                            backgroundColor: ['#00bcd4', '#4caf50', '#f44336'],
-                            borderColor: ['#0097a7', '#388e3c', '#d32f2f'],
+                            backgroundColor: ['#00bcd4', '#f44336'],
+                            borderColor: ['#0097a7', '#d32f2f'],
                             borderWidth: 1
                         }]
                     };
