@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Promocode Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white font-sans">
+    
+    <header class="text-center py-10">
+        <h1 class="text-4xl font-bold text-cyan-400">Promocode Dashboard</h1>
+    </header>
+    
+    <div class="container mx-auto p-6">
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div class="bg-gray-800 p-6 rounded-lg text-center shadow-lg">
+                <h2 class="text-xl text-cyan-400">Total Promocodes Used</h2>
+                <p id="totalPromocodes" class="text-3xl font-bold mt-2">0</p>
+            </div>
+            <div class="bg-gray-800 p-6 rounded-lg text-center shadow-lg">
+                <h2 class="text-xl text-cyan-400">Total Orders</h2>
+                <p id="totalOrders" class="text-3xl font-bold mt-2">0</p>
+            </div>
+            <div class="bg-gray-800 p-6 rounded-lg text-center shadow-lg">
+                <h2 class="text-xl text-cyan-400">Abusive Usage</h2>
+                <p id="abusiveUsage" class="text-3xl font-bold mt-2">0</p>
+            </div>
+        </div>
+        
+        <!-- Promocode Usage Table -->
+        <div class="overflow-x-auto">
+            <table class="w-full bg-gray-800 rounded-lg shadow-lg">
+                <thead>
+                    <tr>
+                        <th class="py-3 px-6 bg-gray-700 text-cyan-400">Promocode</th>
+                        <th class="py-3 px-6 bg-gray-700 text-cyan-400">Number of Orders</th>
+                        <th class="py-3 px-6 bg-gray-700 text-cyan-400">Unique Users</th>
+                        <th class="py-3 px-6 bg-gray-700 text-red-400">Abusive Users</th>
+                    </tr>
+                </thead>
+                <tbody id="promocodeTable" class="text-gray-300">
+                    <!-- Data will be inserted dynamically -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            fetch("https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/promocode-usage")
+                .then(response => response.json())
+                .then(data => {
+                    console.log("API Response - Promocode Usage:", data);
+                    
+                    let totalPromocodes = data.length;
+                    let totalOrders = data.reduce((sum, item) => sum + item.total_orders, 0);
+                    let abusiveUsage = data.reduce((sum, item) => sum + item.abusive_users, 0);
+                    
+                    document.getElementById("totalPromocodes").innerText = totalPromocodes;
+                    document.getElementById("totalOrders").innerText = totalOrders;
+                    document.getElementById("abusiveUsage").innerText = abusiveUsage;
+                    
+                    const tableBody = document.getElementById("promocodeTable");
+                    tableBody.innerHTML = "";
+                    
+                    data.forEach(promocode => {
+                        const row = document.createElement("tr");
+                        row.innerHTML = `
+                            <td class="py-3 px-6">${promocode.promocode}</td>
+                            <td class="py-3 px-6">${promocode.total_orders}</td>
+                            <td class="py-3 px-6">${promocode.unique_users}</td>
+                            <td class="py-3 px-6 text-red-400">${promocode.abusive_users}</td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                })
+                .catch(error => console.error("Error fetching promocode usage data:", error));
+        });
+    </script>
+    
+</body>
+</html>
