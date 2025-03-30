@@ -47,7 +47,6 @@ export async function detectBots() {
                 if (!userInteracted) {
                     console.warn("🚨 Bot detected: Text input without user interaction");
                     isBot = true;
-                    return isBot ? "Yes" : "No"
                 }
             });
         });
@@ -57,7 +56,6 @@ export async function detectBots() {
             if (!userInteracted) {
                 console.warn("🚨 Bot detected: Submit button clicked without user interaction");
                 isBot = true;
-                return isBot ? "Yes" : "No"
             }
         });
                 
