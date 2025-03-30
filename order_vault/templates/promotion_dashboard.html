@@ -57,6 +57,7 @@
     </div>
 
     <script>
+        
         // Fetching promocode usage and rendering the dashboard
         function fetchPromocodeUsage() {
             const promocode = document.getElementById("promocodeInput").value.trim().toUpperCase();
@@ -83,15 +84,15 @@
                     // Update summary cards
                     document.getElementById("totalOrders").innerText = promoData.total_usage_count || 0;
                     document.getElementById("abusiveUsers").innerText = promoData.abusive_usage_count || 0;
+                    document.getElementById("uniqueUsers").innerText = promoData.total_usage_count - promoData.abusive_usage_count || 0;
         
                     // Calculate percentage of abusive users
-                    const abusivePercentage = promoData.total_usage_count ? 
-                        ((promoData.abusive_usage_count / promoData.total_usage_count) * 100).toFixed(2) : 0;
+                    const abusivePercentage = promoData.abuse_rate_percentage ? promoData.abuse_rate_percentage.toFixed(2) : 0;
                     document.getElementById("abusivePercentage").innerText = `${abusivePercentage}%`;
         
                     // Prepare data for bar chart
                     const chartData = {
-                        labels: ['Total Users', 'Abusive Users'],
+                        labels: ['Total Orders', 'Abusive Orders'],
                         datasets: [{
                             label: 'Promocode Usage Statistics',
                             data: [promoData.total_usage_count, promoData.abusive_usage_count],
