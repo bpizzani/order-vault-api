@@ -64,47 +64,47 @@
                 alert("Please enter a promocode");
                 return;
             }
-
+        
             document.getElementById("loading").classList.remove("hidden");
-
+        
             fetch(`https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/promocode-usage?promocode=${promocode}`)
                 .then(response => response.json())
                 .then(data => {
                     console.log("API Response - Promocode Usage:", data);
-
+        
                     if (!data || data.length === 0 || data.message) {
                         alert("No data found for this promocode");
                         document.getElementById("loading").classList.add("hidden");
                         return;
                     }
-
+        
                     const promoData = data[0];
-
+        
                     // Update summary cards
-                    document.getElementById("totalOrders").innerText = promoData.total_orders || 0;
+                    document.getElementById("totalOrders").innerText = promoData.total_usage_count || 0;
                     document.getElementById("uniqueUsers").innerText = promoData.unique_users || 0;
-                    document.getElementById("abusiveUsers").innerText = promoData.abusive_users || 0;
-
+                    document.getElementById("abusiveUsers").innerText = promoData.abusive_usage_count || 0;
+        
                     // Calculate percentage of abusive users
-                    const abusivePercentage = promoData.total_orders ? 
-                        ((promoData.abusive_users / promoData.total_orders) * 100).toFixed(2) : 0;
+                    const abusivePercentage = promoData.total_usage_count ? 
+                        ((promoData.abusive_usage_count / promoData.total_usage_count) * 100).toFixed(2) : 0;
                     document.getElementById("abusivePercentage").innerText = `${abusivePercentage}%`;
-
+        
                     // Prepare data for bar chart
                     const chartData = {
                         labels: ['Total Orders', 'Unique Users', 'Abusive Users'],
                         datasets: [{
                             label: 'Promocode Usage Statistics',
-                            data: [promoData.total_orders, promoData.unique_users, promoData.abusive_users],
+                            data: [promoData.total_usage_count, promoData.unique_users, promoData.abusive_usage_count],
                             backgroundColor: ['#00bcd4', '#4caf50', '#f44336'],
                             borderColor: ['#0097a7', '#388e3c', '#d32f2f'],
                             borderWidth: 1
                         }]
                     };
-
+        
                     // Render Bar Chart using Chart.js
                     renderBarChart(chartData);
-
+        
                     document.getElementById("loading").classList.add("hidden");
                 })
                 .catch(error => {
@@ -113,7 +113,7 @@
                     alert("Failed to fetch data. Please try again later.");
                 });
         }
-
+        
         // Function to render the Bar Chart
         function renderBarChart(chartData) {
             const ctx = document.getElementById("promocodeChart").getContext('2d');
