@@ -34,7 +34,7 @@ export async function detectBots() {
         // Monitor for user interaction on the page
         document.addEventListener("mousemove", () => userInteracted = true);
         document.addEventListener("keydown", () => userInteracted = true);
-        document.addEventListener("focusin", () => userInteracted = true);
+        //document.addEventListener("focusin", () => userInteracted = true);
         //document.addEventListener("click", () => userInteracted = true);  // Detect clicks
         
         
