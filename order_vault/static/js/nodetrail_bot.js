@@ -53,6 +53,17 @@ export async function detectBots() {
                 }
             });
         });
-        
+
+        // Optionally monitor form submission if needed
+        document.querySelector("form").addEventListener("submit", (event) => {
+            if (!userInteracted) {
+                console.warn("🚨 Bot detected: Submit button clicked without user interaction");
+                // Prevent the form submission if it's a bot
+                event.preventDefault();
+                isBot = true;
+                return isBot ? "Yes" : "No"
+            }
+        });
+                
     return isBot ? "Yes" : "No"
     }
