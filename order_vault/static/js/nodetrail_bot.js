@@ -63,7 +63,7 @@ export async function detectBots() {
             console.warn("🚨 Bot detected: No user interaction or indirect interaction");
             isBot = true;
             return isBot ? "Yes" : "No";
-        });
+        };
         
     return isBot ? "Yes" : "No"
     }
