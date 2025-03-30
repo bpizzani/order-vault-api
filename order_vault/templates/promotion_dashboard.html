@@ -71,17 +71,25 @@
                 .then(data => {
                     console.log("API Response - Promocode Usage:", data);
 
-                    document.getElementById("totalOrders").innerText = data.total_orders || 0;
-                    document.getElementById("uniqueUsers").innerText = data.unique_users || 0;
-                    document.getElementById("abusiveUsers").innerText = data.abusive_users || 0;
+                    if (!data || data.length === 0 || data.message) {
+                        alert("No data found for this promocode");
+                        document.getElementById("loading").classList.add("hidden");
+                        return;
+                    }
+
+                    const promoData = data[0];
+
+                    document.getElementById("totalOrders").innerText = promoData.total_orders || 0;
+                    document.getElementById("uniqueUsers").innerText = promoData.unique_users || 0;
+                    document.getElementById("abusiveUsers").innerText = promoData.abusive_users || 0;
 
                     const tableBody = document.getElementById("promocodeTable");
                     tableBody.innerHTML = `
                         <tr>
-                            <td class="py-3 px-6">${data.promocode || 'N/A'}</td>
-                            <td class="py-3 px-6">${data.total_orders || 0}</td>
-                            <td class="py-3 px-6">${data.unique_users || 0}</td>
-                            <td class="py-3 px-6 text-red-400">${data.abusive_users || 0}</td>
+                            <td class="py-3 px-6">${promoData.promocode || 'N/A'}</td>
+                            <td class="py-3 px-6">${promoData.total_orders || 0}</td>
+                            <td class="py-3 px-6">${promoData.unique_users || 0}</td>
+                            <td class="py-3 px-6 text-red-400">${promoData.abusive_users || 0}</td>
                         </tr>
                     `;
 
