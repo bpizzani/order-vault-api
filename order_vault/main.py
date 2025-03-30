@@ -605,50 +605,41 @@ def get_promocode_order_count():
 
 @app.route("/api/promocode-usage", methods=["GET"])
 def get_promocode_usage():
-    promocode = request.args.get("promocode", "").strip().upper()  # Normalize input
-    
-    if not promocode:
-        return jsonify({"error": "Missing promocode parameter"}), 400
+    promocode = request.args.get("promocode", "").strip().upper()
 
     query = """
-    MATCH (o:Order)-[:USED_PROMOCODE]->(p:Promocode {value: $promocode})
+    MATCH (o:Order)-[:HAS_ATTRIBUTE]->(p:Attribute {type: 'promocode', value: $promocode})
     OPTIONAL MATCH (o)-[:PLACED_BY]->(c:Customer)
-    OPTIONAL MATCH (c)-[:HAS_ATTRIBUTE]->(attr)
-    WHERE attr.type IN ['phone', 'device_id', 'email', 'card_details']
-    WITH p, COUNT(o) AS total_orders, COUNT(DISTINCT c) AS unique_users,
-         COUNT(DISTINCT CASE WHEN c.email IS NOT NULL THEN c.email END) AS unique_emails,
+    OPTIONAL MATCH (o)-[:HAS_ATTRIBUTE]->(attr)
+    WHERE attr.type IN ['device_id', 'card_details', 'email', 'phone'] AND attr.value IS NOT NULL
+
+    WITH p.value AS promocode, 
+         COUNT(DISTINCT o) AS total_orders,
+         COUNT(DISTINCT c) AS unique_users,
+         COUNT(DISTINCT CASE WHEN attr.type = 'email' THEN attr.value END) AS unique_emails,
          COUNT(DISTINCT CASE WHEN attr.type = 'device_id' THEN attr.value END) AS unique_devices,
          COUNT(DISTINCT CASE WHEN attr.type = 'card_details' THEN attr.value END) AS unique_cards,
          COUNT(DISTINCT CASE WHEN attr.type = 'phone' THEN attr.value END) AS unique_phones
-    RETURN p.value AS promocode, total_orders, unique_users,
-           unique_emails, unique_devices, unique_cards, unique_phones,
+
+    RETURN promocode, total_orders, unique_users, unique_emails, unique_devices, unique_cards, unique_phones,
            (total_orders - unique_users) AS abusive_users
+    ORDER BY total_orders DESC;
     """
 
-    params = {"promocode": promocode}
+    params = {"promocode": promocode} if promocode else {}
 
     try:
         with driver.session() as session:
             result = session.run(query, params)
-            record = result.single()
+            records = [record.data() for record in result]
 
-            if record:
-                return jsonify({
-                    "promocode": record["promocode"],
-                    "total_orders": record["total_orders"],
-                    "unique_users": record["unique_users"],
-                    "unique_emails": record["unique_emails"],
-                    "unique_devices": record["unique_devices"],
-                    "unique_cards": record["unique_cards"],
-                    "unique_phones": record["unique_phones"],
-                    "abusive_users": record["abusive_users"]
-                }), 200
+            if records:
+                return jsonify(records), 200
             else:
                 return jsonify({"message": "No data found for this promocode"}), 200
 
     except Exception as e:
         return jsonify({"error": "Database error", "details": str(e)}), 500
-
         
 if __name__ == "__main__":
     print("started APP")
