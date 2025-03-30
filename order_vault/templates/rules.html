@@ -3,127 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Reglas</title>
+    <title>Rediim - Gestión de Reglas</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="font-sans bg-gray-900 text-white">
-
-    <header class="text-center py-16 bg-white">
-        <h1 class="text-4xl font-bold text-gray-900">Rediim - Gestión de Reglas</h1>
-    </header>
-
-    <!-- Form Section -->
-    <section class="py-16 bg-gray-800">
-        <div class="max-w-lg mx-auto bg-gray-900 p-8 rounded-lg shadow-lg">
+<body class="bg-gray-900 text-white">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-gray-800 p-6">
+            <h2 class="text-2xl font-bold mb-6">Rediim</h2>
+            <nav>
+                <ul>
+                    <li class="mb-4"><a href="#" class="text-gray-300 hover:text-white">Dashboard</a></li>
+                    <li class="mb-4"><a href="#" class="text-gray-300 hover:text-white">Reglas</a></li>
+                </ul>
+            </nav>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="flex-1 p-10">
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-3xl font-bold">Gestión de Reglas</h1>
+                <button id="openModal" class="bg-green-500 text-black py-2 px-6 rounded-lg hover:bg-green-600">+ Agregar Regla</button>
+            </div>
+            
+            <!-- Rules Grid -->
+            <div id="rulesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Dynamic rules will be inserted here -->
+            </div>
+        </main>
+    </div>
+    
+    <!-- Modal -->
+    <div id="ruleModal" class="fixed inset-0 hidden bg-black bg-opacity-50 flex justify-center items-center">
+        <div class="bg-gray-800 p-8 rounded-lg w-96">
+            <h2 class="text-xl font-bold mb-4">Agregar Regla</h2>
             <form id="ruleForm">
-                <label class="block text-gray-300 text-sm mb-2">Atributo:</label>
-                <select id="attribute" class="w-full p-3 mb-4 bg-gray-700 text-white rounded-md">
+                <label class="block mb-2">Atributo:</label>
+                <select id="attribute" class="w-full p-2 mb-4 bg-gray-700 text-white rounded">
                     <option value="device_id">Device ID</option>
                     <option value="email">Email</option>
                     <option value="phone">Phone</option>
                     <option value="card_details">Card Details</option>
                 </select>
-
-                <label class="block text-gray-300 text-sm mb-2">Umbral (Threshold):</label>
-                <input type="number" id="threshold" class="w-full p-3 mb-4 bg-gray-700 text-white rounded-md" required>
-
-                <label class="block text-gray-300 text-sm mb-2">Promocode:</label>
-                <input type="text" id="promocode" class="w-full p-3 mb-6 bg-gray-700 text-white rounded-md" required>
-                
-                <button type="submit" class="w-full bg-[rgb(26,233,112)] text-black font-bold py-3 px-6 rounded-md hover:bg-[rgb(20,190,80)] transition duration-300">Agregar Regla</button>
+                <label class="block mb-2">Umbral:</label>
+                <input type="number" id="threshold" class="w-full p-2 mb-4 bg-gray-700 text-white rounded" required>
+                <label class="block mb-2">Promocode:</label>
+                <input type="text" id="promocode" class="w-full p-2 mb-4 bg-gray-700 text-white rounded" required>
+                <button type="submit" class="bg-green-500 w-full py-2 text-black rounded hover:bg-green-600">Agregar</button>
             </form>
+            <button id="closeModal" class="mt-4 w-full bg-red-500 py-2 rounded hover:bg-red-600">Cancelar</button>
         </div>
-    </section>
-
-    <!-- Rules Table -->
-    <section class="py-16 bg-gray-800">
-        <h2 class="text-3xl font-bold text-center text-gray-300 mb-8">Reglas Configuradas</h2>
-        <div class="overflow-x-auto bg-gray-900 p-8 rounded-lg shadow-lg">
-            <table class="min-w-full text-sm text-center text-gray-400">
-                <thead>
-                    <tr>
-                        <th class="px-6 py-3 bg-gray-700">Atributo</th>
-                        <th class="px-6 py-3 bg-gray-700">Umbral</th>
-                        <th class="px-6 py-3 bg-gray-700">Promocode</th>
-                        <th class="px-6 py-3 bg-gray-700">Acción</th>
-                    </tr>
-                </thead>
-                <tbody id="rulesTable">
-                    <!-- Aquí se mostrarán las reglas dinámicamente -->
-                </tbody>
-            </table>
-        </div>
-    </section>
-
+    </div>
+    
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            loadRules(); // Cargar reglas al inicio
-
-            document.getElementById("ruleForm").addEventListener("submit", function (event) {
-                event.preventDefault();
-                addRule();
-            });
+        document.getElementById("openModal").addEventListener("click", () => {
+            document.getElementById("ruleModal").classList.remove("hidden");
         });
-
+        document.getElementById("closeModal").addEventListener("click", () => {
+            document.getElementById("ruleModal").classList.add("hidden");
+        });
+        
+        document.getElementById("ruleForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            addRule();
+        });
+        
         function addRule() {
             const attribute = document.getElementById("attribute").value;
             const threshold = document.getElementById("threshold").value;
             const promocode = document.getElementById("promocode").value;
-
+            
             fetch("https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/rules", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ attribute, threshold, promocode })
             })
-            .then(response => response.text())
-            .then(text => {
-                console.log("Response Text:", text); 
-                try {
-                    const data = JSON.parse(text);
-                    loadRules();
-                    document.getElementById("ruleForm").reset();
-                } catch (error) {
-                    console.error("Error parsing JSON:", error);
-                }
-            })
-            .catch(error => console.error("Error:", error));
+            .then(() => {
+                loadRules();
+                document.getElementById("ruleModal").classList.add("hidden");
+            });
         }
-
+        
         function loadRules() {
-            fetch("https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/rules", { method: "GET" })
-            .then(response => response.text())
-            .then(text => {
-                console.log("Response Text:", text);
-                try {
-                    const data = JSON.parse(text);
-                    const rulesTable = document.getElementById("rulesTable");
-                    rulesTable.innerHTML = "";
-                    data.forEach(rule => {
-                        const row = document.createElement("tr");
-                        row.innerHTML = `
-                            <td class="px-6 py-4 bg-gray-700">${rule.attribute}</td>
-                            <td class="px-6 py-4 bg-gray-700">${rule.threshold}</td>
-                            <td class="px-6 py-4 bg-gray-700">${rule.promocode}</td>
-                            <td class="px-6 py-4 bg-gray-700"><button class="bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700" onclick="deleteRule(${rule.id})">Eliminar</button></td>
-                        `;
-                        rulesTable.appendChild(row);
-                    });
-                } catch (error) {
-                    console.error("Error parsing JSON:", error);
-                }
-            })
-            .catch(error => console.error("Error:", error));
+            fetch("https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/rules")
+            .then(response => response.json())
+            .then(data => {
+                const rulesGrid = document.getElementById("rulesGrid");
+                rulesGrid.innerHTML = "";
+                data.forEach(rule => {
+                    const card = document.createElement("div");
+                    card.className = "bg-gray-700 p-6 rounded-lg shadow-lg";
+                    card.innerHTML = `
+                        <h3 class="text-lg font-bold mb-2">${rule.attribute}</h3>
+                        <p><strong>Umbral:</strong> ${rule.threshold}</p>
+                        <p><strong>Promocode:</strong> ${rule.promocode}</p>
+                        <button class="mt-4 bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600" onclick="deleteRule(${rule.id})">Eliminar</button>
+                    `;
+                    rulesGrid.appendChild(card);
+                });
+            });
         }
-
+        
         function deleteRule(ruleId) {
-            fetch(`/api/rules/${ruleId}`, {
-                method: "DELETE"
-            })
-            .then(() => loadRules())
-            .catch(error => console.error("Error:", error));
+            fetch(`https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/rules/${ruleId}`, { method: "DELETE" })
+            .then(() => loadRules());
         }
+        
+        document.addEventListener("DOMContentLoaded", loadRules);
     </script>
-
 </body>
 </html>
 
