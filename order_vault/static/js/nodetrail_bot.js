@@ -29,41 +29,32 @@ export async function detectBots() {
             return isBot ? "Yes" : "No"
         }
 
-    // Track user interaction indirectly
-    let userInteracted = false;
-    // Track focus and blur events on interactive elements
-    document.querySelectorAll('button, input, a').forEach(element => {
-        element.addEventListener('focus', () => userInteracted = true);
-        element.addEventListener('blur', () => userInteracted = true);
-        element.addEventListener('mouseover', () => userInteracted = true);
-        element.addEventListener('mousedown', () => userInteracted = true);
-    });
-
-    // Monitor animation or CSS state changes
-    const observer = new MutationObserver(() => {
-        userInteracted = true;
-    });
-    document.querySelectorAll('button, input, a').forEach(element => {
-        observer.observe(element, { attributes: true, attributeFilter: ['class', 'style'] });
-    });
-
-    // Use IntersectionObserver to check if user views interactive elements
-    const intersectionObserver = new IntersectionObserver(entries => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                userInteracted = true;
-            }
-        });
-    });
-    document.querySelectorAll('button, input, a').forEach(el => intersectionObserver.observe(el));
-
-    // Set timeout to detect lack of user interaction
-    
-    if (!userInteracted) {
-            console.warn("🚨 Bot detected: No user interaction or indirect interaction");
-            isBot = true;
-            return isBot ? "Yes" : "No";
-        };
+            // Track user interaction and form field changes
+            let userInteracted = false;
+            let formFillingStartTime = Date.now();
+            let formFillingTime = 0;
+        
+            // Track focus and blur events on interactive form elements
+            const formElements = document.querySelectorAll('input, textarea, select');
+            formElements.forEach((element) => {
+                element.addEventListener('focus', () => userInteracted = true);
+                element.addEventListener('blur', () => userInteracted = true);
+                element.addEventListener('input', () => {
+                    if (formFillingTime === 0) {
+                        formFillingTime = Date.now() - formFillingStartTime; // Time taken for form filling
+                    }
+                });
+            });
+        
+            // Monitor form filling speed (too fast means bot)
+            setTimeout(() => {
+                // If the form filling time is too fast (i.e., less than 1 second), flag as bot
+                if (formFillingTime < 1000) {
+                    console.warn("🚨 Bot detected: Form filled too quickly");
+                    isBot = true;
+                    return isBot ? "Yes" : "No";
+                }
+            }, 1000);
         
     return isBot ? "Yes" : "No"
     }
