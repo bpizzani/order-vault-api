@@ -56,7 +56,7 @@ def rules_ui():
 
 
 @app.route('/promotion_dashboard')
-def rules_ui():
+def promotion_ui():
     return render_template('promotion_dashboard.html')
 
 @app.route('/island')
