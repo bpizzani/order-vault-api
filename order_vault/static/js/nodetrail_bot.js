@@ -29,32 +29,46 @@ export async function detectBots() {
             return isBot ? "Yes" : "No"
         }
 
-            // Track user interaction and form field changes
-            let userInteracted = false;
-            let formFillingStartTime = Date.now();
-            let formFillingTime = 0;
+        let formStartTime = 0;
+        let formEndTime = 0;
+        let isBot = false;
         
-            // Track focus and blur events on interactive form elements
-            const formElements = document.querySelectorAll('input, textarea, select');
-            formElements.forEach((element) => {
-                element.addEventListener('focus', () => userInteracted = true);
-                element.addEventListener('blur', () => userInteracted = true);
-                element.addEventListener('input', () => {
-                    if (formFillingTime === 0) {
-                        formFillingTime = Date.now() - formFillingStartTime; // Time taken for form filling
-                    }
-                });
+        // Monitor when the form starts to be filled
+        document.querySelector('form').addEventListener('focus', function() {
+            if (formStartTime === 0) {  // Only set the start time once
+                formStartTime = Date.now();
+            }
+        }, true);
+        
+        // Monitor form filling (e.g., user interacts with fields)
+        document.querySelectorAll('input, textarea').forEach(input => {
+            input.addEventListener('input', function() {
+                // Do something when fields are filled (like tracking)
             });
+        });
         
-            // Monitor form filling speed (too fast means bot)
-            setTimeout(() => {
-                // If the form filling time is too fast (i.e., less than 1 second), flag as bot
-                if (formFillingTime < 3000) {
-                    console.warn("🚨 Bot detected: Form filled too quickly");
-                    isBot = true;
-                    return isBot ? "Yes" : "No";
-                }
-            }, 3000);
+        // Monitor form submission
+        document.querySelector('form').addEventListener('submit', function(event) {
+            formEndTime = Date.now();
+            
+            const formFillingTime = formEndTime - formStartTime;
+            
+            // Check if form was filled too quickly
+            if (formFillingTime < 3000) {
+                console.warn("🚨 Bot detected: Form filled too quickly");
+                isBot = true;
+                event.preventDefault();  // Prevent form submission if you want to block it
+            }
+        });
+        
+        // Set a timeout just in case the form submission is delayed or happens too fast
+        setTimeout(() => {
+            if (formEndTime === 0) {
+                // If form hasn't been submitted in 3 seconds, assume suspicious
+                console.warn("🚨 Bot detected: Form submission took too long");
+                isBot = true;
+            }
+        }, 3000);
         
     return isBot ? "Yes" : "No"
     }
