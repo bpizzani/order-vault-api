@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Promocode Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="bg-gray-900 text-white font-sans">
     
@@ -32,31 +33,21 @@
             <div class="bg-gray-800 p-6 rounded-lg text-center shadow-lg">
                 <h2 class="text-xl text-red-400">Abusive Users</h2>
                 <p id="abusiveUsers" class="text-3xl font-bold mt-2">0</p>
+                <p id="abusivePercentage" class="text-lg text-red-400 mt-2">0%</p>
             </div>
         </div>
 
-        <!-- Promocode Details Table -->
-        <div class="overflow-x-auto">
-            <table class="w-full bg-gray-800 rounded-lg shadow-lg">
-                <thead>
-                    <tr>
-                        <th class="py-3 px-6 bg-gray-700 text-cyan-400">Promocode</th>
-                        <th class="py-3 px-6 bg-gray-700 text-cyan-400">Total Orders</th>
-                        <th class="py-3 px-6 bg-gray-700 text-cyan-400">Unique Users</th>
-                        <th class="py-3 px-6 bg-gray-700 text-red-400">Abusive Users</th>
-                    </tr>
-                </thead>
-                <tbody id="promocodeTable" class="text-gray-300">
-                    <!-- Data will be inserted dynamically -->
-                </tbody>
-            </table>
+        <!-- Bar Chart Section -->
+        <div class="mb-8">
+            <canvas id="promocodeChart"></canvas>
         </div>
 
         <!-- Loading Indicator -->
         <div id="loading" class="text-center text-cyan-400 mt-4 hidden">Loading...</div>
     </div>
-    
+
     <script>
+        // Fetching promocode usage and rendering the dashboard
         function fetchPromocodeUsage() {
             const promocode = document.getElementById("promocodeInput").value.trim().toUpperCase();
             if (!promocode) {
@@ -79,19 +70,30 @@
 
                     const promoData = data[0];
 
+                    // Update summary cards
                     document.getElementById("totalOrders").innerText = promoData.total_orders || 0;
                     document.getElementById("uniqueUsers").innerText = promoData.unique_users || 0;
                     document.getElementById("abusiveUsers").innerText = promoData.abusive_users || 0;
 
-                    const tableBody = document.getElementById("promocodeTable");
-                    tableBody.innerHTML = `
-                        <tr>
-                            <td class="py-3 px-6">${promoData.promocode || 'N/A'}</td>
-                            <td class="py-3 px-6">${promoData.total_orders || 0}</td>
-                            <td class="py-3 px-6">${promoData.unique_users || 0}</td>
-                            <td class="py-3 px-6 text-red-400">${promoData.abusive_users || 0}</td>
-                        </tr>
-                    `;
+                    // Calculate percentage of abusive users
+                    const abusivePercentage = promoData.total_orders ? 
+                        ((promoData.abusive_users / promoData.total_orders) * 100).toFixed(2) : 0;
+                    document.getElementById("abusivePercentage").innerText = `${abusivePercentage}%`;
+
+                    // Prepare data for bar chart
+                    const chartData = {
+                        labels: ['Total Orders', 'Unique Users', 'Abusive Users'],
+                        datasets: [{
+                            label: 'Promocode Usage Statistics',
+                            data: [promoData.total_orders, promoData.unique_users, promoData.abusive_users],
+                            backgroundColor: ['#00bcd4', '#4caf50', '#f44336'],
+                            borderColor: ['#0097a7', '#388e3c', '#d32f2f'],
+                            borderWidth: 1
+                        }]
+                    };
+
+                    // Render Bar Chart using Chart.js
+                    renderBarChart(chartData);
 
                     document.getElementById("loading").classList.add("hidden");
                 })
@@ -100,6 +102,38 @@
                     document.getElementById("loading").classList.add("hidden");
                     alert("Failed to fetch data. Please try again later.");
                 });
+        }
+
+        // Function to render the Bar Chart
+        function renderBarChart(chartData) {
+            const ctx = document.getElementById("promocodeChart").getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: chartData,
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(tooltipItem) {
+                                    return `${tooltipItem.label}: ${tooltipItem.raw}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
         }
     </script>
 
