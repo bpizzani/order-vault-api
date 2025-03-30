@@ -595,6 +595,55 @@ def get_promocode_order_count():
 
     except Exception as e:
         return jsonify({"error": "Database error", "details": str(e)}), 500
+
+
+
+@app.route("/api/promocode-usage", methods=["GET"])
+def get_promocode_usage():
+    promocode = request.args.get("promocode", "").strip().upper()  # Normalize input
+    
+    if not promocode:
+        return jsonify({"error": "Missing promocode parameter"}), 400
+
+    query = """
+    MATCH (o:Order)-[:USED_PROMOCODE]->(p:Promocode {code: $promocode})
+    OPTIONAL MATCH (o)-[:PLACED_BY]->(c:Customer)
+    OPTIONAL MATCH (c)-[:HAS_ATTRIBUTE]->(attr)
+    WHERE attr.type IN ['phone', 'device_id', 'email', 'card_details']
+    WITH p, COUNT(o) AS total_orders, COUNT(DISTINCT c) AS unique_users,
+         COUNT(DISTINCT CASE WHEN c.email IS NOT NULL THEN c.email END) AS unique_emails,
+         COUNT(DISTINCT CASE WHEN attr.type = 'device_id' THEN attr.value END) AS unique_devices,
+         COUNT(DISTINCT CASE WHEN attr.type = 'card_details' THEN attr.value END) AS unique_cards,
+         COUNT(DISTINCT CASE WHEN attr.type = 'phone' THEN attr.value END) AS unique_phones
+    RETURN p.code AS promocode, total_orders, unique_users,
+           unique_emails, unique_devices, unique_cards, unique_phones,
+           (total_orders - unique_users) AS abusive_users
+    """
+
+    params = {"promocode": promocode}
+
+    try:
+        with driver.session() as session:
+            result = session.run(query, params)
+            record = result.single()
+
+            if record:
+                return jsonify({
+                    "promocode": record["promocode"],
+                    "total_orders": record["total_orders"],
+                    "unique_users": record["unique_users"],
+                    "unique_emails": record["unique_emails"],
+                    "unique_devices": record["unique_devices"],
+                    "unique_cards": record["unique_cards"],
+                    "unique_phones": record["unique_phones"],
+                    "abusive_users": record["abusive_users"]
+                }), 200
+            else:
+                return jsonify({"message": "No data found for this promocode"}), 200
+
+    except Exception as e:
+        return jsonify({"error": "Database error", "details": str(e)}), 500
+
         
 if __name__ == "__main__":
     print("started APP")
