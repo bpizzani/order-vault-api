@@ -643,7 +643,7 @@ def get_promocode_usage():
     RETURN 
         total_usage_count, 
         abusive_usage_count
-        (total_abusive_usage * 100.0 / total_usage) AS abuse_rate_percentage"""
+        (abusive_usage_count * 100.0 / total_usage) AS abuse_rate_percentage"""
     
 
     params = {"promocode": promocode} if promocode else {}
