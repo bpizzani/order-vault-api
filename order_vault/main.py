@@ -642,7 +642,8 @@ def get_promocode_usage():
     WITH COUNT(distinct c.email) AS total_usage, SUM(abusive_usage_count) AS abusive_usage_count
     RETURN 
         total_usage_count, 
-        abusive_usage_count"""
+        abusive_usage_count
+        (total_abusive_usage * 100.0 / total_usage) AS total_abuse_rate_percentage"""
     
 
     params = {"promocode": promocode} if promocode else {}
