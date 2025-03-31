@@ -641,7 +641,7 @@ def get_promocode_usage():
     // Step 8: Calculate total abuse rate for the promotion
     WITH COUNT(distinct c.email) AS total_usage, SUM(abusive_usage_count) AS abusive_usage_count
     RETURN 
-        total_usage_count, 
+        total_usage, 
         abusive_usage_count
         (abusive_usage_count * 100.0 / total_usage) AS abuse_rate_percentage"""
     
