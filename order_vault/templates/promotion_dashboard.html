@@ -60,7 +60,7 @@
         
         // Fetching promocode usage and rendering the dashboard
         function fetchPromocodeUsage() {
-            const promocode = document.getElementById("promocodeInput").value.trim().toUpperCase();
+            const promocode = document.getElementById("promocodeInput").value.trim();
             if (!promocode) {
                 alert("Please enter a promocode");
                 return;
