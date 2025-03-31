@@ -610,7 +610,7 @@ def get_promocode_usage():
     # Modified Cypher Query to check abusive usage of the promocode
     query = """
     // Step 1: Find all customers who used the promocode
-    MATCH (c:Customer)-[:PLACED]->(order:Order)-[:HAS_ATTRIBUTE]->(promocode_attr:Attribute {value: "FREE", type: 'promocode'})
+    MATCH (c:Customer)-[:PLACED]->(order:Order)-[:HAS_ATTRIBUTE]->(promocode_attr:Attribute {value: $promocode, type: 'promocode'})
     WITH c, order
     
     // Step 2: Collect shared attributes (email, phone, device_id, card_details) for the customer
@@ -623,7 +623,7 @@ def get_promocode_usage():
     WHERE attr2.value IN shared_attributes AND attr2.type IN ['phone', 'device_id', 'card_details', 'email']
     
     // Step 4: Count how many times the linked customers have used the promocode (same promocode used by both c and c2)
-    MATCH (c2)-[:PLACED]->(order2:Order)-[:HAS_ATTRIBUTE]->(promocode_attr2:Attribute {value: "FREE", type: 'promocode'})
+    MATCH (c2)-[:PLACED]->(order2:Order)-[:HAS_ATTRIBUTE]->(promocode_attr2:Attribute {value: $promocode, type: 'promocode'})
     WITH c, c2, COUNT(DISTINCT order2.id) AS connected_orders, COLLECT(DISTINCT order2.id) AS all_order_ids
     
     // Step 5: Flag networks as abusive if connected orders > 1 (indicating a link between multiple orders with the same promocode)
@@ -631,7 +631,7 @@ def get_promocode_usage():
          CASE WHEN connected_orders > 1 THEN 1 ELSE 0 END AS abusive
     
     // Step 6: Aggregate total usage of the promocode
-    MATCH (order)-[:HAS_ATTRIBUTE]->(promocode_attr:Attribute {value: "FREE", type: 'promocode'})
+    MATCH (order)-[:HAS_ATTRIBUTE]->(promocode_attr:Attribute {value: $promocode, type: 'promocode'})
     WITH c, COUNT(DISTINCT order.id) AS total_orders, abusive, all_order_ids
     
     // Step 7: Aggregate abusive orders and total orders for abuse rate, focusing on connections via device, card details, etc.
