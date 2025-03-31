@@ -82,9 +82,9 @@
                     const promoData = data[0];
         
                     // Update summary cards
-                    document.getElementById("totalOrders").innerText = promoData.total_usage_count || 0;
+                    document.getElementById("totalOrders").innerText = promoData.total_usage || 0;
                     document.getElementById("abusiveUsers").innerText = promoData.abusive_usage_count || 0;
-                    document.getElementById("uniqueUsers").innerText = promoData.total_usage_count - promoData.abusive_usage_count || 0;
+                    document.getElementById("uniqueUsers").innerText = promoData.total_usage - promoData.abusive_usage_count || 0;
         
                     // Calculate percentage of abusive users
                     const abusivePercentage = promoData.abuse_rate_percentage ? promoData.abuse_rate_percentage.toFixed(2) : 0;
