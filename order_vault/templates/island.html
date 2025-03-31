@@ -6,76 +6,92 @@
     <title>Customer Attributes</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="font-sans bg-gray-900 text-white">
+<body class="bg-gray-900 text-white">
 
-    <!-- Header Section -->
-    <header class="text-center py-16">
-        <h2 class="text-4xl font-bold text-cyan-400">Buscar Atributos de Cliente</h2>
-    </header>
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-gray-800 p-6">
+            <h2 class="text-2xl font-bold mb-6">Rediim</h2>
+            <nav>
+                <ul>
+                    <li class="mb-4"><a href="https://www.rediim.com/promotion_dashboard" class="text-gray-300 hover:text-white">Dashboard</a></li>
+                    <li class="mb-4"><a href="https://www.rediim.com/rules" class="text-gray-300 hover:text-white">Reglas</a></li>
+                    <li class="mb-4"><a href="https://www.rediim.com/island" class="text-gray-300 hover:text-white">User Search</a></li>
+                    <li class="mb-4"><a href="https://www.rediim.com/" class="text-gray-300 hover:text-white">Web</a></li>
+                </ul>
+            </nav>
+        </aside>
 
-    <!-- Search Form -->
-    <section class="flex justify-center mb-8">
-        <form id="emailForm" class="bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-lg">
-            <label for="email" class="block text-lg text-gray-300 mb-2">Email del Cliente:</label>
-            <input type="email" id="email" required class="w-full p-3 mb-4 rounded-md bg-gray-700 text-white placeholder-gray-400 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan-400">
-            <button type="submit" class="w-full p-3 rounded-md bg-cyan-400 text-black font-bold hover:bg-cyan-500 transition duration-300">Buscar</button>
-        </form>
-    </section>
+        <!-- Main Content -->
+        <main class="flex-1 p-10">
+            <!-- Header Section -->
+            <header class="text-center py-16">
+                <h2 class="text-4xl font-bold text-cyan-400">Buscar Atributos de Cliente</h2>
+            </header>
 
-    <!-- Loading Indicator -->
-    <div id="loading" class="text-center text-cyan-400 text-xl hidden">
-        Cargando datos, por favor espera...
+            <!-- Search Form -->
+            <section class="flex justify-center mb-8">
+                <form id="emailForm" class="bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-lg">
+                    <label for="email" class="block text-lg text-gray-300 mb-2">Email del Cliente:</label>
+                    <input type="email" id="email" required class="w-full p-3 mb-4 rounded-md bg-gray-700 text-white placeholder-gray-400 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                    <button type="submit" class="w-full p-3 rounded-md bg-cyan-400 text-black font-bold hover:bg-cyan-500 transition duration-300">Buscar</button>
+                </form>
+            </section>
+
+            <!-- Loading Indicator -->
+            <div id="loading" class="text-center text-cyan-400 text-xl hidden">
+                Cargando datos, por favor espera...
+            </div>
+
+            <!-- Customer Attributes Table -->
+            <section class="my-8">
+                <h3 class="text-3xl font-bold text-center text-cyan-400 mb-4">Resumen de Atributos del Cliente</h3>
+                <table id="customerAttributesTable" class="w-4/5 mx-auto bg-gray-800 rounded-lg shadow-lg">
+                    <thead>
+                        <tr>
+                            <th class="py-3 px-6 bg-gray-700 text-cyan-400 text-lg">Atributo</th>
+                            <th class="py-3 px-6 bg-gray-700 text-cyan-400 text-lg">Cantidad</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-300">
+                        <!-- Data will be inserted dynamically here -->
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Network Attributes Table -->
+            <section class="my-8">
+                <h3 class="text-3xl font-bold text-center text-cyan-400 mb-4">Atributos de la Network</h3>
+                <table id="networkAttributesTable" class="w-4/5 mx-auto bg-gray-800 rounded-lg shadow-lg">
+                    <thead>
+                        <tr>
+                            <th class="py-3 px-6 bg-gray-700 text-cyan-400 text-lg">Atributo</th>
+                            <th class="py-3 px-6 bg-gray-700 text-cyan-400 text-lg">Cantidad</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-300">
+                        <!-- Here the data will be filled dynamically -->
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Promocode Order Count Table -->
+            <section class="my-8">
+                <h3 class="text-3xl font-bold text-center text-cyan-400 mb-4">Conteo de Ordenes por Promocodes</h3>
+                <table id="promocodeOrderTable" class="w-4/5 mx-auto bg-gray-800 rounded-lg shadow-lg">
+                    <thead>
+                        <tr>
+                            <th class="py-3 px-6 bg-gray-700 text-cyan-400 text-lg">Promocode</th>
+                            <th class="py-3 px-6 bg-gray-700 text-cyan-400 text-lg">Total de Ordenes</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-300">
+                        <!-- Here the data will be filled dynamically -->
+                    </tbody>
+                </table>
+            </section>
+        </main>
     </div>
-
-    <!-- Customer Attributes Table -->
-    <!-- Customer Attributes Summary Table -->
-    <section class="my-8">
-        <h3 class="text-3xl font-bold text-center text-cyan-400 mb-4">Resumen de Atributos del Cliente</h3>
-        <table id="customerAttributesTable" class="w-4/5 mx-auto bg-gray-800 rounded-lg shadow-lg">
-            <thead>
-                <tr>
-                    <th class="py-3 px-6 bg-gray-700 text-cyan-400 text-lg">Atributo</th>
-                    <th class="py-3 px-6 bg-gray-700 text-cyan-400 text-lg">Cantidad</th>
-                </tr>
-            </thead>
-            <tbody class="text-gray-300">
-                <!-- Data will be inserted dynamically here -->
-            </tbody>
-        </table>
-    </section>
-
-    <!-- Network Attributes Table -->
-<section class="my-8">
-    <h3 class="text-3xl font-bold text-center text-cyan-400 mb-4">Atributos de la Network</h3>
-    <table id="networkAttributesTable" class="w-4/5 mx-auto bg-gray-800 rounded-lg shadow-lg">
-        <thead>
-            <tr>
-                <th class="py-3 px-6 bg-gray-700 text-cyan-400 text-lg">Atributo</th>
-                <th class="py-3 px-6 bg-gray-700 text-cyan-400 text-lg">Cantidad</th>
-            </tr>
-        </thead>
-        <tbody class="text-gray-300">
-            <!-- Here the data will be filled dynamically -->
-        </tbody>
-    </table>
-</section>
-
-    
-        <!-- Promocode Order Count Table -->
-    <section class="my-8">
-        <h3 class="text-3xl font-bold text-center text-cyan-400 mb-4">Conteo de Ordenes por Promocodes</h3>
-        <table id="promocodeOrderTable" class="w-4/5 mx-auto bg-gray-800 rounded-lg shadow-lg">
-            <thead>
-                <tr>
-                    <th class="py-3 px-6 bg-gray-700 text-cyan-400 text-lg">Promocode</th>
-                    <th class="py-3 px-6 bg-gray-700 text-cyan-400 text-lg">Total de Ordenes</th>
-                </tr>
-            </thead>
-            <tbody class="text-gray-300">
-                <!-- Here the data will be filled dynamically -->
-            </tbody>
-        </table>
-    </section>
 
     <script>
         document.getElementById("emailForm").addEventListener("submit", function(event) {
@@ -97,79 +113,79 @@
             }
         }
 
-    function fetchCustomerAttributes(email) {
-        fetch(`https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/customer-attributes-summary?email=${encodeURIComponent(email)}`)
-            .then(response => response.json())
-            .then(data => {
-                console.log("API Response - Customer Attributes Summary:", data);
-    
-                const tableBody = document.querySelector("#customerAttributesTable tbody");
-                tableBody.innerHTML = "";  // Clear previous data
-    
-                if (data.message || Object.keys(data).length === 0) {
-                    tableBody.innerHTML = "<tr><td colspan='2' class='text-center text-gray-500'>No se encontraron datos.</td></tr>";
-                    return;
-                }
-    
-                // Display total orders
-                const rowOrders = document.createElement("tr");
-                rowOrders.innerHTML = `
-                    <td class="py-3 px-6">Total de Ordenes</td>
-                    <td class="py-3 px-6">${data.total_orders}</td>
-                `;
-                tableBody.appendChild(rowOrders);
-    
-                // Display distinct cards
-                const rowCards = document.createElement("tr");
-                rowCards.innerHTML = `
-                    <td class="py-3 px-6">Tarjetas Distintas</td>
-                    <td class="py-3 px-6">${data.distinct_cards}</td>
-                `;
-                tableBody.appendChild(rowCards);
-    
-                // Display distinct phones
-                const rowPhones = document.createElement("tr");
-                rowPhones.innerHTML = `
-                    <td class="py-3 px-6">Teléfonos Distintos</td>
-                    <td class="py-3 px-6">${data.distinct_phones}</td>
-                `;
-                tableBody.appendChild(rowPhones);
-    
-                // Display distinct devices
-                const rowDevices = document.createElement("tr");
-                rowDevices.innerHTML = `
-                    <td class="py-3 px-6">Dispositivos Distintos</td>
-                    <td class="py-3 px-6">${data.distinct_devices}</td>
-                `;
-                tableBody.appendChild(rowDevices);
-            })
-            .catch(error => {
-                console.error("Error fetching customer attributes:", error);
-                const tableBody = document.querySelector("#customerAttributesTable tbody");
-                tableBody.innerHTML = "<tr><td colspan='2' class='text-center text-red-500'>Error al obtener datos.</td></tr>";
-            })
-            .finally(() => {
-                showLoading(false);  // Hide loading indicator
-            });
-    }
-        
+        function fetchCustomerAttributes(email) {
+            fetch(`https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/customer-attributes-summary?email=${encodeURIComponent(email)}`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log("API Response - Customer Attributes Summary:", data);
+
+                    const tableBody = document.querySelector("#customerAttributesTable tbody");
+                    tableBody.innerHTML = "";  // Clear previous data
+
+                    if (data.message || Object.keys(data).length === 0) {
+                        tableBody.innerHTML = "<tr><td colspan='2' class='text-center text-gray-500'>No se encontraron datos.</td></tr>";
+                        return;
+                    }
+
+                    // Display total orders
+                    const rowOrders = document.createElement("tr");
+                    rowOrders.innerHTML = `
+                        <td class="py-3 px-6">Total de Ordenes</td>
+                        <td class="py-3 px-6">${data.total_orders}</td>
+                    `;
+                    tableBody.appendChild(rowOrders);
+
+                    // Display distinct cards
+                    const rowCards = document.createElement("tr");
+                    rowCards.innerHTML = `
+                        <td class="py-3 px-6">Tarjetas Distintas</td>
+                        <td class="py-3 px-6">${data.distinct_cards}</td>
+                    `;
+                    tableBody.appendChild(rowCards);
+
+                    // Display distinct phones
+                    const rowPhones = document.createElement("tr");
+                    rowPhones.innerHTML = `
+                        <td class="py-3 px-6">Teléfonos Distintos</td>
+                        <td class="py-3 px-6">${data.distinct_phones}</td>
+                    `;
+                    tableBody.appendChild(rowPhones);
+
+                    // Display distinct devices
+                    const rowDevices = document.createElement("tr");
+                    rowDevices.innerHTML = `
+                        <td class="py-3 px-6">Dispositivos Distintos</td>
+                        <td class="py-3 px-6">${data.distinct_devices}</td>
+                    `;
+                    tableBody.appendChild(rowDevices);
+                })
+                .catch(error => {
+                    console.error("Error fetching customer attributes:", error);
+                    const tableBody = document.querySelector("#customerAttributesTable tbody");
+                    tableBody.innerHTML = "<tr><td colspan='2' class='text-center text-red-500'>Error al obtener datos.</td></tr>";
+                })
+                .finally(() => {
+                    showLoading(false);  // Hide loading indicator
+                });
+        }
+
         function fetchNetworkAttributes(email) {
             fetch(`https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/customer-attributes-network?email=${encodeURIComponent(email)}`)
                 .then(response => response.json())
                 .then(data => {
                     console.log("API Response - Network Attributes:", data);
-        
+
                     const tableBody = document.querySelector("#networkAttributesTable tbody");
                     tableBody.innerHTML = "";  // Clear previous data
-        
+
                     if (data.message || Object.keys(data).length === 0) {
                         tableBody.innerHTML = "<tr><td colspan='2' class='text-center text-gray-500'>No se encontraron datos en la network.</td></tr>";
                         return;
                     }
-        
+
                     // Render the network attributes data
                     const networkData = data;
-        
+
                     // Display connected customers
                     const rowCustomers = document.createElement("tr");
                     rowCustomers.innerHTML = `
@@ -177,7 +193,7 @@
                         <td class="py-3 px-6">${networkData.connected_customers}</td>
                     `;
                     tableBody.appendChild(rowCustomers);
-        
+
                     // Display connected orders
                     const rowOrders = document.createElement("tr");
                     rowOrders.innerHTML = `
@@ -185,7 +201,7 @@
                         <td class="py-3 px-6">${networkData.connected_orders}</td>
                     `;
                     tableBody.appendChild(rowOrders);
-        
+
                     // Display distinct cards
                     const rowCards = document.createElement("tr");
                     rowCards.innerHTML = `
@@ -193,7 +209,7 @@
                         <td class="py-3 px-6">${networkData.distinct_cards}</td>
                     `;
                     tableBody.appendChild(rowCards);
-        
+
                     // Display distinct phones
                     const rowPhones = document.createElement("tr");
                     rowPhones.innerHTML = `
@@ -201,7 +217,7 @@
                         <td class="py-3 px-6">${networkData.distinct_phones}</td>
                     `;
                     tableBody.appendChild(rowPhones);
-        
+
                     // Display distinct devices
                     const rowDevices = document.createElement("tr");
                     rowDevices.innerHTML = `
@@ -209,7 +225,7 @@
                         <td class="py-3 px-6">${networkData.distinct_devices}</td>
                     `;
                     tableBody.appendChild(rowDevices);
-        
+
                     // Display distinct promocodes
                     const rowPromocodes = document.createElement("tr");
                     rowPromocodes.innerHTML = `
@@ -217,7 +233,7 @@
                         <td class="py-3 px-6">${networkData.distinct_promocodes}</td>
                     `;
                     tableBody.appendChild(rowPromocodes);
-        
+
                     // Display total promocodes
                     const rowTotalPromocodes = document.createElement("tr");
                     rowTotalPromocodes.innerHTML = `
@@ -225,7 +241,6 @@
                         <td class="py-3 px-6">${networkData.total_promocodes}</td>
                     `;
                     tableBody.appendChild(rowTotalPromocodes);
-        
                 })
                 .catch(error => {
                     console.error("Error al obtener los atributos de la network:", error);
@@ -238,41 +253,41 @@
         }
 
         function fetchPromocodeOrderCount(email) {
-        fetch(`https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/promocode-order-count?email=${encodeURIComponent(email)}`)
-            .then(response => response.json())
-            .then(data => {
-                console.log("API Response - Promocode Order Count:", data);
-    
-                const tableBody = document.querySelector("#promocodeOrderTable tbody");
-                tableBody.innerHTML = "";  // Clear previous data
-    
-                if (data.message || Object.keys(data).length === 0) {
-                    tableBody.innerHTML = "<tr><td colspan='2' class='text-center text-gray-500'>No se encontraron datos en la network.</td></tr>";
-                    return;
-                }
-    
-                // Render the promocode order count data
-                const networkData = data.promocode_stats;
-    
-                // Display each promocode and the corresponding order count
-                networkData.forEach(promocodeStat => {
-                    const rowPromocode = document.createElement("tr");
-                    rowPromocode.innerHTML = `
-                        <td class="py-3 px-6">Promocode: ${promocodeStat.promocode}</td>
-                        <td class="py-3 px-6">${promocodeStat.total_orders}</td>
-                    `;
-                    tableBody.appendChild(rowPromocode);
+            fetch(`https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/promocode-order-count?email=${encodeURIComponent(email)}`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log("API Response - Promocode Order Count:", data);
+
+                    const tableBody = document.querySelector("#promocodeOrderTable tbody");
+                    tableBody.innerHTML = "";  // Clear previous data
+
+                    if (data.message || Object.keys(data).length === 0) {
+                        tableBody.innerHTML = "<tr><td colspan='2' class='text-center text-gray-500'>No se encontraron datos en la network.</td></tr>";
+                        return;
+                    }
+
+                    // Render the promocode order count data
+                    const networkData = data.promocode_stats;
+
+                    // Display each promocode and the corresponding order count
+                    networkData.forEach(promocodeStat => {
+                        const rowPromocode = document.createElement("tr");
+                        rowPromocode.innerHTML = `
+                            <td class="py-3 px-6">Promocode: ${promocodeStat.promocode}</td>
+                            <td class="py-3 px-6">${promocodeStat.total_orders}</td>
+                        `;
+                        tableBody.appendChild(rowPromocode);
+                    });
+                })
+                .catch(error => {
+                    console.error("Error al obtener los atributos de la network:", error);
+                    const tableBody = document.querySelector("#promocodeOrderTable tbody");
+                    tableBody.innerHTML = "<tr><td colspan='2' class='text-center text-red-500'>Error al obtener los atributos de la network.</td></tr>";
+                })
+                .finally(() => {
+                    showLoading(false);  // Hide loading indicator
                 });
-            })
-            .catch(error => {
-                console.error("Error al obtener los atributos de la network:", error);
-                const tableBody = document.querySelector("#promocodeOrderTable tbody");
-                tableBody.innerHTML = "<tr><td colspan='2' class='text-center text-red-500'>Error al obtener los atributos de la network.</td></tr>";
-            })
-            .finally(() => {
-                showLoading(false);  // Hide loading indicator
-            });
-    }
+        }
     </script>
 
 </body>
