@@ -148,9 +148,9 @@ def create_graph(tx, G):
                       (a:Attribute {type: $type, value: $value})
                 MERGE (c)-[:HAS_ATTRIBUTE]->(a)
                 """,
-                order_id=order_id,
-                type=attr_type,
-                value=attr_value
+                order_id=node_id.split(" ", 1)[1],
+                type=neighbor_label,
+                value=neighbor.split(" ", 1)[1]
             )
 
         
