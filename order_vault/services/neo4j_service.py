@@ -109,6 +109,17 @@ def create_graph(tx, G):
                 """, order_id=node_id.split(" ", 1)[1],
                      type=neighbor_label, value=neighbor.split(" ", 1)[1])
 
+                tx.run(
+                    """
+                    MATCH (c:Customer)-[:PLACED]->(o:Order {id: $order_id}),
+                          (a:Attribute {type: $type, value: $value})
+                    MERGE (c)-[:HAS_ATTRIBUTE]->(a)
+                    """,
+                    order_id=node_id.split(" ", 1)[1],
+                    type=neighbor_label,
+                    value=neighbor.split(" ", 1)[1]
+                )
+
             elif node_label not in ['order', 'customer'] and neighbor_label not in ['order', 'customer']:
                 tx.run("""
                     MATCH (a1:Attribute {type: $type1, value: $value1}),
