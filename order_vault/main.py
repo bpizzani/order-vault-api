@@ -36,7 +36,7 @@ api = Api(app)
 CLIENT_APP_API_URL = "https://order-vault-client-webapp-13ee822f0ba9.herokuapp.com/api/orders"  # Replace with actual API endpoint
 
 # Neo4j Configuration
-NEO4J_URI = "neo4j+s://e027cbe1.databases.neo4j.io"  # Replace with your Neo4j instance URI
+NEO4J_URI = "neo4j+s://f34af65f.databases.neo4j.io"  # Replace with your Neo4j instance URI
 NEO4J_USERNAME = "neo4j"  # Replace with your username
 NEO4J_PASSWORD = "OPESlEPx3V4kYLSOo86X5fHX0k_HhKprCVG_erEfi7A"  # Replace with your password
 driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USERNAME, NEO4J_PASSWORD))
