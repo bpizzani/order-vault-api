@@ -4,23 +4,41 @@ from order_vault.main import db
 
 rules_bp = Blueprint("rules", __name__, url_prefix="/api/rules")
 
-@rules_bp.route("", methods=["GET","POST"])
+@rules_bp.route("/api/rules", methods=["GET","POST"])
 def manage_rules():
-    if request.method == "POST":
-        data = request.get_json(force=True)
-        rule = Rule(
-            attribute=data["attribute"],
-            threshold=data["threshold"],
-            promocode=data.get("promocode")
-        )
-        db.session.add(rule)
-        db.session.commit()
-        return jsonify(rule.to_dict()), 201
-    return jsonify([r.to_dict() for r in Rule.query.all()]), 200
+    if request.method == 'POST':
+        # Extracting the JSON data from the request
+        data = request.json
 
-@rules_bp.route("/<int:id>", methods=["DELETE"])
-def delete_rule(id):
-    rule = Rule.query.get_or_404(id)
-    db.session.delete(rule)
-    db.session.commit()
-    return jsonify({"message":"Deleted"}), 200
+        # Create a new Rule instance
+        new_rule = Rule(attribute=data['attribute'], threshold=data['threshold'], promocode=data['promocode'])
+
+        # Add to database and commit
+        db.session.add(new_rule)
+        db.session.commit()
+
+        # Return the new rule as JSON (including ID)
+        return jsonify({
+            "id": new_rule.id,
+            "attribute": new_rule.attribute,
+            "threshold": new_rule.threshold,
+            "promocode": new_rule.promocode
+        }), 201  # 201 status means the resource was created successfully
+
+    # GET request: Return all the rules from the database
+    rules = Rule.query.all()
+    return jsonify([{
+        "id": r.id,
+        "attribute": r.attribute,
+        "threshold": r.threshold,
+        "promocode": r.promocode
+    } for r in rules])
+
+@rules_bp.route("/api/rules/<int:rule_id>", methods=["DELETE"])
+def delete_rule(rule_id):
+    rule = Rule.query.get(rule_id)
+    if rule:
+        db.session.delete(rule)
+        db.session.commit()
+        return jsonify({"message": "Rule deleted successfully"}), 200
+    return jsonify({"error": "Rule not found"}), 404
