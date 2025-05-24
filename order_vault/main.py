@@ -50,6 +50,7 @@ for bp in (
 
 # ─── Run ────────────────────────────────────────────────────────
 if __name__ == "__main__":
-    debug = os.getenv("FLASK_ENV", "development") != "production"
-    port  = int(os.getenv("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=debug)
+    print("Start APP")
+    #debug = os.getenv("FLASK_ENV", "development") != "production"
+    #port  = int(os.getenv("PORT", 5000))
+    #app.run(host="0.0.0.0", port=port, debug=debug)
