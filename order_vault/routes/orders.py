@@ -7,19 +7,20 @@ bp = Blueprint("orders", __name__)
 
 @bp.route("/", methods=["GET"])
 def home():
-    return current_app.send_static_file("home2.html")
+    # Templates are in the 'templates' folder, so use render_template
+    return render_template("home2.html")
 
 @bp.route("/rules", methods=["GET"])
 def rules_ui():
-    return current_app.send_static_file("rules.html")
+    return render_template("rules.html")
 
 @bp.route("/promotion_dashboard", methods=["GET"])
 def promotion_ui():
-    return current_app.send_static_file("promotion_dashboard.html")
+    return render_template("promotion_dashboard.html")
 
 @bp.route("/island", methods=["GET"])
 def customer_ui():
-    return current_app.send_static_file("island.html")
+    return render_template("island.html")
 
 @bp.route("/finalize-order", methods=["POST"])
 def finalize_order():
