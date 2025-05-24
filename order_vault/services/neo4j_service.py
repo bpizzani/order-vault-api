@@ -73,7 +73,7 @@ def create_graph(tx, G):
 
         elif node_label == 'order':
             order_id = node_id.split(" ", 1)[1]
-            created_at = data.get('created_at')
+            created_at = node_data.get('created_at')
             #tx.run("MERGE (o:Order {id: $order_id})", order_id=order_id)
             tx.run(
                 """
