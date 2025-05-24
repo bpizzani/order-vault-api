@@ -102,13 +102,23 @@ def create_graph(tx, G):
                     MERGE (c)-[:PLACED]->(o)
                 """, email=node_id.split(" ", 1)[1], order_id=neighbor.split(" ", 1)[1])
 
-            elif node_label == 'order' and neighbor_label not in ['order', 'customer']:
-                tx.run("""
-                    MATCH (o:Order {id: $order_id}), 
-                          (a:Attribute {type: $type, value: $value})
-                    MERGE (o)-[:HAS_ATTRIBUTE]->(a)
-                """, order_id=node_id.split(" ", 1)[1],
-                     type=neighbor_label, value=neighbor.split(" ", 1)[1])
+            # Order -> Attribute and Customer -> Attribute
+            elif node_label == 'order' and neighbor_label not in ('order', 'customer'):
+                order_id = node_id.split(' ', 1)
+                t = neighbor_label
+                val = neighbor.split(' ', 1)
+                # Order -> Attribute
+                tx.run(
+                    "MATCH (o:Order{id:$order_id}), (a:Attribute{type:$t,value:$val}) \
+                     MERGE (o)-[:HAS_ATTRIBUTE]->(a)",
+                    order_id=order_id, type=neighbor_label, value=val
+                )
+                # Customer -> Attribute (direct)
+                tx.run(
+                    "MATCH (c:Customer)-[:PLACED]->(o:Order{id:$order_id}), (a:Attribute{type:$t,value:$val}) \
+                     MERGE (c)-[:HAS_ATTRIBUTE]->(a)",
+                    order_id=order_id, t=t, type=neighbor_label, value=val
+                )
 
             elif node_label not in ['order', 'customer'] and neighbor_label not in ['order', 'customer']:
                 tx.run("""
