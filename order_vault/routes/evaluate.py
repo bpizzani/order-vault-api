@@ -1,41 +1,24 @@
-from flask import Blueprint, request, jsonify
-from ..models.rule import Rule
-from ..extensions import db
-from ..services.neo4j_service import evaluate_attributes
+from flask import Blueprint, request, jsonify, current_app
+from models.rule import Rule
+from services.neo4j_service import evaluate_attributes
 
-bp = Blueprint("evaluate", __name__, url_prefix="/api")
+evaluate_bp = Blueprint("evaluate", __name__, url_prefix="/api")
 
-@bp.route("/evaluate", methods=["GET"])
+@evaluate_bp.route("/evaluate", methods=["GET"])
 def evaluate():
-    attribute_types = request.args.get("attribute_types", "device_id").split(",")
-    values = {t: request.args.get(t) for t in attribute_types if request.args.get(t)}
-    promocode = request.args.get("promocode")
-
-    # service returns dict: { attribute_type: [{ value, count }...] }
+    types = request.args.get("attribute_types","device_id").split(",")
+    promo = request.args.get("promocode")
+    values = {t: request.args.get(t) for t in types if request.args.get(t)}
     raw = evaluate_attributes(
-        current_app.neo4j_driver.session(),
-        attribute_types, promocode
+        current_app.neo4j_driver.session(), types, promo
     )
-
     final = {}
-    overall_abusive = False
-
-    for attr, records in raw.items():
-        rule = Rule.query.filter_by(attribute=attr, promocode=promocode).first()
-        entry = {
-            "value": values.get(attr),
-            "promocode": promocode,
-            "count": 0,
-            "abusive": False
-        }
-        if records:
-            entry["count"] = records[0]["order_count"]
-            if rule:
-                entry["abusive"] = entry["count"] >= rule.threshold
-        final[attr] = entry
-        overall_abusive = overall_abusive or entry["abusive"]
-
-    return jsonify({
-        "evaluation_results": final,
-        "overall_abusive": overall_abusive
-    }), 200
+    overall = False
+    for t, recs in raw.items():
+        rule = Rule.query.filter_by(attribute=t, promocode=promo).first()
+        count = recs[0]["order_count"] if recs else 0
+        abusive = rule and count >= rule.threshold
+        final[t] = {"value": values.get(t), "promocode": promo,
+                     "count": count, "abusive": bool(abusive)}
+        overall = overall or abusive
+    return jsonify({"evaluation_results": final, "overall_abusive": overall}), 200
