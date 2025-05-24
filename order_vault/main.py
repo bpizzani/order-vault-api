@@ -35,13 +35,13 @@ driver = GraphDatabase.driver(
 )
 
 # ─── Register all Blueprints ────────────────────────────────────
-from routes.home        import home_bp
-from routes.fingerprint import fingerprint_bp
-from routes.orders      import orders_bp
-from routes.rules       import rules_bp
-from routes.evaluate    import evaluate_bp
-from routes.customer    import customer_bp
-from routes.promocode   import promocode_bp
+from order_vault.routes.home        import home_bp
+from order_vault.routes.fingerprint import fingerprint_bp
+from order_vault.routes.orders      import orders_bp
+from order_vault.routes.rules       import rules_bp
+from order_vault.routes.evaluate    import evaluate_bp
+from order_vault.routes.customer    import customer_bp
+from order_vault.routes.promocode   import promocode_bp
 
 for bp in (
     home_bp,
