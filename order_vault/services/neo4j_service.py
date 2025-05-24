@@ -1,5 +1,6 @@
 from neo4j import Session
 from flask import Blueprint, request, jsonify, current_app
+import networkx as nx
 from .network_graph import build_graph_from_order
 
 
