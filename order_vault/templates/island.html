@@ -253,7 +253,7 @@
         }
 
         function fetchPromocodeOrderCount(email) {
-            fetch(`https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/promocode-order-count?email=${encodeURIComponent(email)}`)
+            fetch(`https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/promocode/order-count?email=${encodeURIComponent(email)}`)
                 .then(response => response.json())
                 .then(data => {
                     console.log("API Response - Promocode Order Count:", data);
