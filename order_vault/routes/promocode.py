@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify, current_app
 
 promocode_bp = Blueprint("promocode", __name__, url_prefix="/api/promocode")
 
-@promocode_bp.route("usage", methods=["GET"])
+@promocode_bp.route("/usage", methods=["GET"])
 def get_promocode_usage():
     promocode = request.args.get("promocode", "").strip()
 
@@ -60,7 +60,7 @@ def get_promocode_usage():
     except Exception as e:
         return jsonify({"error": "Database error", "details": str(e)}), 500
 
-@promocode_bp.route("order-count", methods=["GET"])
+@promocode_bp.route("/order-count", methods=["GET"])
 def get_promocode_order_count():
     email = request.args.get("email", "").strip().lower()
 
