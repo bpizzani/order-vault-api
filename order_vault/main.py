@@ -128,32 +128,35 @@ def trigger_process_and_update(order_data):
 
 
 def save_order_in_neo4j(session, order_data):
-    """ Save the confirmed order into Neo4j """
-    G = nx.Graph()
+    """Save the confirmed order into Neo4j"""
+    order_id = order_data['id']
+    email = order_data['email']
 
-    order_id = order_data['id']  # Order ID as the main entity
-    order_node = f"Order {order_id}"
-    G.add_node(order_node, type='order')
-
-    customer_node = f"Customer {order_data['email']}"
-    G.add_node(customer_node, type='customer')
-
-    # Link the customer to the order
-    G.add_edge(customer_node, order_node)
-
-    # Add order attributes as nodes and edges in the graph
+    # Attributes to be stored
     attributes = ['card_details', 'email', 'device_id', 'phone', 'ip', 'promocode']
 
-    for attribute in attributes:
-        attr_value = order_data.get(attribute)
-        if attr_value:
-            attribute_node = f"{attribute} {attr_value}"
-            G.add_node(attribute_node, type=attribute)
-            G.add_edge(order_node, attribute_node)  # Connect order to attribute
+    # Use MERGE to ensure nodes are created if missing
+    def create_graph(tx, order_id, email, order_data):
+        # Create order node
+        tx.run("""
+            MERGE (o:Order {id: $order_id})
+            MERGE (c:Attribute {type: 'customer', value: $email})
+            MERGE (c)-[:PLACED]->(o)
+        """, order_id=order_id, email=email)
 
-    # Write the graph to Neo4j
+        # Create and connect attribute nodes
+        for attr in attributes:
+            value = order_data.get(attr)
+            if value:
+                tx.run("""
+                    MERGE (a:Attribute {type: $attr_type, value: $attr_value})
+                    MERGE (o:Order {id: $order_id})
+                    MERGE (o)-[:HAS_ATTRIBUTE]->(a)
+                """, attr_type=attr, attr_value=value, order_id=order_id)
+
+    # Call the transaction
     with session:
-        session.write_transaction(create_graph, G)
+        session.write_transaction(create_graph, order_id, email, order_data)
 
 
 def create_graph(tx, G):
