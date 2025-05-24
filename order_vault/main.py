@@ -26,13 +26,23 @@ migrate = Migrate(app, db)  # Initialize Flask-Migrate with the app and db
 
 CORS(app, supports_credentials=True)
 
-driver = GraphDatabase.driver(
-    os.getenv("NEO4J_URI", "neo4j+s://f34af65f.databases.neo4j.io") ,
+# ─── Initialize Neo4j driver on the app object ───────────────────
+#driver = GraphDatabase.driver(
+#    os.getenv("NEO4J_URI", "neo4j+s://f34af65f.databases.neo4j.io") ,
+#    auth=(
+#        os.getenv("NEO4J_USER", "neo4j"),
+#        os.getenv("NEO4J_PASSWORD", "OPESlEPx3V4kYLSOo86X5fHX0k_HhKprCVG_erEfi7A")
+#    )
+#)
+
+app.neo4j_driver = GraphDatabase.driver(
+    os.getenv("NEO4J_URI", "neo4j+s://f34af65f.databases.neo4j.io"),
     auth=(
         os.getenv("NEO4J_USER", "neo4j"),
         os.getenv("NEO4J_PASSWORD", "OPESlEPx3V4kYLSOo86X5fHX0k_HhKprCVG_erEfi7A")
     )
 )
+
 
 # ─── Register all Blueprints ────────────────────────────────────
 from order_vault.routes.home        import home_bp
