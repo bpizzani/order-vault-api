@@ -12,7 +12,7 @@ def home():
 
 @bp.route("/rules", methods=["GET"])
 def rules_ui():
-    return render_template("routes/rules.html")
+    return render_template("rules.html")
 
 @bp.route("/promotion_dashboard", methods=["GET"])
 def promotion_ui():
