@@ -33,7 +33,11 @@ def save_order_in_neo4j(session, order_data):
 
     order_id = order_data['id']  # Order ID as the main entity
     order_node = f"Order {order_id}"
-    G.add_node(order_node, type='order')
+
+    # add order node with created_at
+    G.add_node(order_node,
+               type='order',
+               created_at=order_data.get('created_at'))
 
     customer_node = f"Customer {order_data['email']}"
     G.add_node(customer_node, type='customer')
@@ -69,7 +73,16 @@ def create_graph(tx, G):
 
         elif node_label == 'order':
             order_id = node_id.split(" ", 1)[1]
-            tx.run("MERGE (o:Order {id: $order_id})", order_id=order_id)
+            created_at = data.get('created_at')
+            #tx.run("MERGE (o:Order {id: $order_id})", order_id=order_id)
+            tx.run(
+                """
+                MERGE (o:Order {id:$order_id})
+                SET o.created_at = $created_at
+                """,
+                order_id=order_id,
+                created_at=created_at
+            )
 
         else:
             attr_type, attr_value = node_id.split(" ", 1)
