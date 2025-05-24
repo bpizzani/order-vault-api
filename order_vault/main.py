@@ -4,20 +4,26 @@ from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from neo4j import GraphDatabase
+from order_vault import app
+from order_vault.models.db import db
 
 # ─── Configuration (keep here) ─────────────────────────────────
-app = Flask(__name__, template_folder="templates", static_folder="static")
-app.secret_key = os.getenv("SECRET_KEY", "your_secret_key")
-
-app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv(
-    "DATABASE_URL",
-    "postgresql://u32cgla1pp9fm7:p6f656fa0f2edb9dda1653485f118f3b8379d957dce3469ef41d13f34d73e8cb1@c5flugvup2318r.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com:5432/dc0evnfhnut69e"
-)
+# Flask App Setup
+app.secret_key = "your_secret_key"
+# Database configuration
+app.config["SQLALCHEMY_DATABASE_URI"] = 'postgresql://u32cgla1pp9fm7:p6f656fa0f2edb9dda1653485f118f3b8379d957dce3469ef41d13f34d73e8cb1@c5flugvup2318r.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com:5432/dc0evnfhnut69e' #os.getenv('DATABASE_URL') #os.environ.get("DATABASE_URL") #"sqlite:///orders_v4.db" #os.environ.get("DATABASE_URL", "sqlite:///orders_v4.db")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
+
 # ─── Initialize extensions ──────────────────────────────────────
-db      = SQLAlchemy(app)
-migrate = Migrate(app, db)
+print(f"Database URI: {os.getenv('DATABASE_URL')}")
+db.init_app(app)
+migrate = Migrate(app, db)  # Initialize Flask-Migrate with the app and db
+
+#api = Api(app)
+#db      = SQLAlchemy(app)
+#migrate = Migrate(app, db)
+
 CORS(app, supports_credentials=True)
 
 driver = GraphDatabase.driver(
