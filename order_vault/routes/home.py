@@ -9,6 +9,10 @@ def home():
 @home_bp.route("/promotion_dashboard", methods=["GET"])
 def promotion_ui():
     return render_template("promotion_dashboard.html")
+    
+@home_bp.route('/rules')
+def rules_ui():
+    return render_template('rules.html')
 
 @home_bp.route("/island", methods=["GET"])
 def customer_ui():
