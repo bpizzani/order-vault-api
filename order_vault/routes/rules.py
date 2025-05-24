@@ -4,7 +4,7 @@ from order_vault.main import db
 
 rules_bp = Blueprint("rules", __name__, url_prefix="/api/rules")
 
-@rules_bp.route("/api/rules", methods=["GET","POST"])
+@rules_bp.route("", methods=["GET","POST"])
 def manage_rules():
     if request.method == 'POST':
         # Extracting the JSON data from the request
@@ -34,7 +34,7 @@ def manage_rules():
         "promocode": r.promocode
     } for r in rules])
 
-@rules_bp.route("/api/rules/<int:rule_id>", methods=["DELETE"])
+@rules_bp.route("<int:rule_id>", methods=["DELETE"])
 def delete_rule(rule_id):
     rule = Rule.query.get(rule_id)
     if rule:
