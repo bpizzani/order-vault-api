@@ -119,14 +119,20 @@ def create_graph(tx, G):
                      type2=neighbor_label, value2=neighbor.split(" ", 1)[1])
 
     # --- Step 3: Create direct customer-to-customer relationships when they share attributes ---
-    tx.run(
-        """
-        MATCH (c1:Customer)-[:PLACED]->(:Order)-[:HAS_ATTRIBUTE]->(a:Attribute)
-        MATCH (c2:Customer)-[:PLACED]->(:Order)-[:HAS_ATTRIBUTE]->(a)
-        WHERE c1.email < c2.email
-        MERGE (c1)-[:LINKED_TO]->(c2)
-        """
-    )
+    for node_id, data in G.nodes(data=True):
+        if data['type'] not in ('order', 'customer'):
+            attr_type, attr_value = node_id.split(' ', 1)
+            tx.run(
+                """
+                // find all customers who placed any order with this attribute
+                MATCH (c1:Customer)-[:PLACED]->(:Order)-[:HAS_ATTRIBUTE]->(a:Attribute {type:$type, value:$value})
+                MATCH (c2:Customer)-[:PLACED]->(:Order)-[:HAS_ATTRIBUTE]->(a)
+                WHERE c1.email <> c2.email
+                MERGE (c1)-[r:LINKED_TO {attributeType:$type, attributeValue:$value}]->(c2)
+                """,
+                type=attr_type,
+                value=attr_value
+            )
         
 def evaluate_attributes(session: Session, attribute_types: list, promocode: str = None) -> dict:
     """
