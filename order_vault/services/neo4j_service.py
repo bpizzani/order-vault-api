@@ -130,7 +130,7 @@ def create_graph(tx, G: nx.Graph) -> None:
                     "MATCH (c1:Customer {email:$primary}), "
                     "(c2:Customer)-[:PLACED]->(:Order)-[:HAS_ATTRIBUTE]->(a:Attribute {type:$type, value:$value}) "
                     "WHERE c2.email <> $primary "
-                    "MERGE (c1)-[:LINKED_TO]->(c2)",
+                    "MERGE (c1)-[r:LINKED_TO {attributeType:$type, attributeValue:$value}]->(c2)",
                     primary=primary_email,
                     type=attr_type,
                     value=attr_value
