@@ -51,42 +51,42 @@ def _create_graph_tx(tx, G):
             _, email = u.split(' ', 1)
             _, order_id = v.split(' ', 1)
             tx.run(
-                "MATCH (c:Customer {email: $email}), (o:Order {id: $order_id})"
-                " MERGE (c)-[:PLACED]->(o)",
+                "MATCH (c:Customer {email: $email}), (o:Order {id: $order_id}) MERGE (c)-[:PLACED]->(o)",
                 email=email,
                 order_id=order_id
             )
+
         elif u_type == 'order' and v_type not in ['order', 'customer']:
             _, order_id = u.split(' ', 1)
             attr_type = v_type
             _, value = v.split(' ', 1)
             tx.run(
-                "MATCH (o:Order {id: $order_id}), (a:Attribute {type: $type, value: $value})"
-                " MERGE (o)-[:HAS_ATTRIBUTE]->(a)",
+                "MATCH (o:Order {id: $order_id}), (a:Attribute {type: $type, value: $value}) MERGE (o)-[:HAS_ATTRIBUTE]->(a)",
                 order_id=order_id,
                 type=attr_type,
                 value=value
             )
+
         elif u_type not in ['order', 'customer'] and v_type not in ['order', 'customer']:
             type1 = u_type
             _, value1 = u.split(' ', 1)
             type2 = v_type
             _, value2 = v.split(' ', 1)
             tx.run(
-                "MATCH (a1:Attribute {type: $type1, value: $value1}),"
-                " (a2:Attribute {type: $type2, value: $value2})"
-                " MERGE (a1)-[:CONNECTED_TO]->(a2)",
+                "MATCH (a1:Attribute {type: $type1, value: $value1}), (a2:Attribute {type: $type2, value: $value2}) MERGE (a1)-[:CONNECTED_TO]->(a2)",
                 type1=type1,
                 value1=value1,
                 type2=type2,
                 value2=value2
             )
 
+
 def evaluate_attributes(session: Session, attribute_types: list, promocode: str = None) -> dict:
     """
     Aggregate order counts by attribute types (and optional promocode). Returns a dict:
         { attribute_type: [ {attribute_value, order_count}, ... ], ... }
     """
+    # Build Cypher query
     parts = [
         "MATCH (o:Order)-[:HAS_ATTRIBUTE]->(attr:Attribute)",
         "WHERE attr.type IN $types"
@@ -106,12 +106,14 @@ def evaluate_attributes(session: Session, attribute_types: list, promocode: str 
     )
     query = "\n".join(parts)
 
+    # Execute query
     result = session.run(query, params)
     raw = {}
     for rec in result:
-        t = rec["attribute_type"]
-        raw.setdefault(t, []).append({
+        at = rec["attribute_type"]
+        raw.setdefault(at, []).append({
             "attribute_value": rec["attribute_value"],
             "order_count": rec["order_count"]
         })
     return raw
+
