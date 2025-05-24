@@ -117,7 +117,7 @@ def create_graph(tx, G):
                 tx.run(
                     "MATCH (c:Customer)-[:PLACED]->(o:Order{id:$order_id}), (a:Attribute{type:$t,value:$val}) \
                      MERGE (c)-[:HAS_ATTRIBUTE]->(a)",
-                    order_id=order_id, t=t, t=neighbor_label, val=val
+                    order_id=order_id, t=neighbor_label, val=val
                 )
 
             elif node_label not in ['order', 'customer'] and neighbor_label not in ['order', 'customer']:
