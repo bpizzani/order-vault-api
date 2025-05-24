@@ -116,17 +116,17 @@ def create_graph(tx, G):
                     MERGE (a1)-[:CONNECTED_TO]->(a2)
                 """, type1=node_label, value1=node_id.split(" ", 1)[1],
                      type2=neighbor_label, value2=neighbor.split(" ", 1)[1])
-                
-            elif node_label == 'customer' and neighbor_label == 'customer':
-                # Direct customer-to-customer link
-                _, email1 = node_id.split(' ', 1)
-                _, email2 = neighbor.split(' ', 1)
-                tx.run(
-                    "MATCH (c1:Customer{email:$email1}), (c2:Customer{email:$email2}) "
-                    "MERGE (c1)-[:LINKED_TO]->(c2)",
-                    email1=email1, email2=email2
-                )
-
+            
+    # --- Step 3: Create direct customer-to-customer relationships when they share attributes ---
+    tx.run(
+        """
+        MATCH (c1:Customer)-[:PLACED]->(:Order)-[:HAS_ATTRIBUTE]->(a:Attribute)
+        MATCH (c2:Customer)-[:PLACED]->(:Order)-[:HAS_ATTRIBUTE]->(a)
+        WHERE c1.email < c2.email
+        MERGE (c1)-[:LINKED_TO]->(c2)
+        """
+    )
+        
 def evaluate_attributes(session: Session, attribute_types: list, promocode: str = None) -> dict:
     """
     Aggregate order counts by attribute types (and optional promocode). Returns a dict:
