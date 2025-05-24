@@ -60,73 +60,59 @@ def save_order_in_neo4j(session, order_data):
         session.write_transaction(create_graph, G)
 
 
-#def create_graph(tx, G)
 def create_graph(tx, G):
-    """Create or update nodes and relationships in Neo4j from the NetworkX graph"""
+    """
+    Merge nodes and relationships in Neo4j from the NetworkX graph.
+    Then create customer-to-customer links based on shared attributes of this order.
+    """
+    # --- Step 1: Merge nodes ---
+    for node_id, data in G.nodes(data=True):
+        label = data['type']
+        if label == 'customer':
+            _, email = node_id.split(' ', 1)
+            tx.run("MERGE (c:Customer {email:$email})", email=email)
 
-    # --- Step 1: Create all nodes first ---
-    for node_id, node_data in G.nodes(data=True):
-        node_label = node_data['type']
-
-        if node_label == 'customer':
-            email = node_id.split(" ", 1)[1]
-            tx.run("MERGE (c:Customer {email: $email})", email=email)
-
-        elif node_label == 'order':
-            order_id = node_id.split(" ", 1)[1]
-            created_at = node_data.get('created_at')
-            #tx.run("MERGE (o:Order {id: $order_id})", order_id=order_id)
+        elif label == 'order':
+            _, oid = node_id.split(' ', 1)
             tx.run(
                 """
-                MERGE (o:Order {id:$order_id})
+                MERGE (o:Order {id:$oid})
                 SET o.created_at = $created_at
                 """,
-                order_id=order_id,
-                created_at=created_at
+                oid=oid,
+                created_at=data.get('created_at')
             )
 
         else:
-            attr_type, attr_value = node_id.split(" ", 1)
-            tx.run("MERGE (a:Attribute {type: $type, value: $value})", type=attr_type, value=attr_value)
+            t, v = node_id.split(' ', 1)
+            tx.run(
+                "MERGE (a:Attribute {type:$t, value:$v})",
+                t=t, v=v
+            )
 
-    # --- Step 2: Create all relationships ---
-    for node_id in G.nodes():
-        node_label = G.nodes[node_id]['type']
+    # --- Step 2: Merge order and attribute relationships ---
+    for u, v in G.edges():
+        ut = G.nodes[u]['type']
+        vt = G.nodes[v]['type']
 
-        for neighbor in G.neighbors(node_id):
-            neighbor_label = G.nodes[neighbor]['type']
+        if ut == 'customer' and vt == 'order':
+            _, email = u.split(' ', 1)
+            _, order_id = v.split(' ', 1)
+            tx.run(
+                "MATCH (c:Customer{email:$email}), (o:Order{id:$order_id}) MERGE (c)-[:PLACED]->(o)",
+                email=email, order_id=order_id
+            )
 
-            if node_label == 'customer' and neighbor_label == 'order':
-                tx.run("""
-                    MATCH (c:Customer {email: $email}), (o:Order {id: $order_id})
-                    MERGE (c)-[:PLACED]->(o)
-                """, email=node_id.split(" ", 1)[1], order_id=neighbor.split(" ", 1)[1])
+        elif ut == 'order' and vt not in ('order', 'customer'):
+            _, order_id = u.split(' ', 1)
+            t = vt
+            _, val = v.split(' ', 1)
+            tx.run(
+                "MATCH (o:Order{id:$order_id}), (a:Attribute{type:$t,value:$val}) \
+                 MERGE (o)-[:HAS_ATTRIBUTE]->(a)",
+                order_id=order_id, t=t, val=val
+            )
 
-            # Order -> Attribute and Customer -> Attribute
-            elif node_label == 'order' and neighbor_label not in ('order', 'customer'):
-                order_id = node_id.split(' ', 1)
-                t = neighbor_label
-                val = neighbor.split(' ', 1)
-                # Order -> Attribute
-                tx.run(
-                    "MATCH (o:Order{id:$order_id}), (a:Attribute{type:$t,value:$val}) \
-                     MERGE (o)-[:HAS_ATTRIBUTE]->(a)",
-                    order_id=order_id, t=neighbor_label, val=val
-                )
-                # Customer -> Attribute (direct)
-                tx.run(
-                    "MATCH (c:Customer)-[:PLACED]->(o:Order{id:$order_id}), (a:Attribute{type:$t,value:$val}) \
-                     MERGE (c)-[:HAS_ATTRIBUTE]->(a)",
-                    order_id=order_id, t=neighbor_label, val=val
-                )
-
-            elif node_label not in ['order', 'customer'] and neighbor_label not in ['order', 'customer']:
-                tx.run("""
-                    MATCH (a1:Attribute {type: $type1, value: $value1}),
-                          (a2:Attribute {type: $type2, value: $value2})
-                    MERGE (a1)-[:CONNECTED_TO]->(a2)
-                """, type1=node_label, value1=node_id.split(" ", 1)[1],
-                     type2=neighbor_label, value2=neighbor.split(" ", 1)[1])
 
     # --- Step 3: Create direct customer-to-customer relationships when they share attributes ---
     for node_id, data in G.nodes(data=True):
