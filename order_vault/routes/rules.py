@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from models.rule import Rule
+from order_vault.models.rule import Rule
 from main import db
 
 rules_bp = Blueprint("rules", __name__, url_prefix="/api/rules")
