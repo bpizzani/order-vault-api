@@ -127,18 +127,6 @@ def create_graph(tx, G):
                     value=attr_value
                 )
 
-                # 2) Link every Customer who placed that Order to the same Attribute
-                tx.run(
-                    """
-                    MATCH (c:Customer)-[:PLACED]->(o:Order {id: $order_id}),
-                          (a:Attribute {type: $type, value: $value})
-                    MERGE (c)-[:HAS_ATTRIBUTE]->(a)
-                    """,
-                    order_id=order_id,
-                    type=attr_type,
-                    value=attr_value
-                )
-
             # Attribute ↔ Attribute (connected_to)
             elif node_label not in ['order', 'customer'] and neighbor_label not in ['order', 'customer']:
                 tx.run(
@@ -152,6 +140,18 @@ def create_graph(tx, G):
                     type2=neighbor_label,
                     value2=neighbor.split(" ", 1)[1]
                 )
+                
+            # 2) Link every Customer who placed that Order to the same Attribute
+            tx.run(
+                """
+                MATCH (c:Customer)-[:PLACED]->(o:Order {id: $order_id}),
+                      (a:Attribute {type: $type, value: $value})
+                MERGE (c)-[:HAS_ATTRIBUTE]->(a)
+                """,
+                order_id=order_id,
+                type=attr_type,
+                value=attr_value
+            )
 
         
 def evaluate_attributes(session: Session, attribute_types: list, promocode: str = None) -> dict:
