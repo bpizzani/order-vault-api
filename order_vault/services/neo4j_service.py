@@ -117,7 +117,15 @@ def create_graph(tx, G):
                 """, type1=node_label, value1=node_id.split(" ", 1)[1],
                      type2=neighbor_label, value2=neighbor.split(" ", 1)[1])
                 
-
+            elif node_label == 'customer' and neighbor_label == 'customer':
+                # Direct customer-to-customer link
+                _, email1 = node_id.split(' ', 1)
+                _, email2 = neighbor.split(' ', 1)
+                tx.run(
+                    "MATCH (c1:Customer{email:$email1}), (c2:Customer{email:$email2}) "
+                    "MERGE (c1)-[:LINKED_TO]->(c2)",
+                    email1=email1, email2=email2
+                )
 
 def evaluate_attributes(session: Session, attribute_types: list, promocode: str = None) -> dict:
     """
