@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify, current_app
 import threading
-from services.neo4j_service import save_order_graph
+from order_vault.services.neo4j_service import save_order_graph
 
 orders_bp = Blueprint("orders", __name__)
 
