@@ -221,8 +221,8 @@ def finalize_order():
 
 
 # Flask Route to Process Data and Update Neo4j
-@app.route("/process-and-update", methods=["GET"])
-def process_and_update():
+@app.route("/process-and-update-deprecated", methods=["GET"])
+def process_and_update_deprecated():
     try:
         # Fetch data from the Client App API
         client_response = requests.get(CLIENT_APP_API_URL)
@@ -255,8 +255,8 @@ def process_and_update():
     except Exception as e:
         return jsonify({"error": "An unexpected error occurred", "details": str(e)}), 500
 
-@app.route("/aggregated-by-attributes", methods=["GET"])
-def aggregated_by_attributes():
+@app.route("/aggregated-by-attributes-deprecated", methods=["GET"])
+def aggregated_by_attributes_deprecated():
     try:
         # Get requested attributes (default: "device_id")
         attribute_types = request.args.get("attribute_types", "device_id").split(",") or ["device_id"]
