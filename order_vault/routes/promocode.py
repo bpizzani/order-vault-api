@@ -48,7 +48,7 @@ def usage():
     params = {"promocode": promocode} if promocode else {}
 
     try:
-        with driver.session() as session:
+        with current_app.neo4j_driver.session() as session: 
             result = session.run(query, params)
             records = [record.data() for record in result]
 
@@ -90,7 +90,7 @@ def order_count():
     params = {"email": email}
 
     try:
-        with driver.session() as session:
+        with current_app.neo4j_driver.session() as session:
             result = session.run(query, params)
             record = result.single()
 
