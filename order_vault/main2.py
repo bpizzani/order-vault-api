@@ -11,7 +11,7 @@ app.secret_key = os.getenv("SECRET_KEY", "your_secret_key")
 
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv(
     "DATABASE_URL",
-    "postgresql://...your_rds_uri..."
+    "postgresql://u32cgla1pp9fm7:p6f656fa0f2edb9dda1653485f118f3b8379d957dce3469ef41d13f34d73e8cb1@c5flugvup2318r.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com:5432/dc0evnfhnut69e"
 )
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
@@ -21,10 +21,10 @@ migrate = Migrate(app, db)
 CORS(app, supports_credentials=True)
 
 driver = GraphDatabase.driver(
-    os.getenv("NEO4J_URI", "neo4j+s://...") ,
+    os.getenv("NEO4J_URI", "neo4j+s://f34af65f.databases.neo4j.io") ,
     auth=(
         os.getenv("NEO4J_USER", "neo4j"),
-        os.getenv("NEO4J_PASSWORD", "")
+        os.getenv("NEO4J_PASSWORD", "OPESlEPx3V4kYLSOo86X5fHX0k_HhKprCVG_erEfi7A")
     )
 )
 
