@@ -72,9 +72,8 @@ def create_graph(tx, G):
             tx.run("MERGE (c:Customer {email: $email})", email=email)
 
         elif node_label == 'order':
-            order_id = node_id.split(" ", 1)[1]
+            order_id   = node_id.split(" ", 1)[1]
             created_at = node_data.get('created_at')
-            #tx.run("MERGE (o:Order {id: $order_id})", order_id=order_id)
             tx.run(
                 """
                 MERGE (o:Order {id:$order_id})
@@ -86,7 +85,11 @@ def create_graph(tx, G):
 
         else:
             attr_type, attr_value = node_id.split(" ", 1)
-            tx.run("MERGE (a:Attribute {type: $type, value: $value})", type=attr_type, value=attr_value)
+            tx.run(
+                "MERGE (a:Attribute {type: $type, value: $value})",
+                type=attr_type,
+                value=attr_value
+            )
 
     # --- Step 2: Create all relationships ---
     for node_id in G.nodes():
@@ -95,55 +98,61 @@ def create_graph(tx, G):
         for neighbor in G.neighbors(node_id):
             neighbor_label = G.nodes[neighbor]['type']
 
+            # Customer ↔ Order
             if node_label == 'customer' and neighbor_label == 'order':
-                tx.run("""
+                tx.run(
+                    """
                     MATCH (c:Customer {email: $email}), (o:Order {id: $order_id})
                     MERGE (c)-[:PLACED]->(o)
-                """, email=node_id.split(" ", 1)[1], order_id=neighbor.split(" ", 1)[1])
+                    """,
+                    email=node_id.split(" ", 1)[1],
+                    order_id=neighbor.split(" ", 1)[1]
+                )
 
+            # Order → Attribute  AND  Customer → Attribute
             elif node_label == 'order' and neighbor_label not in ['order', 'customer']:
-                tx.run("""
+                order_id   = node_id.split(" ", 1)[1]
+                attr_type  = neighbor_label
+                attr_value = neighbor.split(" ", 1)[1]
+
+                # 1) Link the Order to its Attribute
+                tx.run(
+                    """
                     MATCH (o:Order {id: $order_id}), 
                           (a:Attribute {type: $type, value: $value})
                     MERGE (o)-[:HAS_ATTRIBUTE]->(a)
-                """, order_id=node_id.split(" ", 1)[1],
-                     type=neighbor_label, value=neighbor.split(" ", 1)[1])
+                    """,
+                    order_id=order_id,
+                    type=attr_type,
+                    value=attr_value
+                )
 
+                # 2) Link every Customer who placed that Order to the same Attribute
                 tx.run(
                     """
                     MATCH (c:Customer)-[:PLACED]->(o:Order {id: $order_id}),
                           (a:Attribute {type: $type, value: $value})
                     MERGE (c)-[:HAS_ATTRIBUTE]->(a)
                     """,
-                    order_id=node_id.split(" ", 1)[1],
-                    type=neighbor_label,
-                    value=neighbor.split(" ", 1)[1]
+                    order_id=order_id,
+                    type=attr_type,
+                    value=attr_value
                 )
 
+            # Attribute ↔ Attribute (connected_to)
             elif node_label not in ['order', 'customer'] and neighbor_label not in ['order', 'customer']:
-                tx.run("""
+                tx.run(
+                    """
                     MATCH (a1:Attribute {type: $type1, value: $value1}),
                           (a2:Attribute {type: $type2, value: $value2})
                     MERGE (a1)-[:CONNECTED_TO]->(a2)
-                """, type1=node_label, value1=node_id.split(" ", 1)[1],
-                     type2=neighbor_label, value2=neighbor.split(" ", 1)[1])
+                    """,
+                    type1=node_label,
+                    value1=node_id.split(" ", 1)[1],
+                    type2=neighbor_label,
+                    value2=neighbor.split(" ", 1)[1]
+                )
 
-
-    # --- Step 3: Create direct customer-to-customer relationships when they share attributes ---
-    for node_id, data in G.nodes(data=True):
-        if data['type'] not in ('order', 'customer'):
-            attr_type, attr_value = node_id.split(' ', 1)
-            tx.run(
-                """
-                // find all customers who placed any order with this attribute
-                MATCH (c1:Customer)-[:PLACED]->(:Order)-[:HAS_ATTRIBUTE]->(a:Attribute {type:$type, value:$value})
-                MATCH (c2:Customer)-[:PLACED]->(:Order)-[:HAS_ATTRIBUTE]->(a)
-                WHERE c1.email <> c2.email
-                MERGE (c1)-[r:LINKED_TO {attributeType:$type, attributeValue:$value}]->(c2)
-                """,
-                type=attr_type,
-                value=attr_value
-            )
         
 def evaluate_attributes(session: Session, attribute_types: list, promocode: str = None) -> dict:
     """
