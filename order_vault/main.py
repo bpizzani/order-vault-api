@@ -50,9 +50,9 @@ logger = logging.getLogger(__name__)
 def home():
     return render_template("home2.html")
 
-@app.route('/rules')
-def rules_ui():
-    return render_template('rules.html')
+#@app.route('/rules')
+#def rules_ui():
+#    return render_template('rules.html')
 
 
 @app.route('/promotion_dashboard')
