@@ -429,6 +429,20 @@ def evaluate():
                         "attribute_value": attribute_value,
                         "order_count": order_count
                     })
+                    
+        # Exemption: If no data found, return all zeros            
+        if not evaluation_results:
+            final_results = {}
+            for attribute_type in attribute_types:
+                value = values.get(attribute_type, "unknown")  # fallback if value not in params
+                final_results[attribute_type] = {
+                    "value": value,
+                    "promocode": promocode,
+                    "count": 0,
+                    "abusive": False
+                }
+    
+            return jsonify({"evaluation_results": final_results, "overall_abusive": False})
 
         # Now apply the rules based on the threshold
         final_results = {}
