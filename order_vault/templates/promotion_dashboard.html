@@ -70,7 +70,7 @@
         
             document.getElementById("loading").classList.remove("hidden");
         
-            fetch(`https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/promocode-usage?promocode=${promocode}`)
+            fetch(`https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/promocode/usage?promocode=${promocode}`)
                 .then(response => response.json())
                 .then(data => {
                     console.log("API Response - Promocode Usage:", data);
