@@ -10,7 +10,7 @@ def usage():
     # Modified Cypher Query to check abusive usage of the promocode
     query = """
     // Step 1: Find customers who used the promocode
-    MATCH (c:Customer)-[:PLACED]->(o:Order)-[:HAS_ATTRIBUTE]->(a:Attribute {type: 'promocode', value: "sf"})
+    MATCH (c:Customer)-[:PLACED]->(o:Order)-[:HAS_ATTRIBUTE]->(a:Attribute {type: 'promocode', value: $promocode})
     
     // Step 2: Collect all shared identity values
     MATCH (c)-[:PLACED]->(:Order)-[:HAS_ATTRIBUTE]->(attr)
@@ -20,7 +20,7 @@ def usage():
     // Step 3: Find all orders from the identity network that used the same promocode
     MATCH (c2:Customer)-[:PLACED]->(o2:Order)-[:HAS_ATTRIBUTE]->(attr2)
     WHERE attr2.value IN shared_attrs AND attr2.type IN ['email', 'phone', 'device_id', 'card_details']
-    MATCH (o2)-[:HAS_ATTRIBUTE]->(:Attribute {type: 'promocode', value: "sf"})
+    MATCH (o2)-[:HAS_ATTRIBUTE]->(:Attribute {type: 'promocode', value: $promocode})
     WITH c, COLLECT(DISTINCT o2) AS network_orders, COLLECT(DISTINCT c2.email) AS network_emails
     
     // Step 4: Classify first as genuine, rest as abusive
