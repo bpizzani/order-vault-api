@@ -8,41 +8,37 @@ def usage():
 
     # Modified Cypher Query to check abusive usage of the promocode
     query = """
-    // Step 1: Find all customers who used the promocode
-    MATCH (c:Customer)-[:PLACED]->(order:Order)-[:HAS_ATTRIBUTE]->(promocode_attr:Attribute {value: $promocode, type: 'promocode'})
-    WITH c, order
+    // Step 1: Find all orders using the promocode with their order date
+    MATCH (c:Customer)-[:PLACED]->(o:Order)-[:HAS_ATTRIBUTE]->(a:Attribute {type: 'promocode', value: $promocode})
+    WITH c, o, date(datetime(o.created_at)) AS order_date
     
-    // Step 2: Collect shared attributes (email, phone, device_id, card_details) for the customer
-    MATCH (c)-[:PLACED]->(order)-[:HAS_ATTRIBUTE]->(attr)
-    WHERE attr.type IN ['phone', 'device_id', 'card_details', 'email']
-    WITH c, COLLECT(DISTINCT attr.value) AS shared_attributes, order
+    // Step 2: Collect shared attributes for the customer
+    MATCH (c)-[:PLACED]->(:Order)-[:HAS_ATTRIBUTE]->(attr)
+    WHERE attr.type IN ['email', 'phone', 'device_id', 'card_details']
+    WITH o, order_date, COLLECT(DISTINCT attr.value) AS shared_attrs
     
-    // Step 3: Find other customers linked by shared attributes (device, card details, phone, email)
-    MATCH (c2:Customer)-[:PLACED]->(order2:Order)-[:HAS_ATTRIBUTE]->(attr2)
-    WHERE attr2.value IN shared_attributes AND attr2.type IN ['phone', 'device_id', 'card_details', 'email']
+    // Step 3: Use a subquery to find how many different customers used the same promocode via shared attributes
+    CALL {
+        WITH shared_attrs, order_date
+        MATCH (c2:Customer)-[:PLACED]->(o2:Order)-[:HAS_ATTRIBUTE]->(attr2)
+        WHERE attr2.value IN shared_attrs AND attr2.type IN ['email', 'phone', 'device_id', 'card_details']
+        MATCH (o2)-[:HAS_ATTRIBUTE]->(a2:Attribute {type: 'promocode', value: $promocode})
+        RETURN DISTINCT o2.id AS order_id, COUNT(DISTINCT c2) AS user_count
+    }
+    WITH order_date, order_id, user_count
     
-    // Step 4: Count how many times the linked customers have used the promocode (same promocode used by both c and c2)
-    MATCH (c2)-[:PLACED]->(order2:Order)-[:HAS_ATTRIBUTE]->(promocode_attr2:Attribute {value: $promocode, type: 'promocode'})
-    WITH c, c2, COUNT(DISTINCT order2.id) AS connected_orders, COLLECT(DISTINCT order2.id) AS all_order_ids
+    // Step 4: Aggregate abuse per day
+    WITH order_date,
+         COUNT(DISTINCT order_id) AS total_orders,
+         COUNT(DISTINCT CASE WHEN user_count > 1 THEN order_id END) AS abusive_orders
     
-    // Step 5: Flag networks as abusive if connected orders > 1 (indicating a link between multiple orders with the same promocode)
-    WITH c, c2, connected_orders, all_order_ids,
-         CASE WHEN connected_orders > 1 THEN 1 ELSE 0 END AS abusive
-    
-    // Step 6: Aggregate total usage of the promocode
-    MATCH (order)-[:HAS_ATTRIBUTE]->(promocode_attr:Attribute {value: $promocode, type: 'promocode'})
-    WITH c, COUNT(DISTINCT order.id) AS total_orders, abusive, all_order_ids
-    
-    // Step 7: Aggregate abusive orders and total orders for abuse rate, focusing on connections via device, card details, etc.
-    WITH c, COUNT(DISTINCT all_order_ids) AS total_usage_count, 
-         COUNT(DISTINCT CASE WHEN abusive = 1 THEN all_order_ids END) AS abusive_usage_count
-    
-    // Step 8: Calculate total abuse rate for the promotion
-    WITH COUNT(distinct c.email) AS total_usage, SUM(abusive_usage_count) AS abusive_usage_count
     RETURN 
-        total_usage, 
-        abusive_usage_count,
-        (abusive_usage_count * 100.0 / total_usage) AS abuse_rate_percentage"""
+      order_date,
+      total_orders,
+      abusive_orders,
+      (abusive_orders * 100.0 / total_orders) AS abuse_rate
+    ORDER BY order_date
+"""
     
 
     params = {"promocode": promocode} if promocode else {}
