@@ -9,48 +9,54 @@ def usage():
 
     # Modified Cypher Query to check abusive usage of the promocode
     query = """
-    // Step 1: Find customers who used the promocode
-    MATCH (c:Customer)-[:PLACED]->(o:Order)-[:HAS_ATTRIBUTE]->(a:Attribute {type: 'promocode', value: $promocode})
+    // Step 1: Find all orders with the promocode and their customers
+    MATCH (c:Customer)-[:PLACED]->(o:Order)-[:HAS_ATTRIBUTE]->(promo:Attribute {type: 'promocode', value: $promocode})
+    WITH DISTINCT c, o
     
-    // Step 2: Collect all shared identity values
-    MATCH (c)-[:PLACED]->(:Order)-[:HAS_ATTRIBUTE]->(attr)
-    WHERE attr.type IN ['email', 'phone', 'device_id', 'card_details']
-    WITH c, o, COLLECT(DISTINCT attr.value) AS shared_attrs
+    // Step 2: Find identity values for each customer
+    MATCH (c)-[:PLACED]->(:Order)-[:HAS_ATTRIBUTE]->(idAttr)
+    WHERE idAttr.type IN ['email', 'phone', 'device_id', 'card_details']
+    WITH c, o, COLLECT(DISTINCT idAttr.value) AS identity_keys
     
-    // Step 3: Find all orders from the identity network that used the same promocode
+    // Step 3: Map customers to identity keys
+    UNWIND identity_keys AS identity
+    WITH identity, c
+    
+    // Step 4: Build network groups using shared identity keys
+    WITH identity, COLLECT(DISTINCT c) AS customers
+    UNWIND customers AS customer_in_group
+    WITH identity, customer_in_group
+    WITH customer_in_group, COLLECT(DISTINCT identity) AS all_identities
+    
+    // Step 5: Collect all customers in the same network
+    UNWIND all_identities AS shared_id
     MATCH (c2:Customer)-[:PLACED]->(o2:Order)-[:HAS_ATTRIBUTE]->(attr2)
-    WHERE attr2.value IN shared_attrs AND attr2.type IN ['email', 'phone', 'device_id', 'card_details']
-    MATCH (o2)-[:HAS_ATTRIBUTE]->(:Attribute {type: 'promocode', value: $promocode})
-    WITH c, COLLECT(DISTINCT o2) AS network_orders, COLLECT(DISTINCT c2.email) AS network_emails
+    WHERE attr2.value = shared_id AND attr2.type IN ['email', 'phone', 'device_id', 'card_details']
+    MATCH (o2)-[:HAS_ATTRIBUTE]->(a2:Attribute {type: 'promocode', value: $promocode})
     
-    // Step 4: Classify first as genuine, rest as abusive
+    // Step 6: Group by identity network
+    WITH COLLECT(DISTINCT o2) AS network_orders, COLLECT(DISTINCT c2.email) AS network_emails
+    
+    // Step 7: For each group, mark one as genuine, rest as abusive
     WITH 
-      SIZE(network_orders) AS total_orders_in_network,
-      CASE 
-        WHEN SIZE(network_orders) > 1 THEN SIZE(network_orders) - 1
-        ELSE 0
-      END AS abusive_orders_in_network,
+      SIZE(network_orders) AS order_count,
+      SIZE(network_emails) AS user_count,
+      CASE WHEN SIZE(network_orders) > 1 THEN SIZE(network_orders) - 1 ELSE 0 END AS abusive_orders,
+      CASE WHEN SIZE(network_orders) > 1 THEN SIZE(network_emails) - 1 ELSE 0 END AS abusive_users,
       1 AS genuine_order,
-      SIZE(network_emails) AS total_users_in_network,
-      CASE 
-        WHEN SIZE(network_orders) > 1 THEN SIZE(network_emails)
-        ELSE 0
-      END AS abusive_users_in_network,
-      CASE 
-        WHEN SIZE(network_orders) = 1 THEN SIZE(network_emails)
-        ELSE 0
-      END AS genuine_users_in_network
+      1 AS genuine_user
     
-    // Step 5: Aggregate totals
-    RETURN 
+    // Step 8: Aggregate unique totals across all identity groups
+    RETURN
       SUM(genuine_order) AS genuine_orders,
-      SUM(abusive_orders_in_network) AS abusive_orders,
-      SUM(genuine_users_in_network) AS genuine_users,
-      SUM(abusive_users_in_network) AS abusive_users,
-      (SUM(abusive_orders_in_network) + SUM(genuine_order)) AS total_orders,
-      (SUM(genuine_users_in_network) + SUM(abusive_users_in_network)) AS total_users,
-      ROUND(100.0 * SUM(abusive_orders_in_network) / (SUM(abusive_orders_in_network) + SUM(genuine_order)), 2) AS abuse_order_rate_percentage,
-      ROUND(100.0 * SUM(abusive_users_in_network) / (SUM(abusive_users_in_network) + SUM(genuine_users_in_network)), 2) AS abuse_user_rate_percentage"""
+      SUM(abusive_orders) AS abusive_orders,
+      SUM(genuine_user) AS genuine_users,
+      SUM(abusive_users) AS abusive_users,
+      SUM(genuine_order + abusive_orders) AS total_orders,
+      SUM(genuine_user + abusive_users) AS total_users,
+      ROUND(100.0 * SUM(abusive_orders) / SUM(genuine_order + abusive_orders), 2) AS abuse_order_rate_percentage,
+      ROUND(100.0 * SUM(abusive_users) / SUM(genuine_user + abusive_users), 2) AS abuse_user_rate_percentage
+      """
     
 
     params = {"promocode": promocode} if promocode else {}
