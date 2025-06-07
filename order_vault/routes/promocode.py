@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify, current_app
+import traceback
 
 promocode_bp = Blueprint("promocode", __name__, url_prefix="/api/promocode")
 
@@ -160,5 +161,6 @@ def abuse_by_day():
                 return jsonify({"message": "No data found for this promocode"}), 200
 
     except Exception as e:
+        traceback.print_exc()
         return jsonify({"error": "Database error", "details": str(e)}), 500
 
