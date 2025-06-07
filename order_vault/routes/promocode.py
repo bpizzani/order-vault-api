@@ -148,10 +148,17 @@ def abuse_by_day():
 
     params = {"promocode": promocode}
 
+
     try:
-        with current_app.neo4j_driver.session() as session:
+        with current_app.neo4j_driver.session() as session: 
             result = session.run(query, params)
-            data = [record.data() for record in result]
-            return jsonify(data), 200
+            records = [record.data() for record in result]
+
+            if records:
+                return jsonify(records), 200
+            else:
+                return jsonify({"message": "No data found for this promocode"}), 200
+
     except Exception as e:
         return jsonify({"error": "Database error", "details": str(e)}), 500
+
