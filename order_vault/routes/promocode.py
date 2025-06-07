@@ -137,7 +137,7 @@ def abuse_by_day():
     WITH order_date,
          COUNT(DISTINCT order_id) AS total_orders,
          COUNT(DISTINCT CASE WHEN user_count > 1 THEN order_id END) AS abusive_orders
-    
+    WHERE order_date IS NOT NULL
     RETURN 
       order_date,
       total_orders,
