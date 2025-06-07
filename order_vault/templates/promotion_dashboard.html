@@ -120,10 +120,28 @@
         fetch(`https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/promocode/abuse-by-day?promocode=${promocode}`)
             .then(response => response.json())
             .then(data => {
-                const labels = data.map(item => item.order_date);
-                const abuseRates = data.map(item =>
-                    typeof item.abuse_rate === "number" ? item.abuse_rate.toFixed(2) : 0
+                // ✅ Log raw data for debugging
+                console.log("Abuse by Day API Data:", data);
+        
+                // ✅ Filter out invalid entries
+                const filtered = data.filter(
+                    item =>
+                        item.order_date &&
+                        typeof item.abuse_rate === "number" &&
+                        item.abuse_rate >= 0
                 );
+        
+                // ✅ Optional: sort by date if backend doesn't guarantee it
+                filtered.sort((a, b) => new Date(a.order_date) - new Date(b.order_date));
+        
+                const labels = filtered.map(item => item.order_date);
+                const abuseRates = filtered.map(item => parseFloat(item.abuse_rate.toFixed(2)));
+        
+                if (labels.length === 0) {
+                    console.warn("No valid abuse rate data available to render.");
+                    return;
+                }
+        
                 renderAbuseRateChart(labels, abuseRates);
             })
             .catch(error => {
