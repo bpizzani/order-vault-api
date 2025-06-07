@@ -123,22 +123,21 @@ def abuse_by_day():
     query = """
     // Step 1: Find all orders using the promocode with their order date
     MATCH (c:Customer)-[:PLACED]->(o:Order)-[:HAS_ATTRIBUTE]->(a:Attribute {type: 'promocode', value: $promocode})
-    WITH c, o, date(datetime(o.created_at)) AS order_date
+    WITH c, o
     
     // Step 2: Collect shared attributes for the customer
     MATCH (c)-[:PLACED]->(:Order)-[:HAS_ATTRIBUTE]->(attr)
     WHERE attr.type IN ['email', 'phone', 'device_id', 'card_details']
-    WITH o, order_date, COLLECT(DISTINCT attr.value) AS shared_attrs
+    WITH o, COLLECT(DISTINCT attr.value) AS shared_attrs
     
-    // Step 3: Use a subquery to find how many different customers used the same promocode via shared attributes
+    // Step 3: Use a subquery to find all promo-using orders from identity network and their dates
     CALL {
-        WITH shared_attrs, order_date
+        WITH shared_attrs
         MATCH (c2:Customer)-[:PLACED]->(o2:Order)-[:HAS_ATTRIBUTE]->(attr2)
         WHERE attr2.value IN shared_attrs AND attr2.type IN ['email', 'phone', 'device_id', 'card_details']
         MATCH (o2)-[:HAS_ATTRIBUTE]->(a2:Attribute {type: 'promocode', value: $promocode})
-        RETURN DISTINCT o2.id AS order_id, COUNT(c2) AS user_count
+        RETURN DISTINCT o2.id AS order_id, date(datetime(o2.created_at)) AS order_date, COUNT(DISTINCT c2) AS user_count
     }
-    WITH order_date, order_id, user_count
     
     // Step 4: Aggregate abuse per day
     WITH order_date,
@@ -149,7 +148,7 @@ def abuse_by_day():
       order_date,
       total_orders,
       abusive_orders,
-      (abusive_orders * 100.0 / total_orders) AS abuse_rate
+      ROUND(abusive_orders * 100.0 / total_orders, 2) AS abuse_rate
     ORDER BY order_date
     """
 
