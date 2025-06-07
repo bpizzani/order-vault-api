@@ -129,7 +129,7 @@ def abuse_by_day():
         MATCH (c2:Customer)-[:PLACED]->(o2:Order)-[:HAS_ATTRIBUTE]->(attr2)
         WHERE attr2.value IN shared_attrs AND attr2.type IN ['email', 'phone', 'device_id', 'card_details']
         MATCH (o2)-[:HAS_ATTRIBUTE]->(a2:Attribute {type: 'promocode', value: $promocode})
-        RETURN DISTINCT o2.id AS order_id, COUNT(DISTINCT c2) AS user_count
+        RETURN DISTINCT o2.id AS order_id, COUNT(c2) AS user_count
     }
     WITH order_date, order_id, user_count
     
