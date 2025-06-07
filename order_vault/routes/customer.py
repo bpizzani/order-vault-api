@@ -24,7 +24,7 @@ def get_customer_attributes_summary():
     params = {"email": email}
 
     try:
-        with driver.session() as session:
+        with current_app.neo4j_driver.session() as session:
             result = session.run(query, params)
             record = result.single()
 
@@ -73,7 +73,7 @@ def get_network_attributes():
     params = {"email": email}
 
     try:
-        with driver.session() as session:
+        with current_app.neo4j_driver.session() as session:
             result = session.run(query, params)
             record = result.single()
 
