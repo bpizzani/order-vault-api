@@ -121,28 +121,32 @@ def abuse_by_day():
         return jsonify({"error": "Missing promocode parameter"}), 400
 
     query = """
-    // Step 1: Find all orders using the promocode with their order date
-    MATCH (c:Customer)-[:PLACED]->(o:Order)-[:HAS_ATTRIBUTE]->(a:Attribute {type: 'promocode', value: $promocode})
-    WITH c, o
+    // Step 1: Get all orders that used the promocode, and their identity
+    MATCH (c:Customer)-[:PLACED]->(o:Order)-[:HAS_ATTRIBUTE]->(a:Attribute {type: 'promocode', value: "sf"})
+    WITH c, o, date(datetime(o.created_at)) AS order_date
     
-    // Step 2: Collect shared attributes for the customer
+    // Step 2: Collect identity attributes for each customer
     MATCH (c)-[:PLACED]->(:Order)-[:HAS_ATTRIBUTE]->(attr)
     WHERE attr.type IN ['email', 'phone', 'device_id', 'card_details']
-    WITH o, COLLECT(DISTINCT attr.value) AS shared_attrs
+    WITH c, o, order_date, COLLECT(DISTINCT attr.value) AS identity_attrs
     
-    // Step 3: Use a subquery to find all promo-using orders from identity network and their dates
+    // Step 3: Count how many orders from that identity network used the promocode
     CALL {
-        WITH shared_attrs
-        MATCH (c2:Customer)-[:PLACED]->(o2:Order)-[:HAS_ATTRIBUTE]->(attr2)
-        WHERE attr2.value IN shared_attrs AND attr2.type IN ['email', 'phone', 'device_id', 'card_details']
-        MATCH (o2)-[:HAS_ATTRIBUTE]->(a2:Attribute {type: 'promocode', value: $promocode})
-        RETURN DISTINCT o2.id AS order_id, date(datetime(o2.created_at)) AS order_date, COUNT(DISTINCT c2) AS user_count
+      WITH identity_attrs
+      MATCH (c2:Customer)-[:PLACED]->(o2:Order)-[:HAS_ATTRIBUTE]->(attr2)
+      WHERE attr2.value IN identity_attrs AND attr2.type IN ['email', 'phone', 'device_id', 'card_details']
+      MATCH (o2)-[:HAS_ATTRIBUTE]->(a2:Attribute {type: 'promocode', value: "sf"})
+      RETURN COUNT(DISTINCT o2) AS promo_orders_in_network
     }
     
-    // Step 4: Aggregate abuse per day
+    // Step 4: Determine if this specific order is abusive (if network already used it)
+    WITH o, order_date, 
+         CASE WHEN promo_orders_in_network > 1 THEN 1 ELSE 0 END AS is_abusive
+    
+    // Step 5: Aggregate by day
     WITH order_date,
-         COUNT(DISTINCT order_id) AS total_orders,
-         COUNT(DISTINCT CASE WHEN user_count > 1 THEN order_id END) AS abusive_orders
+         COUNT(o) AS total_orders,
+         SUM(is_abusive) AS abusive_orders
     WHERE order_date IS NOT NULL
     RETURN 
       order_date,
