@@ -103,3 +103,39 @@ def order_count():
 
     except Exception as e:
         return jsonify({"error": "Database error", "details": str(e)}), 500
+
+
+@promocode_bp.route("/abuse-by-day", methods=["GET"])
+def abuse_by_day():
+    promocode = request.args.get("promocode", "").strip()
+
+    if not promocode:
+        return jsonify({"error": "Missing promocode parameter"}), 400
+
+    query = """
+    MATCH (c:Customer)-[:PLACED]->(o:Order)-[:HAS_ATTRIBUTE]->(a:Attribute {type: 'promocode', value: $promocode})
+    WITH o, date(o.created_at) AS order_date
+    MATCH (o)-[:HAS_ATTRIBUTE]->(attr)
+    WHERE attr.type IN ['phone', 'device_id', 'card_details', 'email']
+    WITH o, order_date, COLLECT(DISTINCT attr.value) AS shared_attrs
+
+    MATCH (c2:Customer)-[:PLACED]->(o2:Order)-[:HAS_ATTRIBUTE]->(attr2)
+    WHERE attr2.value IN shared_attrs AND attr2.type IN ['phone', 'device_id', 'card_details', 'email']
+    MATCH (o2)-[:HAS_ATTRIBUTE]->(a2:Attribute {type: 'promocode', value: $promocode})
+
+    WITH order_date, COUNT(DISTINCT o2) AS total_orders,
+         COUNT(DISTINCT CASE WHEN COUNT(o2) > 1 THEN o2 END) AS abusive_orders
+    RETURN order_date, total_orders, abusive_orders,
+           (abusive_orders * 100.0 / total_orders) AS abuse_rate
+    ORDER BY order_date
+    """
+
+    params = {"promocode": promocode}
+
+    try:
+        with current_app.neo4j_driver.session() as session:
+            result = session.run(query, params)
+            data = [record.data() for record in result]
+            return jsonify(data), 200
+    except Exception as e:
+        return jsonify({"error": "Database error", "details": str(e)}), 500
