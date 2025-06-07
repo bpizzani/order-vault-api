@@ -66,74 +66,67 @@
     <script>
         
         // Fetching promocode usage and rendering the dashboard
-        function fetchPromocodeUsage() {
-            const promocode = document.getElementById("promocodeInput").value.trim();
-            if (!promocode) {
-                alert("Please enter a promocode");
-                return;
-            }
-        
-            document.getElementById("loading").classList.remove("hidden");
-        
-            fetch(`https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/promocode/usage?promocode=${promocode}`)
-                .then(response => response.json())
-                .then(data => {
-                    console.log("API Response - Promocode Usage:", data);
-        
-                    if (!data || data.length === 0 || data.message) {
-                        alert("No data found for this promocode");
-                        document.getElementById("loading").classList.add("hidden");
-                        return;
-                    }
-        
-                    const promoData = data[0];
-        
-                    // Update summary cards
-                    document.getElementById("totalOrders").innerText = promoData.total_usage || 0;
-                    document.getElementById("abusiveUsers").innerText = promoData.abusive_usage_count || 0;
-                    document.getElementById("uniqueUsers").innerText = promoData.total_usage - promoData.abusive_usage_count || 0;
-        
-                    // Calculate percentage of abusive users
-                    const abusivePercentage = promoData.abuse_rate_percentage ? promoData.abuse_rate_percentage.toFixed(2) : 0;
-                    document.getElementById("abusivePercentage").innerText = `${abusivePercentage}%`;
-        
-                    // Prepare data for bar chart
-                    const chartData = {
-                        labels: ['Total Orders', 'Abusive Orders'],
-                        datasets: [{
-                            label: 'Promocode Usage Statistics',
-                            data: [promoData.total_usage, promoData.abusive_usage_count],
-                            backgroundColor: ['#00bcd4', '#f44336'],
-                            borderColor: ['#0097a7', '#d32f2f'],
-                            borderWidth: 1
-                        }]
-                    };
-        
-                    // Render Bar Chart using Chart.js
-                    renderBarChart(chartData);
-        
-                    document.getElementById("loading").classList.add("hidden");
-                })
-                .catch(error => {
-                    console.error("Error fetching promocode usage data:", error);
-                    document.getElementById("loading").classList.add("hidden");
-                    alert("Failed to fetch data. Please try again later.");
-                });
-
-            fetch(`https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/promocode/abuse-by-day?promocode=${promocode}`)
-                .then(response => response.json())
-                .then(data => {
-                    console.log("Abuse by Day Data:", data);
-            
-                    const labels = data.map(item => item.order_date);
-                    const abuseRates = data.map(item => item.abuse_rate?.toFixed(2) || 0);
-            
-                    renderAbuseRateChart(labels, abuseRates);
-                })
-                .catch(error => {
-                    console.error("Error fetching abuse-by-day data:", error);
-                });
+    function fetchPromocodeUsage() {
+        const promocode = document.getElementById("promocodeInput").value.trim();
+        if (!promocode) {
+            alert("Please enter a promocode");
+            return;
         }
+    
+        document.getElementById("loading").classList.remove("hidden");
+    
+        // Fetch summary usage data
+        fetch(`https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/promocode/usage?promocode=${promocode}`)
+            .then(response => response.json())
+            .then(data => {
+                if (!data || data.length === 0 || data.message) {
+                    alert("No data found for this promocode");
+                    document.getElementById("loading").classList.add("hidden");
+                    return;
+                }
+    
+                const promoData = data[0];
+                document.getElementById("totalOrders").innerText = promoData.total_usage || 0;
+                document.getElementById("abusiveUsers").innerText = promoData.abusive_usage_count || 0;
+                document.getElementById("uniqueUsers").innerText = (promoData.total_usage - promoData.abusive_usage_count) || 0;
+    
+                const abusivePercentage = promoData.abuse_rate_percentage ? promoData.abuse_rate_percentage.toFixed(2) : 0;
+                document.getElementById("abusivePercentage").innerText = `${abusivePercentage}%`;
+    
+                const chartData = {
+                    labels: ['Total Orders', 'Abusive Orders'],
+                    datasets: [{
+                        label: 'Promocode Usage Statistics',
+                        data: [promoData.total_usage, promoData.abusive_usage_count],
+                        backgroundColor: ['#00bcd4', '#f44336'],
+                        borderColor: ['#0097a7', '#d32f2f'],
+                        borderWidth: 1
+                    }]
+                };
+                renderBarChart(chartData);
+            })
+            .catch(error => {
+                console.error("Error fetching promocode usage data:", error);
+                alert("Failed to fetch data. Please try again later.");
+            })
+            .finally(() => {
+                document.getElementById("loading").classList.add("hidden");
+            });
+    
+        // Fetch abuse rate by day
+        fetch(`https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/promocode/abuse-by-day?promocode=${promocode}`)
+            .then(response => response.json())
+            .then(data => {
+                const labels = data.map(item => item.order_date);
+                const abuseRates = data.map(item =>
+                    typeof item.abuse_rate === "number" ? item.abuse_rate.toFixed(2) : 0
+                );
+                renderAbuseRateChart(labels, abuseRates);
+            })
+            .catch(error => {
+                console.error("Error fetching abuse-by-day data:", error);
+            });
+    }
 
         
         
