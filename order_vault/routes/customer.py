@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify, current_app
 
 customer_bp = Blueprint("customer", __name__, url_prefix="/api/customer")
 
-@customer_bp.route("-attributes-summary", methods=["GET"])
+@customer_bp.route("/attributes-summary", methods=["GET"])
 def get_customer_attributes_summary():
     email = request.args.get("email", "").strip().lower()  # Normalize the email input
 
@@ -42,7 +42,7 @@ def get_customer_attributes_summary():
         return jsonify({"error": "Database error", "details": str(e)}), 500
         
 
-@customer_bp.route("-attributes-network", methods=["GET"])
+@customer_bp.route("/attributes-network", methods=["GET"])
 def get_network_attributes():
     email = request.args.get("email", "").strip().lower()
 
