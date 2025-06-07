@@ -153,12 +153,15 @@ def abuse_by_day():
     try:
         with current_app.neo4j_driver.session() as session: 
             result = session.run(query, params)
-            records = [record.data() for record in result]
-
-            if records:
-                return jsonify(records), 200
-            else:
-                return jsonify({"message": "No data found for this promocode"}), 200
+            records = []
+            
+            for record in result:
+                row = record.data()
+                if "order_date" in row and hasattr(row["order_date"], "iso_format"):
+                    row["order_date"] = row["order_date"].iso_format()  # Convert Neo4j Date to string
+                records.append(row)
+            
+            return jsonify(records), 200
 
     except Exception as e:
         traceback.print_exc()
