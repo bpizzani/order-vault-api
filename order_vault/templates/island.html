@@ -170,7 +170,7 @@
         }
 
         function fetchNetworkAttributes(email) {
-            fetch(`https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/customer-attributes-network?email=${encodeURIComponent(email)}`)
+            fetch(`https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/customer/attributes-network?email=${encodeURIComponent(email)}`)
                 .then(response => response.json())
                 .then(data => {
                     console.log("API Response - Network Attributes:", data);
