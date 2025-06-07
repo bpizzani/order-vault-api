@@ -114,20 +114,35 @@ def abuse_by_day():
         return jsonify({"error": "Missing promocode parameter"}), 400
 
     query = """
+    // Step 1: Find all orders using the promocode with their order date
     MATCH (c:Customer)-[:PLACED]->(o:Order)-[:HAS_ATTRIBUTE]->(a:Attribute {type: 'promocode', value: $promocode})
-    WITH o, date(o.created_at) AS order_date
-    MATCH (o)-[:HAS_ATTRIBUTE]->(attr)
-    WHERE attr.type IN ['phone', 'device_id', 'card_details', 'email']
+    WITH c, o, date(datetime(o.created_at)) AS order_date
+    
+    // Step 2: Collect shared attributes for the customer
+    MATCH (c)-[:PLACED]->(:Order)-[:HAS_ATTRIBUTE]->(attr)
+    WHERE attr.type IN ['email', 'phone', 'device_id', 'card_details']
     WITH o, order_date, COLLECT(DISTINCT attr.value) AS shared_attrs
-
-    MATCH (c2:Customer)-[:PLACED]->(o2:Order)-[:HAS_ATTRIBUTE]->(attr2)
-    WHERE attr2.value IN shared_attrs AND attr2.type IN ['phone', 'device_id', 'card_details', 'email']
-    MATCH (o2)-[:HAS_ATTRIBUTE]->(a2:Attribute {type: 'promocode', value: $promocode})
-
-    WITH order_date, COUNT(DISTINCT o2) AS total_orders,
-         COUNT(DISTINCT CASE WHEN COUNT(o2) > 1 THEN o2 END) AS abusive_orders
-    RETURN order_date, total_orders, abusive_orders,
-           (abusive_orders * 100.0 / total_orders) AS abuse_rate
+    
+    // Step 3: Use a subquery to find how many different customers used the same promocode via shared attributes
+    CALL {
+        WITH shared_attrs, order_date
+        MATCH (c2:Customer)-[:PLACED]->(o2:Order)-[:HAS_ATTRIBUTE]->(attr2)
+        WHERE attr2.value IN shared_attrs AND attr2.type IN ['email', 'phone', 'device_id', 'card_details']
+        MATCH (o2)-[:HAS_ATTRIBUTE]->(a2:Attribute {type: 'promocode', value: $promocode})
+        RETURN DISTINCT o2.id AS order_id, COUNT(DISTINCT c2) AS user_count
+    }
+    WITH order_date, order_id, user_count
+    
+    // Step 4: Aggregate abuse per day
+    WITH order_date,
+         COUNT(DISTINCT order_id) AS total_orders,
+         COUNT(DISTINCT CASE WHEN user_count > 1 THEN order_id END) AS abusive_orders
+    
+    RETURN 
+      order_date,
+      total_orders,
+      abusive_orders,
+      (abusive_orders * 100.0 / total_orders) AS abuse_rate
     ORDER BY order_date
     """
 
