@@ -122,7 +122,7 @@ def abuse_by_day():
 
     query = """
     // Step 1: Get all orders that used the promocode, and their identity
-    MATCH (c:Customer)-[:PLACED]->(o:Order)-[:HAS_ATTRIBUTE]->(a:Attribute {type: 'promocode', value: "sf"})
+    MATCH (c:Customer)-[:PLACED]->(o:Order)-[:HAS_ATTRIBUTE]->(a:Attribute {type: 'promocode', value: $promocode})
     WITH c, o, date(datetime(o.created_at)) AS order_date
     
     // Step 2: Collect identity attributes for each customer
@@ -135,7 +135,7 @@ def abuse_by_day():
       WITH identity_attrs
       MATCH (c2:Customer)-[:PLACED]->(o2:Order)-[:HAS_ATTRIBUTE]->(attr2)
       WHERE attr2.value IN identity_attrs AND attr2.type IN ['email', 'phone', 'device_id', 'card_details']
-      MATCH (o2)-[:HAS_ATTRIBUTE]->(a2:Attribute {type: 'promocode', value: "sf"})
+      MATCH (o2)-[:HAS_ATTRIBUTE]->(a2:Attribute {type: 'promocode', value: $promocode})
       RETURN COUNT(DISTINCT o2) AS promo_orders_in_network
     }
     
