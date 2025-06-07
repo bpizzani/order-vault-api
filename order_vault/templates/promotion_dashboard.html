@@ -87,25 +87,27 @@
                     document.getElementById("loading").classList.add("hidden");
                     return;
                 }
-    
+        
                 const promoData = data[0];
-                document.getElementById("totalOrders").innerText = promoData.total_usage || 0;
-                document.getElementById("abusiveUsers").innerText = promoData.abusive_usage_count || 0;
-                document.getElementById("uniqueUsers").innerText = (promoData.total_usage - promoData.abusive_usage_count) || 0;
-    
-                const abusivePercentage = promoData.abuse_rate_percentage ? promoData.abuse_rate_percentage.toFixed(2) : 0;
-                document.getElementById("abusivePercentage").innerText = `${abusivePercentage}%`;
-    
+        
+                // Update stats
+                document.getElementById("totalOrders").innerText = promoData.total_users || 0;
+                document.getElementById("uniqueUsers").innerText = promoData.genuine_users || 0;
+                document.getElementById("abusiveUsers").innerText = promoData.abusive_users || 0;
+                document.getElementById("abusivePercentage").innerText = promoData.abuse_user_rate_percentage ? `${promoData.abuse_user_rate_percentage.toFixed(2)}%` : "0%";
+        
+                // Chart data
                 const chartData = {
-                    labels: ['Total Orders', 'Abusive Orders'],
+                    labels: ['Genuine Orders', 'Abusive Orders'],
                     datasets: [{
-                        label: 'Promocode Usage Statistics',
-                        data: [promoData.total_usage, promoData.abusive_usage_count],
+                        label: 'Promocode Order Statistics',
+                        data: [promoData.genuine_orders, promoData.abusive_orders],
                         backgroundColor: ['#00bcd4', '#f44336'],
                         borderColor: ['#0097a7', '#d32f2f'],
                         borderWidth: 1
                     }]
                 };
+        
                 renderBarChart(chartData);
             })
             .catch(error => {
