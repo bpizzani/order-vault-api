@@ -235,6 +235,49 @@
                 }
             });
         }
+
+        function renderTotalOrdersChart(labels, data) {
+            const ctx = document.getElementById("totalOrdersChart").getContext("2d");
+        
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Total Orders per Day',
+                        data: data,
+                        backgroundColor: '#38bdf8',
+                        borderColor: '#0ea5e9',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Orders'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => `Total Orders: ${context.raw}`
+                            }
+                        }
+                    }
+                }
+            });
+        }
     </script>
 
 </body>
