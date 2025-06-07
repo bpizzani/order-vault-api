@@ -114,7 +114,7 @@
         }
 
         function fetchCustomerAttributes(email) {
-            fetch(`https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/customer-attributes-summary?email=${encodeURIComponent(email)}`)
+            fetch(`https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/customer-attributes-summary?email=${email}`)
                 .then(response => response.json())
                 .then(data => {
                     console.log("API Response - Customer Attributes Summary:", data);
