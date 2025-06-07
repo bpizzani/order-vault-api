@@ -58,6 +58,11 @@
         </main>
     </div>
 
+    <div class="mb-8">
+    <h3 class="text-2xl font-bold text-cyan-400 text-center mb-4">Abuse Rate por Día</h3>
+    <canvas id="abuseRateChart"></canvas>
+    </div>
+
     <script>
         
         // Fetching promocode usage and rendering the dashboard
@@ -114,7 +119,23 @@
                     document.getElementById("loading").classList.add("hidden");
                     alert("Failed to fetch data. Please try again later.");
                 });
+
+            fetch(`https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/promocode/abuse-by-day?promocode=${promocode}`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log("Abuse by Day Data:", data);
+            
+                    const labels = data.map(item => item.order_date);
+                    const abuseRates = data.map(item => item.abuse_rate?.toFixed(2) || 0);
+            
+                    renderAbuseRateChart(labels, abuseRates);
+                })
+                .catch(error => {
+                    console.error("Error fetching abuse-by-day data:", error);
+                });
         }
+
+        
         
         // Function to render the Bar Chart
         function renderBarChart(chartData) {
@@ -141,6 +162,50 @@
                                 label: function(tooltipItem) {
                                     return `${tooltipItem.label}: ${tooltipItem.raw}`;
                                 }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderAbuseRateChart(labels, data) {
+            const ctx = document.getElementById("abuseRateChart").getContext("2d");
+        
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Abuse Rate (%)',
+                        data: data,
+                        fill: false,
+                        borderColor: '#f87171',
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: 'Abuse Rate (%)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => `${context.parsed.y}%`
                             }
                         }
                     }
