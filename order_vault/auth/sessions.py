@@ -17,7 +17,7 @@ def load_tenant():
     tenant = TENANT_DATABASES.get(user.client_id)
     if not tenant:
         raise Exception("Unknown tenant configuration")
-
+    print("Tenant Found")
     g.user = user
     g.client_id = user.client_id
     g.db_uri = tenant["postgres"]
