@@ -6,7 +6,7 @@ from .network_graph import build_graph_from_order
 
 
 # Function to trigger the background process once the order is finalized
-def trigger_process_and_update(order_data):
+def trigger_process_and_update(order_data,neo4j_driver):
     try:
         #time.sleep(3)  # Simulate some delay
 
@@ -17,7 +17,7 @@ def trigger_process_and_update(order_data):
         #    print("Process and update triggered successfully.")
         #else:
         #    print(f"Error triggering the process-and-update API: {process_update_response.text}")
-        driver = g.neo4j_driver
+        driver = driver
         # If order was confirmed and fraud evaluation passed, store it in Neo4j
         with driver.session() as session:
             # Here, you can process order_data and save to Neo4j based on the client's confirmation
