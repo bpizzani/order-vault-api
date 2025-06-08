@@ -46,5 +46,5 @@ def simulate_order():
         print(response.status_code, response.text)
     
     # Usage
-    send_fake_order(api_key="your_testing_api_key")
+    send_fake_order()
 
