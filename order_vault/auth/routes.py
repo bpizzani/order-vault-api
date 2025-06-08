@@ -20,3 +20,28 @@ def login():
 def logout():
     session.clear()
     return jsonify({"message": "Logged out"}), 200
+
+
+@auth_bp.route("/register", methods=["POST"])
+def register():
+    data = request.json
+
+    required_fields = ["email", "password", "client_id"]
+    if not all(field in data for field in required_fields):
+        return jsonify({"error": "Missing fields"}), 400
+
+    email = data["email"].strip().lower()
+    password = data["password"]
+    client_id = data["client_id"].strip()
+
+    if User.query.filter_by(email=email).first():
+        return jsonify({"error": "User already exists"}), 400
+
+    try:
+        hashed_pw = generate_password_hash(password)
+        user = User(email=email, password_hash=hashed_pw, client_id=client_id)
+        db.session.add(user)
+        db.session.commit()
+        return jsonify({"message": f"User {email} created for client {client_id}"}), 201
+    except Exception as e:
+        return jsonify({"error": "Could not create user", "details": str(e)}), 500
