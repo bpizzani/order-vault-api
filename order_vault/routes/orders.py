@@ -15,9 +15,9 @@ def finalize_order():
 
     def _background_task(data, neo4j_driver):
         with app.app_context():
-            trigger_process_and_update(data, neo4j_driver)
+            trigger_process_and_update(data)
 
-    thread = threading.Thread(target=_background_task, args=(order_data, g.neo4j_driver))
+    thread = threading.Thread(target=_background_task, args=(order_data))
     thread.daemon = True
     thread.start()
 
