@@ -1,5 +1,5 @@
 from neo4j import Session
-from flask import Blueprint, request, jsonify, current_app
+from flask import Blueprint, request, jsonify, current_app, g
 import networkx as nx
 from .network_graph import build_graph_from_order
 
@@ -17,7 +17,7 @@ def trigger_process_and_update(order_data):
         #    print("Process and update triggered successfully.")
         #else:
         #    print(f"Error triggering the process-and-update API: {process_update_response.text}")
-        driver = current_app.neo4j_driver
+        driver = g.neo4j_driver
         # If order was confirmed and fraud evaluation passed, store it in Neo4j
         with driver.session() as session:
             # Here, you can process order_data and save to Neo4j based on the client's confirmation
