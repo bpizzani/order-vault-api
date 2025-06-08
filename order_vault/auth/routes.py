@@ -1,10 +1,9 @@
-from flask import Blueprint, request, jsonify, session, current_app, redirect, url_for
+from flask import Blueprint, request, jsonify, session, current_app, redirect, url_for, render_template
 from order_vault.models.user import User
 from order_vault.main import db
 from werkzeug.security import check_password_hash, generate_password_hash
 
 auth_bp = Blueprint("auth", __name__)
-
 
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
@@ -16,19 +15,12 @@ def login():
         if user and check_password_hash(user.password_hash, password):
             session["user_id"] = user.id
             session["client_id"] = user.client_id
-            return redirect(url_for("home.promotion_ui"))  # change if needed
+            return redirect(url_for("home.promotion_ui"))  # Adjust route if needed
 
         return "Invalid credentials", 401
 
-    # simple form for testing
-    return """
-    <form method="post">
-        <input name="email" placeholder="Email"><br>
-        <input name="password" type="password" placeholder="Password"><br>
-        <button type="submit">Login</button>
-    </form>
-    """
-
+    return render_template("login.html")
+    
 
 @auth_bp.route("/logout", methods=["POST"])
 def logout():
