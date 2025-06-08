@@ -14,3 +14,9 @@ def login():
     session["user_id"] = user.id
     session["client_id"] = user.client_id
     return jsonify({"message": "Logged in", "client_id": user.client_id})
+
+
+@auth_bp.route("/logout", methods=["POST"])
+def logout():
+    session.clear()
+    return jsonify({"message": "Logged out"}), 200
