@@ -71,5 +71,38 @@
       <button type="submit">Sign In</button>
     </form>
   </div>
+
+    <script>
+    document.getElementById("login-form").addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      fetch("/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        credentials: "include",  // Very important to include cookies/session
+        body: JSON.stringify({ email, password })
+      })
+      .then(res => {
+        if (!res.ok) throw new Error("Invalid credentials");
+        return res.json();
+      })
+      .then(data => {
+        if (data.message === "Logged in") {
+          window.location.href = "/promotion_dashboard";
+        } else {
+          document.getElementById("error").textContent = data.error || "Login failed.";
+        }
+      })
+      .catch(err => {
+        document.getElementById("error").textContent = err.message;
+      });
+    });
+  </script>
+  
 </body>
 </html>
