@@ -12,3 +12,4 @@ neo4j
 networkx
 flask-cors
 asyncpg
+Werkzeug>=2.0
