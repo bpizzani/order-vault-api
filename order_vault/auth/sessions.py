@@ -20,8 +20,10 @@ def load_tenant():
     print("Tenant Found")
     g.user = user
     g.client_id = user.client_id
+    print(g.client_id)
     g.db_uri = tenant["postgres"]
     g.neo4j_driver = GraphDatabase.driver(
         tenant["neo4j"]["uri"],
         auth=(tenant["neo4j"]["user"], tenant["neo4j"]["password"])
     )
+    print(g.neo4j_driver)
