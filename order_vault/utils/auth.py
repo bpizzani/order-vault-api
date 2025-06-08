@@ -9,11 +9,11 @@ def login_required(f):
     def decorated_function(*args, **kwargs):
         user_id = session.get("user_id")
         if not user_id:
-            return redirect(url_for("home.home"))  # Redirect to home if not logged in
+            return redirect(url_for("auth.login"))  # Redirect to home if not logged in
 
         user = User.query.get(user_id)
         if not user:
-            return redirect(url_for("home.home"))
+            return redirect(url_for("auth.login"))
 
         tenant = TENANT_DATABASES.get(user.client_id)
         if not tenant:
