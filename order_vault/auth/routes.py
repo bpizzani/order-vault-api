@@ -15,7 +15,7 @@ def login():
         if user and check_password_hash(user.password_hash, password):
             session["user_id"] = user.id
             session["client_id"] = user.client_id
-            return redirect(url_for("home.index"))  # change if needed
+            return redirect(url_for("promotion_dashboard.index"))  # change if needed
 
         return "Invalid credentials", 401
 
