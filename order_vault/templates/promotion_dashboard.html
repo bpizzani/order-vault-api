@@ -84,9 +84,10 @@
         document.getElementById("loading").classList.remove("hidden");
     
         // Fetch summary usage data
-        fetch(`https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/promocode/usage?promocode=${promocode}`,  
-              method: "GET",
-              credentials: "include")
+        fetch(`https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/promocode/usage?promocode=${promocode}`, {
+                method: "GET",
+                credentials: "include"
+            })
             .then(response => response.json())
             .then(data => {
                 if (!data || data.length === 0 || data.message) {
@@ -126,9 +127,10 @@
             });
     
         // Fetch abuse rate by day
-        fetch(`https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/promocode/abuse-by-day?promocode=${promocode}`,  
-              method: "GET",
-              credentials: "include")
+        fetch(`https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/promocode/abuse-by-day?promocode=${promocode}` {
+                method: "GET",
+                credentials: "include"
+            })
             .then(response => response.json())
             .then(data => {
                 // ✅ Log raw data for debugging
