@@ -1,20 +1,20 @@
-from flask import request, g
-from utils.db_router import load_client_connections
+from flask import g, session
+from config.multi_tenant import TENANT_DATABASES
+from neo4j import GraphDatabase
 
-def with_client_context(view_func):
-    def wrapper(*args, **kwargs):
-        # Get client ID from header, token, or session
-        client_id = request.headers.get("X-Client-ID")  # or use auth token
-        if not client_id:
-            return {"error": "Missing client ID"}, 400
+def load_tenant():
+    user = get_logged_in_user()  # implement based on your auth/session
+    if not user:
+        raise Exception("Unauthorized")
 
-        try:
-            g.app = request.environ.get("flask.app")  # attach app instance to g
-            load_client_connections(client_id)
-        except Exception as e:
-            return {"error": str(e)}, 500
+    client_id = user.client_id
+    tenant = TENANT_DATABASES.get(client_id)
+    if not tenant:
+        raise Exception("Unknown tenant")
 
-        return view_func(*args, **kwargs)
-
-    wrapper.__name__ = view_func.__name__
-    return wrapper
+    g.client_id = client_id
+    g.db_uri = tenant["postgres"]
+    g.neo4j = GraphDatabase.driver(
+        tenant["neo4j"]["uri"],
+        auth=(tenant["neo4j"]["user"], tenant["neo4j"]["password"])
+    )
