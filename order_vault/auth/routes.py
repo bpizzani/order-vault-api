@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify, session, current_app
 from order_vault.models.user import User
-from werkzeug.security import check_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
 
 auth_bp = Blueprint("auth", __name__)
 
