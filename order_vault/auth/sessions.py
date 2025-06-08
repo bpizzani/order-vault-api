@@ -1,6 +1,6 @@
 from flask import session, g
 from order_vault.models.user import User
-from settings.tenants import TENANT_DATABASES
+from order_vault.settings.tenants import TENANT_DATABASES
 from neo4j import GraphDatabase
 
 def get_logged_in_user():
