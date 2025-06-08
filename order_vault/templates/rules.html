@@ -65,10 +65,11 @@
             const threshold = document.getElementById("threshold").value;
             const promocode = document.getElementById("promocode").value;
             
-            fetch("https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/rules", {
+            fetch("https://www.rediim.com/api/rules", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ attribute, threshold, promocode })
+                body: JSON.stringify({ attribute, threshold, promocode }),
+                credentials: "include"
             })
             .then(() => {
                 loadRules();
@@ -77,7 +78,10 @@
         }
         
         function loadRules() {
-            fetch("https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/rules")
+            fetch("https://www.rediim.com/api/rules", {
+                method: "GET",
+                credentials: "include"
+            })
             .then(response => response.json())
             .then(data => {
                 const rulesGrid = document.getElementById("rulesGrid");
