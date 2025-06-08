@@ -7,7 +7,6 @@ from order_vault.utils.db_session import get_db_session_for_client  # helper we'
 rules_bp = Blueprint("rules", __name__, url_prefix="/api/rules")
 
 @rules_bp.route("", methods=["GET","POST"])
-@login_required
 def manage_rules():
     db_session = get_db_session_for_client(g.db_uri)
     try:
