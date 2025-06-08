@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, current_app, g
+from flask import Blueprint, request, jsonify, current_app, g, session
 import traceback
 from order_vault.auth.sessions import load_tenant
 
@@ -6,7 +6,6 @@ promocode_bp = Blueprint("promocode", __name__, url_prefix="/api/promocode")
 
 @promocode_bp.route("/usage", methods=["GET"])
 def usage():
-    load_tenant()
     promocode = request.args.get("promocode", "").strip()
 
     # Modified Cypher Query to check abusive usage of the promocode
@@ -78,7 +77,6 @@ def usage():
 
 @promocode_bp.route("/order-count", methods=["GET"])
 def order_count():
-    load_tenant()
     email = request.args.get("email", "").strip().lower()
 
     if not email:
@@ -124,7 +122,6 @@ def order_count():
 
 @promocode_bp.route("/abuse-by-day", methods=["GET"])
 def abuse_by_day():
-    load_tenant()
     promocode = request.args.get("promocode", "").strip()
 
     if not promocode:
