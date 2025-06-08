@@ -22,10 +22,10 @@ def require_api_key(func):
         # Inject into `g`
         g.user = user
         g.client_id = user.client_id
-        g.db_uri = tenant["postgres"]
+        g.db_uri = tenant["postgres_uri"]
         g.neo4j_driver = GraphDatabase.driver(
-            tenant["neo4j"]["uri"],
-            auth=(tenant["neo4j"]["user"], tenant["neo4j"]["password"])
+            tenant["neo4j_uri"],
+            auth=(tenant["neo4j_user"], tenant["neo4j_password"])
         )
 
         return func(*args, **kwargs)
