@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, current_app, g, session
+from flask import Blueprint, request, jsonify, current_app, g
 import traceback
 from order_vault.auth.sessions import load_tenant
 
