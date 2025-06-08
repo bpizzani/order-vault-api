@@ -22,7 +22,7 @@ def load_tenant():
     g.client_id = user.client_id
     print(g.client_id)
     print(tenant)
-    g.db_uri = tenant["postgres"]
+    g.db_uri = tenant["postgres_uri"]
     g.neo4j_driver = GraphDatabase.driver(
         tenant["neo4j_uri"],
         auth=(tenant["neo4j_user"], tenant["neo4j_password"])
