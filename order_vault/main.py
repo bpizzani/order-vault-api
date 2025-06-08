@@ -5,9 +5,9 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from order_vault.models.db import db
 from order_vault.auth.sessions import load_tenant
+from order_vault import app
 
 # ─── Flask App Setup ─────────────────────────────
-app = Flask(__name__)
 app.secret_key = "your_secret_key"
 
 # ─── Shared PostgreSQL DB (Auth & User Table) ────
