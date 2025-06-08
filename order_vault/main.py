@@ -4,6 +4,7 @@ from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from order_vault.models.db import db
+from order_vault.auth.sessions import load_tenant
 
 # ─── Flask App Setup ─────────────────────────────
 app = Flask(__name__)
