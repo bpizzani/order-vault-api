@@ -50,6 +50,7 @@ def create_user_via_url():
     email = request.args.get("email")
     password = request.args.get("password")
     client_id = request.args.get("client_id")
+    api_key = request.args.get("api_key")
     #admin_key = request.headers.get("X-Admin-Key")  # Optional for security
 
     # Optional: check admin key for added security
@@ -64,7 +65,7 @@ def create_user_via_url():
         return jsonify({"error": "User already exists"}), 400
 
     hashed_pw = generate_password_hash(password)
-    user = User(email=email.lower(), password_hash=hashed_pw, client_id=client_id)
+    user = User(email=email.lower(), password_hash=hashed_pw, client_id=client_id, api_key=api_key)
     db.session.add(user)
     db.session.commit()
 
