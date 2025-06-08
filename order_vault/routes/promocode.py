@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify, current_app, g
 import traceback
-from order_vault.auth.session import load_tenant
+from order_vault.auth.sessions import load_tenant
 
 promocode_bp = Blueprint("promocode", __name__, url_prefix="/api/promocode")
 
