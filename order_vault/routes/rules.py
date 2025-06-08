@@ -1,11 +1,15 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, g
 from order_vault.models.rule import Rule
 from order_vault.main import db
+from order_vault.auth.sessions import login_required  # decorator that loads tenant
+from order_vault.utils.db_session import get_db_session_for_client  # helper we'll define
 
 rules_bp = Blueprint("rules", __name__, url_prefix="/api/rules")
 
 @rules_bp.route("", methods=["GET","POST"])
+@login_required
 def manage_rules():
+    db_session = get_db_session_for_client(g.db_uri)
     if request.method == 'POST':
         # Extracting the JSON data from the request
         data = request.json
@@ -14,8 +18,8 @@ def manage_rules():
         new_rule = Rule(attribute=data['attribute'], threshold=data['threshold'], promocode=data['promocode'])
 
         # Add to database and commit
-        db.session.add(new_rule)
-        db.session.commit()
+        db_session.add(new_rule)
+        db_session.commit()
 
         # Return the new rule as JSON (including ID)
         return jsonify({
@@ -35,10 +39,11 @@ def manage_rules():
     } for r in rules])
 
 @rules_bp.route("<int:rule_id>", methods=["DELETE"])
+@login_required
 def delete_rule(rule_id):
     rule = Rule.query.get(rule_id)
     if rule:
-        db.session.delete(rule)
-        db.session.commit()
+        db_session.delete(rule)
+        db_session.commit()
         return jsonify({"message": "Rule deleted successfully"}), 200
     return jsonify({"error": "Rule not found"}), 404
