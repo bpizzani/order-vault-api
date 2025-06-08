@@ -14,7 +14,7 @@ def finalize_order():
     order_data["created_at"] = datetime.utcnow().isoformat()
 
     def _background_task(data, neo4j_driver):
-        with current_app.app_context():
+        with app.app_context():
             trigger_process_and_update(data, neo4j_driver)
 
     thread = threading.Thread(target=_background_task, args=(order_data, g.neo4j_driver))
