@@ -4,16 +4,29 @@ from werkzeug.security import check_password_hash
 
 auth_bp = Blueprint("auth", __name__)
 
-@auth_bp.route("/login", methods=["POST"])
-def login():
-    data = request.json
-    user = User.query.filter_by(email=data["email"]).first()
-    if not user or not check_password_hash(user.password_hash, data["password"]):
-        return jsonify({"error": "Invalid credentials"}), 401
 
-    session["user_id"] = user.id
-    session["client_id"] = user.client_id
-    return jsonify({"message": "Logged in", "client_id": user.client_id})
+@auth_bp.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        email = request.form.get("email")
+        password = request.form.get("password")
+        user = User.query.filter_by(email=email).first()
+
+        if user and check_password_hash(user.password_hash, password):
+            session["user_id"] = user.id
+            session["client_id"] = user.client_id
+            return redirect(url_for("home.index"))  # change if needed
+
+        return "Invalid credentials", 401
+
+    # simple form for testing
+    return """
+    <form method="post">
+        <input name="email" placeholder="Email"><br>
+        <input name="password" type="password" placeholder="Password"><br>
+        <button type="submit">Login</button>
+    </form>
+    """
 
 
 @auth_bp.route("/logout", methods=["POST"])
