@@ -8,10 +8,11 @@ def require_api_key(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         api_key = request.headers.get("X-API-KEY")
+        client_id_key = request.headers.get("X-CLIENT-ID")
         if not api_key:
             return jsonify({"error": "Missing API key"}), 401
 
-        user = User.query.filter_by(api_key=api_key).first()
+        user = User.query.filter_by(api_key=api_key, client_id=client_id_key).first()
         if not user:
             return jsonify({"error": "Invalid API key"}), 401
 
