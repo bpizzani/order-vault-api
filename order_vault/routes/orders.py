@@ -12,13 +12,12 @@ orders_bp = Blueprint("orders", __name__)
 def finalize_order():
     order_data = request.get_json(force=True)
     order_data["created_at"] = datetime.utcnow().isoformat()
-    
-    def _background_task(data):
-        # Push an application context so current_app is bound
-        with app.app_context():
-            trigger_process_and_update(data)
 
-    thread = threading.Thread(target=_background_task, args=(order_data,))
+    def _background_task(data, neo4j_driver):
+        with current_app.app_context():
+            trigger_process_and_update(data, neo4j_driver)
+
+    thread = threading.Thread(target=_background_task, args=(order_data, g.neo4j_driver))
     thread.daemon = True
     thread.start()
 
