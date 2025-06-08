@@ -8,19 +8,36 @@ auth_bp = Blueprint("auth", __name__)
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        email = request.form.get("email")
-        password = request.form.get("password")
-        user = User.query.filter_by(email=email).first()
+        # Check if it's JSON (AJAX from frontend) or form (fallback)
+        if request.is_json:
+            data = request.get_json()
+            email = data.get("email")
+            password = data.get("password")
+        else:
+            email = request.form.get("email")
+            password = request.form.get("password")
+
+        if not email or not password:
+            return jsonify({"error": "Missing email or password"}), 400
+
+        user = User.query.filter_by(email=email.lower()).first()
 
         if user and check_password_hash(user.password_hash, password):
             session["user_id"] = user.id
             session["client_id"] = user.client_id
-            return redirect(url_for("home.promotion_ui"))  # Adjust route if needed
 
-        return "Invalid credentials", 401
+            # If it's an AJAX request, return JSON
+            if request.is_json:
+                return jsonify({"message": "Logged in"}), 200
+            else:
+                return redirect(url_for("home.promotion_ui"))
+
+        if request.is_json:
+            return jsonify({"error": "Invalid credentials"}), 401
+        else:
+            return "Invalid credentials", 401
 
     return render_template("login.html")
-    
 
 @auth_bp.route("/logout", methods=["POST"])
 def logout():
