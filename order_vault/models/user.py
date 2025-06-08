@@ -7,3 +7,4 @@ class User(db.Model):
     email = db.Column(db.String, unique=True, nullable=False)
     password_hash = db.Column(db.String, nullable=False)
     client_id = db.Column(db.String, nullable=False)  # e.g., "nike", "zara"
+    api_key = db.Column(db.String(128), unique=True, nullable=True)
