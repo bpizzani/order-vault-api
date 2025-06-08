@@ -54,25 +54,31 @@
     button:hover {
       background-color: #1d4ed8;
     }
+    #error {
+      color: red;
+      margin-top: 1rem;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
   <div class="login-container">
     <h2>Log In</h2>
-    <form method="post" action="/login">
+    <form id="login-form">
       <div class="form-group">
         <label for="email">Email</label>
-        <input type="email" name="email" required placeholder="you@example.com">
+        <input id="email" type="email" name="email" required placeholder="you@example.com">
       </div>
       <div class="form-group">
         <label for="password">Password</label>
-        <input type="password" name="password" required placeholder="••••••••">
+        <input id="password" type="password" name="password" required placeholder="••••••••">
       </div>
       <button type="submit">Sign In</button>
     </form>
+    <p id="error"></p>
   </div>
 
-    <script>
+  <script>
     document.getElementById("login-form").addEventListener("submit", function(e) {
       e.preventDefault();
 
@@ -84,7 +90,7 @@
         headers: {
           "Content-Type": "application/json"
         },
-        credentials: "include",  // Very important to include cookies/session
+        credentials: "include",  // Keeps session cookie
         body: JSON.stringify({ email, password })
       })
       .then(res => {
@@ -103,6 +109,6 @@
       });
     });
   </script>
-  
 </body>
 </html>
+
