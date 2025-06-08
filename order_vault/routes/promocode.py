@@ -1,10 +1,12 @@
-from flask import Blueprint, request, jsonify, current_app
+from flask import Blueprint, request, jsonify, current_app, g
 import traceback
+from auth.session import load_tenant
 
 promocode_bp = Blueprint("promocode", __name__, url_prefix="/api/promocode")
 
 @promocode_bp.route("/usage", methods=["GET"])
 def usage():
+    load_tenant()
     promocode = request.args.get("promocode", "").strip()
 
     # Modified Cypher Query to check abusive usage of the promocode
@@ -62,7 +64,7 @@ def usage():
     params = {"promocode": promocode} if promocode else {}
 
     try:
-        with current_app.neo4j_driver.session() as session: 
+        with g.neo4j_driver.session() as session: 
             result = session.run(query, params)
             records = [record.data() for record in result]
 
@@ -76,6 +78,7 @@ def usage():
 
 @promocode_bp.route("/order-count", methods=["GET"])
 def order_count():
+    load_tenant()
     email = request.args.get("email", "").strip().lower()
 
     if not email:
@@ -104,7 +107,7 @@ def order_count():
     params = {"email": email}
 
     try:
-        with current_app.neo4j_driver.session() as session:
+        with g.neo4j_driver.session() as session:
             result = session.run(query, params)
             record = result.single()
 
@@ -121,6 +124,7 @@ def order_count():
 
 @promocode_bp.route("/abuse-by-day", methods=["GET"])
 def abuse_by_day():
+    load_tenant()
     promocode = request.args.get("promocode", "").strip()
 
     if not promocode:
@@ -166,7 +170,7 @@ def abuse_by_day():
 
 
     try:
-        with current_app.neo4j_driver.session() as session: 
+        with g.neo4j_driver.session() as session: 
             result = session.run(query, params)
             records = []
             
