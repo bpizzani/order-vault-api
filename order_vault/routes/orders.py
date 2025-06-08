@@ -29,7 +29,7 @@ def finalize_order():
 @orders_bp.route("/simulate-order", methods=["POST"])
 def simulate_order():
     def send_fake_order():
-        url = "https://www.rediim.com/simulate-order"
+        url = "https://order-vault-client-webapp-13ee822f0ba9.herokuapp.com/"
         data = {
             "name": "Test User",
             "email": f"test{random.randint(1000, 9999)}@example.com",
