@@ -1,10 +1,12 @@
 from flask import Blueprint, request, jsonify, current_app, g
 from order_vault.models.rule import Rule
 from order_vault.services.neo4j_service import evaluate_attributes
+from order_vault.auth.api_auth import require_api_key   
 
 evaluate_bp = Blueprint("evaluate", __name__, url_prefix="/api")
 
 @evaluate_bp.route("/evaluate", methods=["GET"])
+@require_api_key
 def evaluate():
     types = request.args.get("attribute_types","device_id").split(",")
     promo = request.args.get("promocode")
