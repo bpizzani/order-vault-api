@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, current_app
+from flask import Blueprint, request, jsonify, current_app, g
 from order_vault.models.rule import Rule
 from order_vault.services.neo4j_service import evaluate_attributes
 
@@ -10,7 +10,7 @@ def evaluate():
     promo = request.args.get("promocode")
     values = {t: request.args.get(t) for t in types if request.args.get(t)}
     raw = evaluate_attributes(
-        current_app.neo4j_driver.session(), types, promo
+        g.neo4j_driver.session(), types, promo
     )
     final = {}
     overall = False
