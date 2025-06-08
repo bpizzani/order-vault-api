@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, current_app, g
+from flask import Blueprint, request, jsonify, current_app, g, session
 import traceback
 from order_vault.auth.sessions import load_tenant
 
@@ -63,8 +63,8 @@ def usage():
     params = {"promocode": promocode} if promocode else {}
 
     try:
-        with g.neo4j_driver.session() as session: 
-            result = session.run(query, params)
+        with g.neo4j_driver.session() as session_net: 
+            result = session_net.run(query, params)
             records = [record.data() for record in result]
 
             if records:
@@ -105,8 +105,8 @@ def order_count():
     params = {"email": email}
 
     try:
-        with g.neo4j_driver.session() as session:
-            result = session.run(query, params)
+        with g.neo4j_driver.session() as session_net:
+            result = session_net.run(query, params)
             record = result.single()
 
             if record:
@@ -167,8 +167,8 @@ def abuse_by_day():
 
 
     try:
-        with g.neo4j_driver.session() as session: 
-            result = session.run(query, params)
+        with g.neo4j_driver.session() as session_net: 
+            result = session_net.run(query, params)
             records = []
             
             for record in result:
