@@ -13,7 +13,7 @@ def finalize_order():
     order_data = request.get_json(force=True)
     order_data["created_at"] = datetime.utcnow().isoformat()
 
-    def _background_task(data, neo4j_driver):
+    def _background_task(data):
         with app.app_context():
             trigger_process_and_update(data)
 
