@@ -18,6 +18,14 @@ db.init_app(app)
 migrate = Migrate(app, db)
 CORS(app, supports_credentials=True)
 
+@app.before_request
+def before_request():
+    try:
+        load_tenant()
+    except Exception as e:
+        # You could fail here globally OR let each route handle unauthorized
+        pass
+        
 # ─── Register Blueprints ─────────────────────────
 from order_vault.routes.home import home_bp
 from order_vault.routes.fingerprint import fingerprint_bp
