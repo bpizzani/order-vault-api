@@ -17,7 +17,7 @@ def finalize_order():
         with app.app_context():
             trigger_process_and_update(data)
 
-    thread = threading.Thread(target=_background_task, args=(order_data))
+    thread = threading.Thread(target=_background_task, args=(order_data,))
     thread.daemon = True
     thread.start()
 
