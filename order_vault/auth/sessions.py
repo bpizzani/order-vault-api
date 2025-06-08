@@ -3,21 +3,21 @@ from order_vault.models.user import User
 from order_vault.settings.tenants import TENANT_DATABASES
 from neo4j import GraphDatabase
 
-def get_logged_in_user():
+def load_tenant_from_session():
     user_id = session.get("user_id")
     if not user_id:
-        return None
-    return User.query.get(user_id)
+        return Exception("Unauthorized – user not logged in")
 
-def load_tenant():
-    user = get_logged_in_user()
+    user = User.query.get(user_id)
     if not user:
-        raise Exception("Unauthorized – user not logged in")
+        return
 
     tenant = TENANT_DATABASES.get(user.client_id)
     if not tenant:
-        raise Exception("Unknown tenant configuration")
+        return Exception("Unknown tenant configuration")
+        
     print("Tenant Found")
+
     g.user = user
     g.client_id = user.client_id
     print(g.client_id)
