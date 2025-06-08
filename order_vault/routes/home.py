@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template
 from flask import request, session, jsonify
 from werkzeug.security import check_password_hash
-from utils.auth import login_required
+from order_vault.utils.auth import login_required
 
 home_bp = Blueprint("home", __name__, url_prefix="/")
 
