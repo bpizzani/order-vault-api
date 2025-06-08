@@ -34,7 +34,7 @@ from order_vault.routes.rules import rules_bp
 from order_vault.routes.evaluate import evaluate_bp
 from order_vault.routes.customer import customer_bp
 from order_vault.routes.promocode import promocode_bp
-from auth.routes import auth_bp  # <== ADD THIS
+from order_vault.auth.routes import auth_bp  # <== ADD THIS
 
 for bp in (
     auth_bp,  # <== Add auth route first
