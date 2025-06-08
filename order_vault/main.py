@@ -9,39 +9,41 @@ from order_vault.models.db import db
 
 # ─── Configuration (keep here) ─────────────────────────────────
 # Flask App Setup
-app.secret_key = "your_secret_key"
+#app.secret_key = "your_secret_key"
 # Database configuration
-app.config["SQLALCHEMY_DATABASE_URI"] = 'postgresql://u32cgla1pp9fm7:p6f656fa0f2edb9dda1653485f118f3b8379d957dce3469ef41d13f34d73e8cb1@c5flugvup2318r.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com:5432/dc0evnfhnut69e' #os.getenv('DATABASE_URL') #os.environ.get("DATABASE_URL") #"sqlite:///orders_v4.db" #os.environ.get("DATABASE_URL", "sqlite:///orders_v4.db")
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+#app.config["SQLALCHEMY_DATABASE_URI"] = 'postgresql://u32cgla1pp9fm7:p6f656fa0f2edb9dda1653485f118f3b8379d957dce3469ef41d13f34d73e8cb1@c5flugvup2318r.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com:5432/dc0evnfhnut69e' #os.getenv('DATABASE_URL') #os.environ.get("DATABASE_URL") #"sqlite:///orders_v4.db" #os.environ.get("DATABASE_URL", "sqlite:///orders_v4.db")
+#app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 
 # ─── Initialize extensions ──────────────────────────────────────
-print(f"Database URI: {os.getenv('DATABASE_URL')}")
-db.init_app(app)
-migrate = Migrate(app, db)  # Initialize Flask-Migrate with the app and db
+#print(f"Database URI: {os.getenv('DATABASE_URL')}")
+#db.init_app(app)
+#migrate = Migrate(app, db)  # Initialize Flask-Migrate with the app and db
 
-#api = Api(app)
-#db      = SQLAlchemy(app)
-#migrate = Migrate(app, db)
+# ─── Flask App Initialization ─────────────────────────────
+app = Flask(__name__)
+app.secret_key = os.getenv("SECRET_KEY", "your_secret_key")
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
+# CORS
 CORS(app, supports_credentials=True)
 
-# ─── Initialize Neo4j driver on the app object ───────────────────
-#driver = GraphDatabase.driver(
-#    os.getenv("NEO4J_URI", "neo4j+s://f34af65f.databases.neo4j.io") ,
+# ─── Optional: Default DB for admin routes or fallback ───
+default_db_uri = os.getenv("DEFAULT_DATABASE_URI")
+if default_db_uri:
+    app.config["SQLALCHEMY_DATABASE_URI"] = default_db_uri
+    db.init_app(app)
+    Migrate(app, db)
+
+#CORS(app, supports_credentials=True)
+
+#app.neo4j_driver = GraphDatabase.driver(
+#    os.getenv("NEO4J_URI", "neo4j+s://f34af65f.databases.neo4j.io"),
 #    auth=(
 #        os.getenv("NEO4J_USER", "neo4j"),
 #        os.getenv("NEO4J_PASSWORD", "OPESlEPx3V4kYLSOo86X5fHX0k_HhKprCVG_erEfi7A")
 #    )
 #)
-
-app.neo4j_driver = GraphDatabase.driver(
-    os.getenv("NEO4J_URI", "neo4j+s://f34af65f.databases.neo4j.io"),
-    auth=(
-        os.getenv("NEO4J_USER", "neo4j"),
-        os.getenv("NEO4J_PASSWORD", "OPESlEPx3V4kYLSOo86X5fHX0k_HhKprCVG_erEfi7A")
-    )
-)
 
 
 # ─── Register all Blueprints ────────────────────────────────────
@@ -63,6 +65,11 @@ for bp in (
     promocode_bp
 ):
     app.register_blueprint(bp)
+
+# ─── Attach app to g (for decorators to access) ───────────
+@app.before_request
+def attach_app_context():
+    g.app = app  # required for dynamic db routing
 
 # ─── Run ────────────────────────────────────────────────────────
 if __name__ == "__main__":
