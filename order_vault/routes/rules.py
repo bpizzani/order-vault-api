@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, g
 from order_vault.models.rule import Rule
 from order_vault.main import db
-from order_vault.auth.sessions import login_required  # decorator that loads tenant
+from order_vault.utils.auth import login_required
 from order_vault.utils.db_session import get_db_session_for_client  # helper we'll define
 
 rules_bp = Blueprint("rules", __name__, url_prefix="/api/rules")
