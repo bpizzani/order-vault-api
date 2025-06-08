@@ -4,7 +4,7 @@ from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from order_vault.models.db import db
-from order_vault.auth.sessions import load_tenant
+from order_vault.auth.sessions import load_tenant_from_session
 from order_vault import app
 
 # ─── Flask App Setup ─────────────────────────────
@@ -24,11 +24,7 @@ CORS(app, supports_credentials=True)
 
 @app.before_request
 def before_request():
-    try:
-        load_tenant()
-    except Exception as e:
-        # You could fail here globally OR let each route handle unauthorized
-        pass
+    load_tenant_from_session()
         
 # ─── Register Blueprints ─────────────────────────
 from order_vault.routes.home import home_bp
