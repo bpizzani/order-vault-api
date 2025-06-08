@@ -13,15 +13,18 @@ def finalize_order():
     order_data = request.get_json(force=True)
     order_data["created_at"] = datetime.utcnow().isoformat()
 
-    def _background_task(data):
-        with app.app_context():
-            trigger_process_and_update(data)
+    #def _background_task(data):
+    #    with app.app_context():
+    #        trigger_process_and_update(data)
 
-    thread = threading.Thread(target=_background_task, args=(order_data,))
-    thread.daemon = True
-    thread.start()
+    #thread = threading.Thread(target=_background_task, args=(order_data,))
+    #thread.daemon = True
+    #thread.start()
 
-    return jsonify({"message": "Order finalized and processing started."}), 200
+    # Use the Neo4j driver from g (it's only valid inside the request context)
+    trigger_process_and_update(order_data, g.neo4j_driver)
+
+    return jsonify({"message": "Order finalized and processing completed."}), 200
 
 
 
