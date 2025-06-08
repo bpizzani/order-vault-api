@@ -30,7 +30,8 @@ def manage_rules():
         }), 201  # 201 status means the resource was created successfully
 
     # GET request: Return all the rules from the database
-    rules = Rule.query.all()
+    rules = db_session.query(Rule).all()
+    
     return jsonify([{
         "id": r.id,
         "attribute": r.attribute,
@@ -41,7 +42,9 @@ def manage_rules():
 @rules_bp.route("<int:rule_id>", methods=["DELETE"])
 @login_required
 def delete_rule(rule_id):
-    rule = Rule.query.get(rule_id)
+    db_session = get_db_session_for_client(g.db_uri)
+    rule = db_session.query(Rule).get(rule_id)
+    
     if rule:
         db_session.delete(rule)
         db_session.commit()
