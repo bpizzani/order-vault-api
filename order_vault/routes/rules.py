@@ -9,34 +9,33 @@ rules_bp = Blueprint("rules", __name__, url_prefix="/api/rules")
 @rules_bp.route("", methods=["GET","POST"])
 def manage_rules():
     db_session = get_db_session_for_client(g.db_uri)
-    if request.method == 'POST':
-        # Extracting the JSON data from the request
-        data = request.json
+    try:
+        if request.method == 'POST':
+            data = request.json
+            new_rule = Rule(
+                attribute=data['attribute'],
+                threshold=data['threshold'],
+                promocode=data['promocode']
+            )
+            db_session.add(new_rule)
+            db_session.commit()
+            return jsonify({
+                "id": new_rule.id,
+                "attribute": new_rule.attribute,
+                "threshold": new_rule.threshold,
+                "promocode": new_rule.promocode
+            }), 201
 
-        # Create a new Rule instance
-        new_rule = Rule(attribute=data['attribute'], threshold=data['threshold'], promocode=data['promocode'])
-
-        # Add to database and commit
-        db_session.add(new_rule)
-        db_session.commit()
-
-        # Return the new rule as JSON (including ID)
-        return jsonify({
-            "id": new_rule.id,
-            "attribute": new_rule.attribute,
-            "threshold": new_rule.threshold,
-            "promocode": new_rule.promocode
-        }), 201  # 201 status means the resource was created successfully
-
-    # GET request: Return all the rules from the database
-    rules = db_session.query(Rule).all()
+        rules = db_session.query(Rule).all()
+        return jsonify([{
+            "id": r.id,
+            "attribute": r.attribute,
+            "threshold": r.threshold,
+            "promocode": r.promocode
+        } for r in rules])
     
-    return jsonify([{
-        "id": r.id,
-        "attribute": r.attribute,
-        "threshold": r.threshold,
-        "promocode": r.promocode
-    } for r in rules])
+    finally:
+        db_session.close()
 
 @rules_bp.route("<int:rule_id>", methods=["DELETE"])
 def delete_rule(rule_id):
