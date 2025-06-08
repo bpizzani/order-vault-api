@@ -39,7 +39,7 @@ def login():
 
     return render_template("login.html")
 
-@auth_bp.route("/logout", methods=["POST"])
+@auth_bp.route("/logout",methods=["GET", "POST"])
 def logout():
     session.clear()
     return jsonify({"message": "Logged out"}), 200
