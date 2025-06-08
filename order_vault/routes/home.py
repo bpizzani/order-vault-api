@@ -21,23 +21,3 @@ def rules_ui():
 def customer_ui():
     return render_template("island.html")
 
-@app.route("/login", methods=["POST"])
-def login():
-    data = request.json
-    user = User.query.filter_by(email=data["email"]).first()
-
-    if not user or not check_password_hash(user.password_hash, data["password"]):
-        return jsonify({"error": "Invalid credentials"}), 401
-
-    # Save user ID and client_id in session
-    session["user_id"] = user.id
-    session["client_id"] = user.client_id
-
-    return jsonify({"message": "Login successful", "client_id": user.client_id})
-
-
-def get_logged_in_user():
-    user_id = session.get("user_id")
-    if not user_id:
-        return None
-    return User.query.get(user_id)
