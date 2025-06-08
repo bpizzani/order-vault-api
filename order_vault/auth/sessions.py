@@ -1,8 +1,7 @@
-from flask import session
+from flask import session, g
 from order_vault.models.user import User
 from settings.tenants import TENANT_DATABASES
 from neo4j import GraphDatabase
-from flask import g
 
 def get_logged_in_user():
     user_id = session.get("user_id")
@@ -13,16 +12,16 @@ def get_logged_in_user():
 def load_tenant():
     user = get_logged_in_user()
     if not user:
-        raise Exception("Unauthorized")
+        raise Exception("Unauthorized – user not logged in")
 
     tenant = TENANT_DATABASES.get(user.client_id)
     if not tenant:
-        raise Exception("Unknown tenant")
+        raise Exception("Unknown tenant configuration")
 
     g.user = user
     g.client_id = user.client_id
     g.db_uri = tenant["postgres"]
-    g.neo4j = GraphDatabase.driver(
+    g.neo4j_driver = GraphDatabase.driver(
         tenant["neo4j"]["uri"],
         auth=(tenant["neo4j"]["user"], tenant["neo4j"]["password"])
     )
