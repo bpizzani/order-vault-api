@@ -22,6 +22,32 @@ def logout():
     return jsonify({"message": "Logged out"}), 200
 
 
+@auth_bp.route("/create-user", methods=["GET"])
+def create_user_via_url():
+    email = request.args.get("email")
+    password = request.args.get("password")
+    client_id = request.args.get("client_id")
+    admin_key = request.headers.get("X-Admin-Key")
+
+    if admin_key != current_app.config.get("ADMIN_API_KEY"):
+        return jsonify({"error": "Unauthorized"}), 403
+
+    if not email or not password or not client_id:
+        return jsonify({"error": "Missing parameters"}), 400
+
+    if User.query.filter_by(email=email.lower()).first():
+        return jsonify({"error": "User already exists"}), 400
+
+    hashed_pw = generate_password_hash(password)
+    user = User(email=email.lower(), password_hash=hashed_pw, client_id=client_id)
+    db.session.add(user)
+    db.session.commit()
+
+    return jsonify({"message": f"✅ Created user {email} for {client_id}"}), 201
+
+
+
+#deprecated
 @auth_bp.route("/register", methods=["POST"])
 def register():
     data = request.json
@@ -45,3 +71,5 @@ def register():
         return jsonify({"message": f"User {email} created for client {client_id}"}), 201
     except Exception as e:
         return jsonify({"error": "Could not create user", "details": str(e)}), 500
+
+
