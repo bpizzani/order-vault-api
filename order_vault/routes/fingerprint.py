@@ -1,11 +1,13 @@
 from flask import Blueprint, request, jsonify, current_app
 import hashlib
+from order_vault.auth.api_auth import require_api_key   
 
 fingerprint_bp = Blueprint(
     "fingerprint", __name__, url_prefix="/api/fingerprint"
 )
 
 @fingerprint_bp.route("", methods=["GET","POST","OPTIONS"])
+@require_api_key
 def fingerprint():
     if request.method == "OPTIONS":
         return "", 200
