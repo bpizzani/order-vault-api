@@ -17,7 +17,7 @@ def trigger_process_and_update(order_data,neo4j_driver):
         #    print("Process and update triggered successfully.")
         #else:
         #    print(f"Error triggering the process-and-update API: {process_update_response.text}")
-        driver = driver
+        driver = neo4j_driver
         # If order was confirmed and fraud evaluation passed, store it in Neo4j
         with driver.session() as session:
             # Here, you can process order_data and save to Neo4j based on the client's confirmation
