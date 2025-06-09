@@ -144,11 +144,10 @@ def create_graph(tx, G):
     tx.run(
         """
         MATCH (c:Customer)-[:PLACED]->(o:Order)-[:HAS_ATTRIBUTE]->(a:Attribute)
-        --WHERE a.type <> 'promocode'
         MERGE (c)-[:HAS_ATTRIBUTE]->(a)
         """
     )
-            
+    #WHERE a.type <> 'promocode'     
 
         
 def evaluate_attributes(session: Session, attribute_types: list, promocode: str = None) -> dict:
