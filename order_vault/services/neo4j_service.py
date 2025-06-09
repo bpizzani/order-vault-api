@@ -127,7 +127,7 @@ def create_graph(tx, G):
                 )
 
             # 3) Attribute → CONNECTED_TO → Attribute
-            elif node_label not in ['order', 'customer'] and neighbor_label not in ['order', 'customer']: #and node_label != 'promocode' and neighbor_label != 'promocode'):
+            elif node_label not in ['order', 'customer'] and neighbor_label not in ['order', 'customer'] and node_label != 'promocode' and neighbor_label != 'promocode':
                 tx.run(
                     """
                     MATCH (a1:Attribute {type: $type1, value: $value1}),
@@ -144,10 +144,10 @@ def create_graph(tx, G):
     tx.run(
         """
         MATCH (c:Customer)-[:PLACED]->(o:Order)-[:HAS_ATTRIBUTE]->(a:Attribute)
+        WHERE a.type <> 'promocode' 
         MERGE (c)-[:HAS_ATTRIBUTE]->(a)
         """
     )
-    #WHERE a.type <> 'promocode'     
 
         
 def evaluate_attributes(session: Session, attribute_types: list, promocode: str = None) -> dict:
