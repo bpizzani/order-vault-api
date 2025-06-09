@@ -127,18 +127,18 @@ def create_graph(tx, G):
                 )
 
             # 3) Attribute → CONNECTED_TO → Attribute
-            elif node_label not in ['order', 'customer'] and neighbor_label not in ['order', 'customer'] and node_label != 'promocode' and neighbor_label != 'promocode':
-                tx.run(
-                    """
-                    MATCH (a1:Attribute {type: $type1, value: $value1}),
-                          (a2:Attribute {type: $type2, value: $value2})
-                    MERGE (a1)-[:CONNECTED_TO]->(a2)
-                    """,
-                    type1=node_label,
-                    value1=node_id.split(" ", 1)[1],
-                    type2=neighbor_label,
-                    value2=neighbor.split(" ", 1)[1]
-                )
+            #elif node_label not in ['order', 'customer'] and neighbor_label not in ['order', 'customer'] and node_label != 'promocode' and neighbor_label != 'promocode':
+            #    tx.run(
+            #        """
+            #        MATCH (a1:Attribute {type: $type1, value: $value1}),
+            #              (a2:Attribute {type: $type2, value: $value2})
+            #        MERGE (a1)-[:CONNECTED_TO]->(a2)
+            #        """,
+            #        type1=node_label,
+            #        value1=node_id.split(" ", 1)[1],
+            #        type2=neighbor_label,
+            #        value2=neighbor.split(" ", 1)[1]
+            #    )
 
     # --- Step 3: Customer → HAS_ATTRIBUTE → Attribute (from their orders) ---
     tx.run(
