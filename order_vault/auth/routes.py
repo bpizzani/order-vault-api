@@ -42,10 +42,7 @@ def login():
 @auth_bp.route("/logout",methods=["GET", "POST"])
 def logout():
     session.clear()
-    return jsonify({
-        "message": "Logged out. Login again here:",
-        "login_url": "https://www.rediim.com/login"
-    }), 200
+    return render_template("logout.html"), 200
 
 @auth_bp.route("/create-user", methods=["GET"])
 def create_user_via_url():
