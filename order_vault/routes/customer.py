@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, current_app
+from flask import Blueprint, request, jsonify, current_app, g
 
 customer_bp = Blueprint("customer", __name__, url_prefix="/api/customer")
 
@@ -24,7 +24,7 @@ def get_customer_attributes_summary():
     params = {"email": email}
 
     try:
-        with current_app.neo4j_driver.session() as session:
+        with g.neo4j_driver.session() as session:
             result = session.run(query, params)
             record = result.single()
 
@@ -73,7 +73,7 @@ def get_network_attributes():
     params = {"email": email}
 
     try:
-        with current_app.neo4j_driver.session() as session:
+        with g.neo4j_driver.session() as session:
             result = session.run(query, params)
             record = result.single()
 
