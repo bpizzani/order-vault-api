@@ -1,5 +1,13 @@
 <aside class="w-64 bg-gray-800 p-6">
     <h2 class="text-2xl font-bold mb-6">Rediim</h2>
+    
+    {% if client_id %}
+        <div class="mb-6 text-sm text-gray-400">
+            <span class="block text-xs uppercase tracking-wide text-gray-500">Client</span>
+            <span class="font-semibold text-white">{{ client_id }}</span>
+        </div>
+    {% endif %}
+    
     <nav>
         <ul>
             <li class="mb-4"><a href="{{ url_for('home.promotion_ui') }}" class="text-gray-300 hover:text-white">Dashboard</a></li>
