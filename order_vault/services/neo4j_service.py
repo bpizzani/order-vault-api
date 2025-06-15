@@ -42,7 +42,7 @@ def save_order_in_neo4j(session, order_data):
               )
 
     customer_node = f"Customer {order_data['email']}"
-    G.add_node(customer_node, type='customer')
+    G.add_node(customer_node, type='customer',user_id=order_data.get('user_id'))
 
     # Link the customer to the order
     G.add_edge(customer_node, order_node)
@@ -71,8 +71,10 @@ def create_graph(tx, G):
 
         if node_label == 'customer':
             email = node_id.split(" ", 1)[1]
-            tx.run("MERGE (c:Customer {email: $email})", email=email)
-
+            user_id = node_data.get('user_id')
+            tx.run("""MERGE (c:Customer {email: $email})
+                    SET c.user_id = $user_id""", email=email, user_id=user_id)
+                    
         elif node_label == 'order':
             order_id   = node_id.split(" ", 1)[1]
             created_at = node_data.get('created_at')
