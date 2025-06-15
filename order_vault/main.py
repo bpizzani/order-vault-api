@@ -1,5 +1,5 @@
 import os
-from flask import Flask
+from flask import Flask, g
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -25,6 +25,10 @@ CORS(app, supports_credentials=True)
 @app.before_request
 def before_request():
     load_tenant_from_session()
+
+@app.context_processor
+def inject_globals():
+    return {"client_id": getattr(g, "client_id", None)}
         
 # ─── Register Blueprints ─────────────────────────
 from order_vault.routes.home import home_bp
