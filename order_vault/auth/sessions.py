@@ -20,6 +20,7 @@ def load_tenant_from_session():
 
     g.user = user
     g.client_id = user.client_id
+    g.client_email = user.email
     print(g.client_id)
     print(tenant)
     g.db_uri = tenant["postgres_uri"]
