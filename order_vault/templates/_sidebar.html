@@ -1,6 +1,7 @@
 <aside class="w-64 bg-gray-800 p-6">
-    <h2 class="text-2xl font-bold mb-6">Rediim</h2>
-    
+    <div class="mb-6">
+    <img src="{{ url_for('static', filename='img/rediim_logo.svg') }}" alt="Rediim Logo" class="h-10 w-auto mx-auto">
+    </div>
     {% if client_id %}
         <div class="mb-6 text-sm text-gray-400">
             <span class="block text-xs uppercase tracking-wide text-gray-500">Client</span>
