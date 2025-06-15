@@ -10,6 +10,11 @@ home_bp = Blueprint("home", __name__, url_prefix="/")
 def home():
     return render_template("home2.html")
 
+@home_bp.route("/test", methods=["GET"])
+@login_required
+def test():
+    return render_template("test.html")
+
 @home_bp.route("/promotion_dashboard", methods=["GET"])
 @login_required
 def promotion_ui():
