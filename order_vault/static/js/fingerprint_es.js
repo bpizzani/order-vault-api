@@ -73,7 +73,7 @@ export async function sendFingerprint() {
     console.log("Sending fingerprint data...");
     try {
         const data = await collectData();
-        const response = await fetch("https://order-vault-api-cb7f5f7bf4f1.herokuapp.com/api/fingerprint", {
+        const response = await fetch("https://api.rediim.com/api/fingerprint", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data)
