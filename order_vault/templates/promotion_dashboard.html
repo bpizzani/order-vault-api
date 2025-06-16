@@ -74,7 +74,7 @@
         document.getElementById("loading").classList.remove("hidden");
     
         // Fetch summary usage data
-        fetch(`console.rediim.com/api/promocode/usage?promocode=${promocode}`, {
+        fetch(`https://console.rediim.com/api/promocode/usage?promocode=${promocode}`, {
                 method: "GET",
                 credentials: "include"
             })
@@ -117,7 +117,7 @@
             });
     
         // Fetch abuse rate by day
-        fetch(`console.rediim.com/api/promocode/abuse-by-day?promocode=${promocode}`, {
+        fetch(`https://console.rediim.com/api/promocode/abuse-by-day?promocode=${promocode}`, {
                 method: "GET",
                 credentials: "include"
             })
