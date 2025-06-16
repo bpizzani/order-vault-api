@@ -5,7 +5,7 @@ from order_vault.utils.auth import login_required
 
 home_bp = Blueprint("home", __name__, url_prefix="/")
 
-@home_bp.route("", methods=["GET"])
+@home_bp.route("/main", methods=["GET"])
 @login_required
 def home():
     return render_template("home2.html")
