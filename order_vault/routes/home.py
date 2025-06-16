@@ -16,7 +16,7 @@ def test():
     return render_template("test.html")
 
 @home_bp.route("/promotion_dashboard", methods=["GET"])
-@login_required
+#@login_required
 def promotion_ui():
     return render_template("promotion_dashboard.html")
     
