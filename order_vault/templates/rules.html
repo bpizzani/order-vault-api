@@ -65,7 +65,7 @@
             const threshold = document.getElementById("threshold").value;
             const promocode = document.getElementById("promocode").value;
             
-            fetch("https://www.rediim.com/api/rules", {
+            fetch("https://console.rediim.com/api/rules", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ attribute, threshold, promocode }),
@@ -78,7 +78,7 @@
         }
         
         function loadRules() {
-            fetch("https://www.rediim.com/api/rules", {
+            fetch("https://console.rediim.com/api/rules", {
                 method: "GET",
                 credentials: "include"
             })
@@ -101,7 +101,7 @@
         }
         
         function deleteRule(ruleId) {
-            fetch(`https://www.rediim.com/api/rules/${ruleId}`, { method: "DELETE" })
+            fetch(`https://console.rediim.com/api/rules/${ruleId}`, { method: "DELETE" })
             .then(() => loadRules());
         }
         
