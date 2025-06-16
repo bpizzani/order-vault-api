@@ -10,7 +10,7 @@ from order_vault import app
 # ─── Flask App Setup ─────────────────────────────
 app.secret_key = "your_secret_key"
 app.config["SESSION_COOKIE_DOMAIN"] = ".rediim.com"
-app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+#app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 #app.config["SESSION_COOKIE_SECURE"] = True  # Only for HTTPS
 
 # ─── Shared PostgreSQL DB (Auth & User Table) ────
