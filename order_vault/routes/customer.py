@@ -52,12 +52,12 @@ def get_network_attributes():
     query = """
     // Step 1: Find the customer's shared attributes (phone, device_id, card_details, promocode)
     MATCH (c:Customer {email: $email})-[:PLACED]->(order:Order)-[:HAS_ATTRIBUTE]->(attr)
-    WHERE attr.type IN ['phone', 'device_id', 'card_details','email']
+    WHERE attr.type IN ['phone', 'device_id', 'card_details','email','promocode']
     WITH COLLECT(DISTINCT attr.value) AS shared_attributes  // Collect shared attributes
 
     // Step 2: Find all customers connected by shared attributes (same phone, device_id, card_details, promocode)
     MATCH (c2:Customer)-[:PLACED]->(order2:Order)-[:HAS_ATTRIBUTE]->(attr2)
-    WHERE attr2.value IN shared_attributes AND attr2.type IN ['phone', 'device_id', 'card_details','email']
+    WHERE attr2.value IN shared_attributes AND attr2.type IN ['phone', 'device_id', 'card_details','email','promocode']
 
     // Counting connected customers and their distinct attributes (card_details, phone, device_id, promocode)
     RETURN 
