@@ -156,8 +156,42 @@ def create_graph(tx, G):
         """
     )
 
-        
+
 def evaluate_attributes(session: Session, attribute_types: list, promocode: str = None) -> dict:
+    """
+    Aggregate order counts by attribute types (and optional promocode). Returns a dict:
+        { attribute_type: [ {attribute_value, order_count}, ... ], ... }
+    """
+    parts = [
+        "MATCH (o:Order)-[:HAS_ATTRIBUTE]->(attr:Attribute)",
+        "WHERE attr.type IN $types"
+    ]
+    params = {"types": attribute_types}
+
+    if promocode:
+        parts.append("AND o.promocode = $promocode")
+        params["promocode"] = promocode
+
+    parts.append(
+        "RETURN attr.type AS attribute_type,"
+        " attr.value AS attribute_value,"
+        " COUNT(DISTINCT o.id) AS order_count"
+        " ORDER BY order_count DESC"
+    )
+    query = "\n".join(parts)
+
+    result = session.run(query, params)
+    raw = {}
+    for rec in result:
+        at = rec["attribute_type"]
+        raw.setdefault(at, []).append({
+            "attribute_value": rec["attribute_value"],
+            "order_count": rec["order_count"]
+        })
+    return raw
+
+
+def evaluate_attributes_deprecated(session: Session, attribute_types: list, promocode: str = None) -> dict:
     """
     Aggregate order counts by attribute types (and optional promocode). Returns a dict:
         { attribute_type: [ {attribute_value, order_count}, ... ], ... }
