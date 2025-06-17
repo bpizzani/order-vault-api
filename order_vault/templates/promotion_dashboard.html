@@ -155,11 +155,18 @@
     }
 
         
-        
+        let barChartInstance = null;  // Declare outside the function so it persists between calls
+
         // Function to render the Bar Chart
         function renderBarChart(chartData) {
             const ctx = document.getElementById("promocodeChart").getContext('2d');
-            new Chart(ctx, {
+
+            // 🧹 Clean up any previous chart instance
+            if (barChartInstance) {
+                barChartInstance.destroy();
+            }
+                    
+            barChartInstance = new Chart(ctx, {
                 type: 'bar',
                 data: chartData,
                 options: {
@@ -188,10 +195,17 @@
             });
         }
 
+        let renderAbuseRateChartInstance = null;  // Declare outside the function so it persists between calls
+
         function renderAbuseRateChart(labels, data) {
             const ctx = document.getElementById("abuseRateChart").getContext("2d");
-        
-            new Chart(ctx, {
+
+            // 🧹 Clean up any previous chart instance
+            if (renderAbuseRateChartInstance) {
+                renderAbuseRateChartInstance.destroy();
+            }
+            
+            renderAbuseRateChartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: labels,
