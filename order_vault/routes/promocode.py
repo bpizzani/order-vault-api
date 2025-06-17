@@ -10,7 +10,7 @@ def usage():
     # Modified Cypher Query to check abusive usage of the promocode
     query = """// Step 1: Get all orders that used the promocode and their identity attributes
     MATCH (c:Customer)-[:PLACED]->(o:Order)
-    WHERE o.promocode = "TOPOLINO"
+    WHERE o.promocode = $promocode
     WITH c, o, datetime(o.created_at) AS full_ts
     
     // Step 2: Get the identity attributes that define the customer's network
@@ -24,7 +24,7 @@ def usage():
       MATCH (c2:Customer)-[:PLACED]->(o2:Order)-[:HAS_ATTRIBUTE]->(attr2)
       WHERE attr2.value IN identity_attrs
         AND attr2.type IN ['email', 'phone', 'device_id', 'card_details']
-        AND o2.promocode = "TOPOLINO"
+        AND o2.promocode = $promocode
       RETURN COLLECT(DISTINCT datetime(o2.created_at)) AS sorted_usages
     }
     
