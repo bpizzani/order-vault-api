@@ -176,26 +176,29 @@ def abuse_by_day():
     query = """
     // Step 1: Get all orders that used the promocode, and their identity
     MATCH (c:Customer)-[:PLACED]->(o:Order)
-    WHERE o.promocode = "TOPOLINO"
-    WITH c, o, date(datetime(o.created_at)) AS order_date
+    WHERE o.promocode = $promocode
+    WITH c, o, date(datetime(o.created_at)) AS order_date, datetime(o.created_at) AS full_ts
     
     // Step 2: Collect identity attributes for each customer
     MATCH (c)-[:PLACED]->(:Order)-[:HAS_ATTRIBUTE]->(attr)
     WHERE attr.type IN ['email', 'phone', 'device_id', 'card_details']
-    WITH c, o, order_date, COLLECT(DISTINCT attr.value) AS identity_attrs
+    WITH c, o, order_date, full_ts, COLLECT(DISTINCT attr.value) AS identity_attrs
     
-    // Step 3: Count how many orders from that identity network used the promocode
+    // Step 3: Find all other orders in the network with the same promocode
     CALL {
-      WITH identity_attrs
+      WITH identity_attrs, full_ts
       MATCH (c2:Customer)-[:PLACED]->(o2:Order)-[:HAS_ATTRIBUTE]->(attr2)
-      WHERE attr2.value IN identity_attrs AND attr2.type IN ['email', 'phone', 'device_id', 'card_details']
-        AND o2.promocode = "TOPOLINO"
-      RETURN COUNT(DISTINCT o2) AS promo_orders_in_network
+      WHERE attr2.value IN identity_attrs
+        AND attr2.type IN ['email', 'phone', 'device_id', 'card_details']
+        AND o2.promocode = $promocode
+      WITH o2
+      ORDER BY o2.created_at ASC
+      RETURN COLLECT(o2.created_at) AS sorted_usages
     }
     
-    // Step 4: Determine if this specific order is abusive (if network already used it)
-    WITH o, order_date, 
-         CASE WHEN promo_orders_in_network > 1 THEN 1 ELSE 0 END AS is_abusive
+    // Step 4: Determine if current order is the first usage or not
+    WITH o, order_date, full_ts, sorted_usages,
+         CASE WHEN datetime(o.created_at) > datetime(sorted_usages[0]) THEN 1 ELSE 0 END AS is_abusive
     
     // Step 5: Aggregate by day
     WITH order_date,
