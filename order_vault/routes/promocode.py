@@ -8,7 +8,51 @@ def usage():
     promocode = request.args.get("promocode", "").strip()
 
     # Modified Cypher Query to check abusive usage of the promocode
-    query = """// Step 1: Find all orders with the target promocode and their customers
+    query = """// Step 1: Get all orders that used the promocode and their identity attributes
+    MATCH (c:Customer)-[:PLACED]->(o:Order)
+    WHERE o.promocode = "TOPOLINO"
+    WITH c, o, datetime(o.created_at) AS full_ts
+    
+    // Step 2: Get the identity attributes that define the customer's network
+    MATCH (c)-[:PLACED]->(:Order)-[:HAS_ATTRIBUTE]->(attr)
+    WHERE attr.type IN ['email', 'phone', 'device_id', 'card_details']
+    WITH c, o, full_ts, COLLECT(DISTINCT attr.value) AS identity_attrs
+    
+    // Step 3: Find all orders in that network that used the same promocode
+    CALL {
+      WITH identity_attrs
+      MATCH (c2:Customer)-[:PLACED]->(o2:Order)-[:HAS_ATTRIBUTE]->(attr2)
+      WHERE attr2.value IN identity_attrs
+        AND attr2.type IN ['email', 'phone', 'device_id', 'card_details']
+        AND o2.promocode = "TOPOLINO"
+      RETURN COLLECT(DISTINCT datetime(o2.created_at)) AS sorted_usages
+    }
+    
+    // Step 4: Determine if this order is abusive (not first in the network)
+    WITH c, o, full_ts, apoc.coll.sort(sorted_usages) AS sorted_ts
+    WITH 
+      c.email AS user_email,
+      full_ts,
+      CASE WHEN full_ts > sorted_ts[0] THEN 1 ELSE 0 END AS is_abusive
+    
+    // Step 5: Aggregate counts
+    WITH
+      COUNT(*) AS total_orders,
+      SUM(is_abusive) AS abusive_orders,
+      COUNT(DISTINCT user_email) AS total_users,
+      COUNT(DISTINCT CASE WHEN is_abusive = 1 THEN user_email END) AS abusive_users
+    
+    RETURN
+      total_orders,
+      abusive_orders,
+      total_orders - abusive_orders AS genuine_orders,
+      total_users,
+      abusive_users,
+      total_users - abusive_users AS genuine_users,
+      ROUND(abusive_orders * 100.0 / total_orders, 2) AS abuse_order_rate_percentage,
+      ROUND(abusive_users * 100.0 / total_users, 2) AS abuse_user_rate_percentage"""
+    
+    query_v1 = """// Step 1: Find all orders with the target promocode and their customers
     MATCH (c:Customer)-[:PLACED]->(o:Order)
     WHERE o.promocode = $promocode
     WITH DISTINCT c, o
@@ -56,7 +100,7 @@ def usage():
       ROUND(100.0 * SUM(abusive_orders) / SUM(genuine_order + abusive_orders), 2) AS abuse_order_rate_percentage,
       ROUND(100.0 * SUM(abusive_users) / SUM(genuine_user + abusive_users), 2) AS abuse_user_rate_percentage
       """
-    query_old = """
+    query_v0 = """
     // Step 1: Find all orders with the promocode and their customers
     MATCH (c:Customer)-[:PLACED]->(o:Order)-[:HAS_ATTRIBUTE]->(promo:Attribute {type: 'promocode', value: $promocode})
     WITH DISTINCT c, o
