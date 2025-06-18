@@ -156,7 +156,7 @@ def create_graph(tx, G):
         """
     )
 
-def evaluate_attributes(session: Session, attribute_types: list, promocode: str = None) -> dict:
+def evaluate_attributes_v3(session: Session, attribute_types: list, promocode: str = None) -> dict:
     # Optimized Cypher with direct node property filtering
     if promocode:
         query = """
@@ -218,7 +218,7 @@ def evaluate_attributes_olv_v2(session: Session, attribute_types: list, promocod
     return output
     
 
-def evaluate_attributes_old(session: Session, attribute_types: list, promocode: str = None) -> dict:
+def evaluate_attributes(session: Session, attribute_types: list, promocode: str = None) -> dict:
     """
     Aggregate order counts by attribute types (and optional promocode). Returns a dict:
         { attribute_type: [ {attribute_value, order_count}, ... ], ... }
