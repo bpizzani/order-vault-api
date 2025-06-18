@@ -13,7 +13,7 @@ def evaluate():
     values = {t: request.args.get(t) for t in types if request.args.get(t)}
 
     # Start timing if needed
-    # import time; start = time.time()
+    import time; start = time.time()
 
     # Run Cypher query
     raw = evaluate_attributes(g.neo4j_driver.session(), types, promo)
@@ -36,7 +36,7 @@ def evaluate():
         }
         overall = overall or abusive
 
-    # print("Evaluate total time:", time.time() - start)
+    print("Evaluate total time:", time.time() - start)
 
     return jsonify({"evaluation_results": final, "overall_abusive": overall}), 200
     
