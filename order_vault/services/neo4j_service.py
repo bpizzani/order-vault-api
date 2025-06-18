@@ -157,6 +157,40 @@ def create_graph(tx, G):
     )
 
 def evaluate_attributes(session: Session, attribute_types: list, promocode: str = None) -> dict:
+    # Optimized Cypher with direct node property filtering
+    if promocode:
+        query = """
+        MATCH (o:Order {promocode: $promocode})-[:HAS_ATTRIBUTE]->(attr:Attribute)
+        WHERE attr.type IN $types
+        RETURN attr.type AS attribute_type,
+               attr.value AS attribute_value,
+               COUNT(*) AS order_count
+        ORDER BY order_count DESC
+        """
+        params = {"types": attribute_types, "promocode": promocode}
+    else:
+        query = """
+        MATCH (o:Order)-[:HAS_ATTRIBUTE]->(attr:Attribute)
+        WHERE attr.type IN $types
+        RETURN attr.type AS attribute_type,
+               attr.value AS attribute_value,
+               COUNT(*) AS order_count
+        ORDER BY order_count DESC
+        """
+        params = {"types": attribute_types}
+
+    # Run query and build result
+    result = session.run(query, params)
+    output = {}
+    for record in result:
+        output.setdefault(record["attribute_type"], []).append({
+            "attribute_value": record["attribute_value"],
+            "order_count": record["order_count"]
+        })
+
+    return output
+    
+def evaluate_attributes_olv_v2(session: Session, attribute_types: list, promocode: str = None) -> dict:
     query = """
     MATCH (o:Order)-[:HAS_ATTRIBUTE]->(attr:Attribute)
     WHERE attr.type IN $types {promo_clause}
