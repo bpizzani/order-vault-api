@@ -7,44 +7,44 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="page">
-    <div class="layout">
+<body class="bg-gray-900 text-white">
+    <div class="flex h-screen">
         <!-- Sidebar -->
         {% include "_sidebar.html" %}
         
         <!-- Main Content -->
-        <main class="main">
+        <main class="flex-1 p-10">
             <div class="flex justify-between items-center mb-6">
                 <h1 class="text-3xl font-bold">Gestión de Reglas</h1>
                 <button id="openModal" class="bg-green-500 text-black py-2 px-6 rounded-lg hover:bg-green-600">+ Agregar Regla</button>
             </div>
             
             <!-- Rules Grid -->
-            <div id="rulesGrid" class="grid">
+            <div id="rulesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <!-- Dynamic rules will be inserted here -->
             </div>
         </main>
     </div>
     
     <!-- Modal -->
-    <div id="ruleModal" class="modal">
+    <div id="ruleModal" class="fixed inset-0 hidden bg-black bg-opacity-50 flex justify-center items-center">
         <div class="bg-gray-800 p-8 rounded-lg w-96">
             <h2 class="text-xl font-bold mb-4">Agregar Regla</h2>
             <form id="ruleForm">
                 <label class="block mb-2">Atributo:</label>
-                <select id="attribute" class="select">
+                <select id="attribute" class="w-full p-2 mb-4 bg-gray-700 text-white rounded">
                     <option value="device_id">Device ID</option>
                     <option value="email">Email</option>
                     <option value="phone">Phone</option>
                     <option value="card_details">Card Details</option>
                 </select>
                 <label class="block mb-2">Umbral:</label>
-                <input type="number" id="threshold" class="input" required>
+                <input type="number" id="threshold" class="w-full p-2 mb-4 bg-gray-700 text-white rounded" required>
                 <label class="block mb-2">Promocode:</label>
-                <input type="text" id="promocode" class="input" required>
-                <button type="submit" class="btn-primary w-full">Agregar</button>
+                <input type="text" id="promocode" class="w-full p-2 mb-4 bg-gray-700 text-white rounded" required>
+                <button type="submit" class="bg-green-500 w-full py-2 text-black rounded hover:bg-green-600">Agregar</button>
             </form>
-            <button id="closeModal" class="btn-danger w-full">Cancelar</button>
+            <button id="closeModal" class="mt-4 w-full bg-red-500 py-2 rounded hover:bg-red-600">Cancelar</button>
         </div>
     </div>
     
