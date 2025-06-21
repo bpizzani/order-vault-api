@@ -246,10 +246,17 @@
             });
         }
 
+        let renderTotalOrdersChartInstance = null;  // Declare outside the function so it persists between calls
+
         function renderTotalOrdersChart(labels, data) {
             const ctx = document.getElementById("totalOrdersChart").getContext("2d");
-        
-            new Chart(ctx, {
+
+            // 🧹 Clean up any previous chart instance
+            if (renderTotalOrdersChartInstance) {
+                renderTotalOrdersChartInstance.destroy();
+            }
+            
+            renderTotalOrdersChartInstance = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: labels,
