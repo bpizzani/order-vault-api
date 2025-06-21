@@ -96,7 +96,11 @@
                         <h3 class="text-lg font-bold mb-2">${rule.attribute}</h3>
                         <p><strong>Umbral:</strong> ${rule.threshold}</p>
                         <p><strong>Promocode:</strong> ${rule.promocode}</p>
-                        <button class="mt-4 bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600" onclick="deleteRule(${rule.id})">Eliminar</button>
+                        <button onclick="deleteRule(${rule.id})" class="mt-4 bg-red-500 text-white p-2 rounded hover:bg-red-600" title="Eliminar">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7L5 7M10 11v6M14 11v6M6 7l1 12a2 2 0 002 2h6a2 2 0 002-2l1-12M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3" />
+                          </svg>
+                        </button>
                     `;
                     rulesGrid.appendChild(card);
                 });
