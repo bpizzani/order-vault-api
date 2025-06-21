@@ -1,64 +1,49 @@
-<aside class="w-64 bg-[#111827] text-white h-screen shadow-lg flex flex-col p-6">
-    <div class="mb-8 flex flex-col items-center">
-        <img src="{{ url_for('static', filename='images/rediim_logo.svg') }}" alt="Rediim Logo" class="h-10 mb-2">
-        <span class="text-gray-400 text-xs tracking-wide uppercase">Dashboard</span>
+<aside class="w-64 bg-[#121212] p-6 text-white flex flex-col">
+    <div class="mb-8">
+        <img src="{{ url_for('static', filename='images/rediim_logo.svg') }}" class="h-10 mx-auto" alt="Logo">
     </div>
-
     {% if client_id %}
-    <div class="mb-6 text-sm text-gray-400 border-b border-gray-700 pb-4">
-        <div class="text-xs uppercase mb-1">Client</div>
-        <div class="font-semibold text-white">{{ client_id }}</div>
-        <div class="text-gray-400 text-sm">{{ client_email }}</div>
+    <div class="text-sm text-gray-400 mb-8 border-b border-gray-700 pb-4">
+        <p class="text-xs uppercase">Client</p>
+        <p class="text-white font-medium">{{ client_id }}</p>
+        <p class="text-gray-500">{{ client_email }}</p>
     </div>
     {% endif %}
 
-    <nav class="flex-1">
-        <ul class="space-y-3">
-            <li>
-                <a href="{{ url_for('home.promotion_ui') }}" class="sidebar-link">📊 Dashboard</a>
-            </li>
-            <li>
-                <a href="{{ url_for('home.rules_ui') }}" class="sidebar-link">📐 Reglas</a>
-            </li>
-            <li>
-                <a href="{{ url_for('home.customer_ui') }}" class="sidebar-link">🔎 User Search</a>
-            </li>
-            <li>
-                <a href="https://rediim.com" class="sidebar-link">🌐 Web</a>
-            </li>
-            <li>
-                <a href="/logout" class="sidebar-link">🚪 Logout</a>
-            </li>
-        </ul>
+    <nav class="flex flex-col space-y-3">
+        <a href="{{ url_for('home.promotion_ui') }}" class="sidebar-link">📊 Dashboard</a>
+        <a href="{{ url_for('home.rules_ui') }}" class="sidebar-link">📐 Reglas</a>
+        <a href="{{ url_for('home.customer_ui') }}" class="sidebar-link">🔍 User Search</a>
+        <a href="https://rediim.com" class="sidebar-link">🌐 Web</a>
+        <a href="/logout" class="sidebar-link">🚪 Logout</a>
     </nav>
 
     <style>
         .sidebar-link {
-            display: block;
             padding: 0.75rem 1rem;
             border-radius: 0.5rem;
             font-weight: 500;
+            transition: all 0.2s ease;
             color: #d1d5db;
-            transition: background 0.2s ease, color 0.2s ease;
         }
 
         .sidebar-link:hover {
-            background-color: #1f2937;
-            color: white;
+            background-color: #1f1f1f;
+            color: #ffffff;
         }
 
         .sidebar-link.active {
-            background-color: #2563eb;
-            color: white;
+            background-color: #ff3b2f;
+            color: #ffffff;
         }
     </style>
 
     <script>
-        // Optional: Highlight current active link
+        // Optional: Highlight current link
         const links = document.querySelectorAll('.sidebar-link');
-        const currentPath = window.location.pathname;
+        const path = window.location.pathname;
         links.forEach(link => {
-            if (link.getAttribute('href') === currentPath) {
+            if (link.getAttribute('href') === path) {
                 link.classList.add('active');
             }
         });
