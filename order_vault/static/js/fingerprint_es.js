@@ -69,13 +69,15 @@ function getCanvasFingerprint() {
 }
 
 // Function to send fingerprint data to the API
-export async function sendFingerprint() {
+export async function sendFingerprint(api_key, client_id) {
     console.log("Sending fingerprint data...");
     try {
         const data = await collectData();
         const response = await fetch("https://api.rediim.com/api/fingerprint", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json",
+                     "X-API-KEY": api_key,
+                     "X-CLIENT-ID": client_id},
             body: JSON.stringify(data)
         });
 
