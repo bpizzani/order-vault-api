@@ -52,8 +52,18 @@ select {
   border-radius: 0.375rem;
 }
 
+
 .grid-gap {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 1.5rem;
+  background-color: #1f1f1f; /* Gap color */
+  padding: 1.5rem; /* So outer edges also show the gap color */
+}
+
+.grid-gap > .card {
+  background-color: #121212; /* Card color */
+  padding: 1.5rem;
+  border-radius: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
