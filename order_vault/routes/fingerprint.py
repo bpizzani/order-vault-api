@@ -7,6 +7,7 @@ fingerprint_bp = Blueprint(
 )
 
 @fingerprint_bp.route("", methods=["GET","POST","OPTIONS"])
+@require_api_key
 def fingerprint():
     if request.method == "OPTIONS":
         return "", 200
