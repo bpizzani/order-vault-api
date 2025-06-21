@@ -31,3 +31,34 @@ def require_api_key(func):
 
         return func(*args, **kwargs)
     return wrapper
+
+def require_api_key_fingerprint(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if request.method == "OPTIONS":
+            return "", 200  # Allow CORS preflight
+
+        api_key = request.headers.get("X-API-KEY")
+        client_id_key = request.headers.get("X-CLIENT-ID")
+
+        if not api_key or not client_id_key:
+            return jsonify({"error": "Missing API key or client ID"}), 401
+
+        user = User.query.filter_by(api_key=api_key, client_id=client_id_key).first()
+        if not user:
+            return jsonify({"error": "Invalid API key or client ID"}), 401
+
+        tenant = TENANT_DATABASES.get(user.client_id)
+        if not tenant:
+            return jsonify({"error": "Unknown tenant"}), 401
+
+        g.user = user
+        g.client_id = user.client_id
+        g.db_uri = tenant["postgres_uri"]
+        g.neo4j_driver = GraphDatabase.driver(
+            tenant["neo4j_uri"],
+            auth=(tenant["neo4j_user"], tenant["neo4j_password"])
+        )
+
+        return func(*args, **kwargs)
+    return wrapper
