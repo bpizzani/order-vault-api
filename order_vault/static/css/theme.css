@@ -1,100 +1,59 @@
-/* ===== Rediim Theme CSS ===== */
 
-/* Global reset */
+/* === Rediim Theme Styles === */
+
 body {
   background-color: #0d0d0d;
   color: #f5f5f5;
   font-family: 'Inter', sans-serif;
-  margin: 0;
-  padding: 0;
 }
 
-/* Sidebar styling */
-.sidebar {
-  background-color: #121212;
-  width: 16rem;
-  padding: 1.5rem;
-  height: 100vh;
-  overflow-y: auto;
-  border-right: 1px solid #1f1f1f;
-}
-
-.sidebar h2 {
-  font-size: 1.5rem;
-  font-weight: bold;
+h1, h2, h3 {
   color: white;
-  margin-bottom: 2rem;
-  text-align: center;
 }
 
-.sidebar nav ul li a {
-  color: #cccccc;
-  display: block;
-  padding: 0.75rem 0;
-  transition: color 0.2s ease;
+button,
+input,
+select {
+  font-family: inherit;
 }
 
-.sidebar nav ul li a:hover {
-  color: #ffffff;
-}
-
-/* Cards */
-.card {
-  background-color: #1f1f1f;
-  padding: 1.5rem;
-  border-radius: 1rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  text-align: center;
-}
-
-.card h2 {
-  font-size: 1.25rem;
-  color: #00d4ff;
-}
-
-.card.red h2, .card.red p {
-  color: #ff3b2f;
-}
-
-.card.green h2, .card.green p {
-  color: #4ade80;
-}
-
-.card p {
-  font-size: 2rem;
-  font-weight: bold;
-  margin-top: 0.5rem;
-}
-
-/* Buttons */
-.btn-primary {
+.button-rediim {
   background-color: #ff3b2f;
   color: white;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
   font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.375rem;
   transition: background-color 0.2s ease;
 }
 
-.btn-primary:hover {
-  background-color: #e62e20;
+.button-rediim:hover {
+  background-color: #ff1a0f;
 }
 
-/* Inputs */
-.input-promo {
+.card {
   background-color: #1f1f1f;
-  color: white;
-  border: 1px solid #ff3b2f;
-  padding: 0.75rem;
-  border-radius: 0.5rem 0 0 0.5rem;
-  outline: none;
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 }
 
-/* Chart Container */
-.chart-container {
-  background-color: #1a1a1a;
-  padding: 1.5rem;
+.modal {
+  background-color: #1f1f1f;
   border-radius: 1rem;
-  margin-bottom: 2rem;
-  box-shadow: 0 0 10px rgba(255, 59, 47, 0.05);
+  padding: 2rem;
+  width: 24rem;
+}
+
+.input-rediim {
+  background-color: #1f1f1f;
+  border: 1px solid #ff3b2f;
+  color: white;
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+}
+
+.grid-gap {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
 }
