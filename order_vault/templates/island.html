@@ -3,85 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
     <title>Customer Attributes</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-900 text-white">
+<body class="bg-[#0d0d0d] text-[#f5f5f5] font-sans">
+  <div class="flex h-screen overflow-hidden">
+    <!-- Sidebar -->
+    {% include "_sidebar.html" %}
 
-    <div class="flex h-screen">
-        <!-- Sidebar -->
-        {% include "_sidebar.html" %}
+    <!-- Main Content -->
+    <main class="flex-1 overflow-y-auto p-10">
+      <!-- Title -->
+      <h1 class="text-4xl font-extrabold mb-10 text-center text-white">Buscar Atributos de Cliente</h1>
 
-        <!-- Main Content -->
-        <main class="flex-1 p-10">
-            <!-- Header Section -->
-            <header class="text-center py-16">
-                <h2 class="text-4xl font-bold text-cyan-400">Buscar Atributos de Cliente</h2>
-            </header>
+      <!-- Search -->
+      <section class="flex justify-center mb-10">
+        <form id="emailForm" class="bg-[#1f1f1f] p-8 rounded-xl shadow-xl w-full max-w-xl">
+          <label for="email" class="block text-lg mb-2">Email del Cliente:</label>
+          <input
+            type="email"
+            id="email"
+            required
+            placeholder="usuario@correo.com"
+            class="input-rediim w-full mb-4"
+          />
+          <button
+            type="submit"
+            class="button-rediim w-full"
+          >
+            Buscar
+          </button>
+        </form>
+      </section>
 
-            <!-- Search Form -->
-            <section class="flex justify-center mb-8">
-                <form id="emailForm" class="bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-lg">
-                    <label for="email" class="block text-lg text-gray-300 mb-2">Email del Cliente:</label>
-                    <input type="email" id="email" required class="w-full p-3 mb-4 rounded-md bg-gray-700 text-white placeholder-gray-400 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan-400">
-                    <button type="submit" class="w-full p-3 rounded-md bg-cyan-400 text-black font-bold hover:bg-cyan-500 transition duration-300">Buscar</button>
-                </form>
-            </section>
+      <!-- Loading -->
+      <div id="loading" class="text-center text-[#00d4ff] text-xl hidden">
+        Cargando datos, por favor espera...
+      </div>
 
-            <!-- Loading Indicator -->
-            <div id="loading" class="text-center text-cyan-400 text-xl hidden">
-                Cargando datos, por favor espera...
-            </div>
+      <!-- Tables Section -->
+      <section class="my-12">
+        <h2 class="text-2xl font-bold text-center text-[#00d4ff] mb-6">Resumen de Atributos del Cliente</h2>
+        <div class="overflow-x-auto">
+          <table id="customerAttributesTable" class="w-4/5 mx-auto bg-[#1f1f1f] rounded-xl shadow-lg">
+            <thead>
+              <tr class="bg-[#2a2a2a] text-[#00d4ff] text-left">
+                <th class="py-3 px-6 text-lg">Atributo</th>
+                <th class="py-3 px-6 text-lg">Cantidad</th>
+              </tr>
+            </thead>
+            <tbody class="text-gray-300">
+              <!-- Dynamic content -->
+            </tbody>
+          </table>
+        </div>
+      </section>
 
-            <!-- Customer Attributes Table -->
-            <section class="my-8">
-                <h3 class="text-3xl font-bold text-center text-cyan-400 mb-4">Resumen de Atributos del Cliente</h3>
-                <table id="customerAttributesTable" class="w-4/5 mx-auto bg-gray-800 rounded-lg shadow-lg">
-                    <thead>
-                        <tr>
-                            <th class="py-3 px-6 bg-gray-700 text-cyan-400 text-lg">Atributo</th>
-                            <th class="py-3 px-6 bg-gray-700 text-cyan-400 text-lg">Cantidad</th>
-                        </tr>
-                    </thead>
-                    <tbody class="text-gray-300">
-                        <!-- Data will be inserted dynamically here -->
-                    </tbody>
-                </table>
-            </section>
+      <section class="my-12">
+        <h2 class="text-2xl font-bold text-center text-[#00d4ff] mb-6">Atributos de la Network</h2>
+        <div class="overflow-x-auto">
+          <table id="networkAttributesTable" class="w-4/5 mx-auto bg-[#1f1f1f] rounded-xl shadow-lg">
+            <thead>
+              <tr class="bg-[#2a2a2a] text-[#00d4ff] text-left">
+                <th class="py-3 px-6 text-lg">Atributo</th>
+                <th class="py-3 px-6 text-lg">Cantidad</th>
+              </tr>
+            </thead>
+            <tbody class="text-gray-300">
+              <!-- Dynamic content -->
+            </tbody>
+          </table>
+        </div>
+      </section>
 
-            <!-- Network Attributes Table -->
-            <section class="my-8">
-                <h3 class="text-3xl font-bold text-center text-cyan-400 mb-4">Atributos de la Network</h3>
-                <table id="networkAttributesTable" class="w-4/5 mx-auto bg-gray-800 rounded-lg shadow-lg">
-                    <thead>
-                        <tr>
-                            <th class="py-3 px-6 bg-gray-700 text-cyan-400 text-lg">Atributo</th>
-                            <th class="py-3 px-6 bg-gray-700 text-cyan-400 text-lg">Cantidad</th>
-                        </tr>
-                    </thead>
-                    <tbody class="text-gray-300">
-                        <!-- Here the data will be filled dynamically -->
-                    </tbody>
-                </table>
-            </section>
-
-            <!-- Promocode Order Count Table -->
-            <section class="my-8">
-                <h3 class="text-3xl font-bold text-center text-cyan-400 mb-4">Conteo de Ordenes por Promocodes</h3>
-                <table id="promocodeOrderTable" class="w-4/5 mx-auto bg-gray-800 rounded-lg shadow-lg">
-                    <thead>
-                        <tr>
-                            <th class="py-3 px-6 bg-gray-700 text-cyan-400 text-lg">Promocode</th>
-                            <th class="py-3 px-6 bg-gray-700 text-cyan-400 text-lg">Total de Ordenes</th>
-                        </tr>
-                    </thead>
-                    <tbody class="text-gray-300">
-                        <!-- Here the data will be filled dynamically -->
-                    </tbody>
-                </table>
-            </section>
-        </main>
-    </div>
+      <section class="my-12">
+        <h2 class="text-2xl font-bold text-center text-[#00d4ff] mb-6">Conteo de Ordenes por Promocodes</h2>
+        <div class="overflow-x-auto">
+          <table id="promocodeOrderTable" class="w-4/5 mx-auto bg-[#1f1f1f] rounded-xl shadow-lg">
+            <thead>
+              <tr class="bg-[#2a2a2a] text-[#00d4ff] text-left">
+                <th class="py-3 px-6 text-lg">Promocode</th>
+                <th class="py-3 px-6 text-lg">Total de Ordenes</th>
+              </tr>
+            </thead>
+            <tbody class="text-gray-300">
+              <!-- Dynamic content -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
 
     <script>
         document.getElementById("emailForm").addEventListener("submit", function(event) {
@@ -279,7 +293,5 @@
                 });
         }
     </script>
-
-</body>
 </html>
 
