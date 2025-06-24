@@ -277,3 +277,35 @@ def abuse_by_day():
         traceback.print_exc()
         return jsonify({"error": "Database error", "details": str(e)}), 500
 
+
+@promocode_bp.route("/abuse-history", methods=["GET"])
+def abuse_history_all_promocodes():
+    query = """
+    MATCH (o:Order)
+    WHERE o.promocode IS NOT NULL
+    WITH o.promocode AS promocode, date(datetime(o.created_at)) AS order_date, o
+    MATCH (o)-[:HAS_ATTRIBUTE]->(a:Attribute)
+    WHERE a.type IN ['email', 'phone', 'device_id', 'card_details']
+    WITH promocode, order_date, a.value AS identity, COUNT(DISTINCT o) AS total_for_identity
+    WITH promocode, order_date,
+         SUM(total_for_identity) AS total_orders,
+         SUM(CASE WHEN total_for_identity > 1 THEN total_for_identity - 1 ELSE 0 END) AS abusive_orders
+    RETURN 
+      promocode,
+      order_date,
+      total_orders,
+      abusive_orders,
+      ROUND(abusive_orders * 100.0 / total_orders, 2) AS abuse_rate
+    ORDER BY promocode, order_date
+    """
+    try:
+        with g.neo4j_driver.session() as session_net:
+            result = session_net.run(query)
+            records = []
+            for row in result:
+                rec = row.data()
+                rec["order_date"] = rec["order_date"].iso_format()
+                records.append(rec)
+            return jsonify(records), 200
+    except Exception as e:
+        return jsonify({"error": "Failed to fetch abuse history", "details": str(e)}), 500
