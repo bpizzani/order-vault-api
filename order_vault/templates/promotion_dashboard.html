@@ -61,6 +61,17 @@
 
             <!-- Loader -->
             <div id="loading" class="text-center text-white hidden">Loading...</div>
+
+            <div class="text-center mt-6">
+            <button onclick="fetchAllPromocodeHistory()" class="bg-[#00d4ff] text-black px-6 py-3 rounded-md font-semibold hover:bg-[#00bcd4] transition">📊 Show Global Abuse Trends</button>
+            </div>
+            
+            <!-- New chart for multiple promocodes -->
+            <div class="mt-10">
+                <h3 class="text-2xl font-bold text-white text-center mb-4">Abuse Rate by Day (All Promocodes)</h3>
+                <canvas id="allPromosChart"></canvas>
+            </div>
+            
         </main>
     </div>
 </body>
@@ -299,5 +310,104 @@
                 }
             });
         }
+
+        let allPromosChartInstance = null;
+
+function fetchAllPromocodeHistory() {
+    document.getElementById("loading").classList.remove("hidden");
+
+    fetch("https://console.rediim.com/api/promocode/abuse-history", {
+        method: "GET",
+        credentials: "include"
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (!data || data.length === 0) {
+            alert("No abuse history data found.");
+            return;
+        }
+
+        // Group data by promocode
+        const grouped = {};
+        for (const entry of data) {
+            if (!grouped[entry.promocode]) grouped[entry.promocode] = [];
+            grouped[entry.promocode].push(entry);
+        }
+
+        // Sort by date inside each group
+        Object.keys(grouped).forEach(promo => {
+            grouped[promo].sort((a, b) => new Date(a.order_date) - new Date(b.order_date));
+        });
+
+        // Build chart dataset
+        const labels = Array.from(new Set(data.map(d => d.order_date))).sort();
+        const datasets = Object.entries(grouped).map(([promo, records]) => {
+            const map = {};
+            records.forEach(r => map[r.order_date] = r.abuse_rate);
+
+            return {
+                label: promo,
+                data: labels.map(l => map[l] || 0),
+                fill: false,
+                borderWidth: 2,
+                tension: 0.3
+            };
+        });
+
+        renderAllPromosChart(labels, datasets);
+    })
+    .catch(err => {
+        console.error("Error loading abuse history:", err);
+        alert("Failed to load global abuse history.");
+    })
+    .finally(() => {
+        document.getElementById("loading").classList.add("hidden");
+    });
+}
+
+    function renderAllPromosChart(labels, datasets) {
+        const ctx = document.getElementById("allPromosChart").getContext("2d");
+    
+        if (allPromosChartInstance) {
+            allPromosChartInstance.destroy();
+        }
+    
+        allPromosChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels,
+                datasets
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => `${ctx.dataset.label}: ${ctx.parsed.y}%`
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        title: {
+                            display: true,
+                            text: "Abuse Rate (%)"
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: "Date"
+                        }
+                    }
+                }
+            }
+        });
+    }
     </script>
 </html>
