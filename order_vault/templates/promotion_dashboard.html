@@ -42,30 +42,37 @@
                 </div>
             </div>
 
-            <!-- Chart Area -->
-            <div class="bg-[#1a1a1a] p-6 rounded-lg mb-10 shadow">
-                <canvas id="promocodeChart"></canvas>
-            </div>
-
-            <!-- Abuse Rate -->
-            <div class="mb-10">
-                <h3 class="text-2xl font-bold text-white text-center mb-6">Abuse Rate by Day</h3>
-                <canvas id="abuseRateChart"></canvas>
-            </div>
-
-            <!-- Total Orders -->
-            <div class="mb-10">
-                <h3 class="text-2xl font-bold text-white text-center mb-6">Total Orders by Day</h3>
-                <canvas id="totalOrdersChart"></canvas>
-            </div>
+                <!-- Dashboard Charts Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+                    <!-- Promocode Bar Chart -->
+                    <div class="bg-[#1a1a1a] p-6 rounded-lg shadow">
+                        <h3 class="text-xl font-bold text-white mb-4 text-center">Order Breakdown</h3>
+                        <canvas id="promocodeChart"></canvas>
+                    </div>
+                
+                    <!-- Abuse Rate -->
+                    <div class="bg-[#1a1a1a] p-6 rounded-lg shadow">
+                        <h3 class="text-xl font-bold text-white mb-4 text-center">Abuse Rate by Day</h3>
+                        <canvas id="abuseRateChart"></canvas>
+                    </div>
+                
+                    <!-- Total Orders -->
+                    <div class="bg-[#1a1a1a] p-6 rounded-lg shadow">
+                        <h3 class="text-xl font-bold text-white mb-4 text-center">Total Orders by Day</h3>
+                        <canvas id="totalOrdersChart"></canvas>
+                    </div>
+                
+                    <!-- Global Trends Button -->
+                    <div class="flex items-center justify-center bg-[#1a1a1a] rounded-lg p-6 shadow">
+                        <button onclick="fetchAllPromocodeHistory()" class="bg-[#00d4ff] text-black px-6 py-3 rounded-md font-semibold hover:bg-[#00bcd4] transition">
+                            📊 Show Global Abuse Trends
+                        </button>
+                    </div>
+                </div>
 
             <!-- Loader -->
             <div id="loading" class="text-center text-white hidden">Loading...</div>
 
-            <div class="text-center mt-6">
-            <button onclick="fetchAllPromocodeHistory()" class="bg-[#00d4ff] text-black px-6 py-3 rounded-md font-semibold hover:bg-[#00bcd4] transition">📊 Show Global Abuse Trends</button>
-            </div>
-            
             <!-- New chart for multiple promocodes -->
             <div class="mt-10">
                 <h3 class="text-2xl font-bold text-white text-center mb-4">Abuse Rate by Day (All Promocodes)</h3>
