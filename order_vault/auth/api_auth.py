@@ -40,7 +40,7 @@ def require_api_key_fingerprint(func):
 
         api_key = request.headers.get("X-API-KEY")
         client_id_key = request.headers.get("X-CLIENT-ID")
-        fingerprint_user_identifier_client = request.headers.get("user_identifier_client")
+        #fingerprint_user_identifier_client = request.headers.get("user_identifier_client")
 
         if not api_key or not client_id_key:
             return jsonify({"error": "Missing API key or client ID"}), 401
@@ -53,7 +53,7 @@ def require_api_key_fingerprint(func):
         if not tenant:
             return jsonify({"error": "Unknown tenant"}), 401
 
-        g.fingerprint_user_identifier_client = fingerprint_user_identifier_client
+        #g.fingerprint_user_identifier_client = fingerprint_user_identifier_client
         g.user = user
         g.client_id = user.client_id
         g.db_uri = tenant["postgres_uri"]
