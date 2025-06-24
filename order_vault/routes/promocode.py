@@ -282,7 +282,7 @@ def abuse_by_day():
 def abuse_history_all_promocodes():
     query = """
     MATCH (o:Order)
-    WHERE o.promocode IS NOT NULL
+    WHERE o.promocode IS NOT NULL AND TRIM(o.promocode) <> ""
     WITH o.promocode AS promocode, date(datetime(o.created_at)) AS order_date, o
     MATCH (o)-[:HAS_ATTRIBUTE]->(a:Attribute)
     WHERE a.type IN ['email', 'phone', 'device_id', 'card_details']
