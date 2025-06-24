@@ -69,7 +69,7 @@ function getCanvasFingerprint() {
 }
 
 // Function to send fingerprint data to the API
-export async function sendFingerprint(api_key, client_id) {
+export async function sendFingerprint(api_key, client_id, user_id) {
     console.log("Sending fingerprint data...");
     try {
         const data = await collectData();
@@ -78,6 +78,7 @@ export async function sendFingerprint(api_key, client_id) {
             headers: { "Content-Type": "application/json",
                      "X-API-KEY": api_key,
                      "X-CLIENT-ID": client_id},
+                     "user_identifier_client": user_id,
             body: JSON.stringify(data)
         });
 
