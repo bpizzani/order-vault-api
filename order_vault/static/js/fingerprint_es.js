@@ -77,8 +77,9 @@ export async function sendFingerprint(api_key, client_id, user_id) {
             method: "POST",
             headers: { "Content-Type": "application/json",
                      "X-API-KEY": api_key,
-                     "X-CLIENT-ID": client_id},
-                     "user_identifier_client": user_id,
+                     "X-CLIENT-ID": client_id,
+                     "user_identifier_client": user_id},
+                    
             body: JSON.stringify(data)
         });
 
