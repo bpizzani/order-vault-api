@@ -280,7 +280,7 @@ def abuse_by_day():
 
 @promocode_bp.route("/abuse-history", methods=["GET"])
 def abuse_history_all_promocodes():
-    query = """
+    query_old = """
     MATCH (o:Order)
     WHERE o.promocode IS NOT NULL AND TRIM(o.promocode) <> ""
     WITH o.promocode AS promocode, date(datetime(o.created_at)) AS order_date, o
@@ -298,6 +298,38 @@ def abuse_history_all_promocodes():
       ROUND(abusive_orders * 100.0 / total_orders, 2) AS abuse_rate
     ORDER BY promocode, order_date
     """
+
+    query = """MATCH (c:Customer)-[:PLACED]->(o:Order)
+    WHERE o.promocode IS NOT NULL AND TRIM(o.promocode) <> ""
+    WITH c, o, o.promocode AS promocode, date(datetime(o.created_at)) AS order_date, datetime(o.created_at) AS full_ts
+    
+    // Collect identity values for this customer
+    MATCH (c)-[:PLACED]->(:Order)-[:HAS_ATTRIBUTE]->(attr)
+    WHERE attr.type IN ['email', 'phone', 'device_id', 'card_details']
+    WITH c, o, promocode, order_date, full_ts, COLLECT(DISTINCT attr.value) AS identity_attrs
+    
+    // Check if identity used the same promocode before this order
+    CALL {
+      WITH identity_attrs, full_ts, promocode
+      MATCH (c2:Customer)-[:PLACED]->(o2:Order)-[:HAS_ATTRIBUTE]->(attr2)
+      WHERE attr2.value IN identity_attrs
+        AND attr2.type IN ['email', 'phone', 'device_id', 'card_details']
+        AND o2.promocode = promocode
+        AND datetime(o2.created_at) < full_ts
+      RETURN COUNT(DISTINCT o2) AS prior_uses
+    }
+    
+    WITH promocode, order_date, COUNT(o) AS total_orders,
+         SUM(CASE WHEN prior_uses > 0 THEN 1 ELSE 0 END) AS abusive_orders
+    
+    RETURN 
+      promocode,
+      order_date,
+      total_orders,
+      abusive_orders,
+      ROUND(abusive_orders * 100.0 / total_orders, 2) AS abuse_rate
+    ORDER BY promocode, order_date"""
+    
     try:
         with g.neo4j_driver.session() as session_net:
             result = session_net.run(query)
