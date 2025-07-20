@@ -15,6 +15,7 @@ def fingerprint():
         return "", 200
     data = request.get_json(silent=True) or {}
     user_identifier_client = request.headers.get("user_identifier_client")
+    cookie_session = request.cookies.get('session')
     features = [
         str(data.get(k, "")) for k in (
             "userAgent","platform","screenRes","colorDepth",
@@ -25,7 +26,7 @@ def fingerprint():
     vid = hashlib.sha256("|".join(features).encode()).hexdigest()
 
     # Store in DB
-    entry = FingerprintEvents(user_id=user_identifier_client, visitor_id=vid)
+    entry = FingerprintEvents(user_id=user_identifier_client, visitor_id=vid, cookie_session=cookie_session)
     db.session.add(entry)
     db.session.commit()
 
