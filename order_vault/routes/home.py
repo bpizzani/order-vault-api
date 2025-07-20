@@ -50,4 +50,12 @@ def delete_db_api():
     except Exception as e:
         return f"Error: {str(e)}", 500
 
+@home_bp.route("/update-rule-client-null", methods=["GET","POST"])
+def delete_db_api():
+    try:
+        db.session.execute(text("UPDATE rule SET client_id = 'admin92' WHERE client_id IS NULL;"))
+        db.session.commit()
+        return render_template("logout.html"), 200
+    except Exception as e:
+        return f"Error: {str(e)}", 500
 
