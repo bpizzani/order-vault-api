@@ -7,7 +7,7 @@ export async function collectData() {
         const cookies = document.cookie || "";
         const sessionMatch = cookies.match(/session=([^;]+)/);
         const sessionId = sessionMatch ? sessionMatch[1] : "";
-        const user_id = getOrCreateUserId();
+        const local_user_id = getOrCreateUserId();
         
         const data = {
             userAgent: navigator.userAgent,
