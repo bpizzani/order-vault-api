@@ -18,8 +18,7 @@ export async function collectData() {
             touchSupport: "ontouchstart" in window,
             sessionStorage: typeof sessionStorage !== "undefined" ? sessionStorage.length > 0 : false,
             webGLFingerprint: getWebGLFingerprint(),
-            canvasFingerprint: await getCanvasFingerprint(),
-            cookies: document.cookie || ""
+            canvasFingerprint: await getCanvasFingerprint()
         };
         console.log("Data collected: ", data);
         return data;
