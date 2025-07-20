@@ -24,7 +24,9 @@ def fingerprint():
     print(f"user_identifier_device detected: {user_identifier_device}")
     print(f"sessions_id: {request.headers.get('sessions_id')}")
     print(f"User Agent: {data.get("userAgent") }")
+    print(f"webdriver: {data.get("webdriver") }")
 
+    
     cookie_session = data.get("sessionId")
     print(f"cookie_session detected: {cookie_session}")
 
