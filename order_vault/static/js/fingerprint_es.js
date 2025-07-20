@@ -7,6 +7,7 @@ export async function collectData() {
         const cookies = document.cookie || "";
         const sessionMatch = cookies.match(/session=([^;]+)/);
         const sessionId = sessionMatch ? sessionMatch[1] : "";
+        const user_id = getOrCreateUserId();
         
         const data = {
             userAgent: navigator.userAgent,
@@ -25,7 +26,8 @@ export async function collectData() {
             canvasFingerprint: await getCanvasFingerprint(),
                     // Optionally include session ID directly if accessible
              cookies,
-             sessionId
+             sessionId,
+             local_user_id
         };
         console.log("Data collected: ", data);
         return data;
@@ -90,7 +92,6 @@ export async function sendFingerprint(api_key, client_id, user_id) {
     console.log("Sending fingerprint data...");
     try {
         const data = await collectData();
-        const user_id = getOrCreateUserId();
     
         const response = await fetch("https://api.rediim.com/api/fingerprint", {
             method: "POST",
@@ -98,8 +99,7 @@ export async function sendFingerprint(api_key, client_id, user_id) {
             headers: { "Content-Type": "application/json",
                      "X-API-KEY": api_key,
                      "X-CLIENT-ID": client_id,
-                     "user_identifier_client": user_id,
-                     "sessions_id": data.sessionId},
+                     "user_identifier_client": user_id},
                     
             body: JSON.stringify(data)
         });
