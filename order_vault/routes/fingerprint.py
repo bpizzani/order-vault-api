@@ -15,7 +15,10 @@ def fingerprint():
         return "", 200
     data = request.get_json(silent=True) or {}
     user_identifier_client = request.headers.get("user_identifier_client")
+    print(f"user identifier detected: {user_identifier_client}")
+    
     cookie_session = request.cookies.get('session')
+    print(fcookie_session detected: {cookie_session}")
     features = [
         str(data.get(k, "")) for k in (
             "userAgent","platform","screenRes","colorDepth",
