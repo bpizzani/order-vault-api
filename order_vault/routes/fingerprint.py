@@ -18,7 +18,7 @@ def fingerprint():
     print(f"user identifier detected: {user_identifier_client}")
     
     cookie_session = request.cookies.get('session')
-    print(fcookie_session detected: {cookie_session}")
+    print(f"cookie_session detected: {cookie_session}")
     features = [
         str(data.get(k, "")) for k in (
             "userAgent","platform","screenRes","colorDepth",
