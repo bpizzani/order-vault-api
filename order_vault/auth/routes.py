@@ -73,10 +73,10 @@ def create_user_via_url():
 
 @auth_bp.route("/delete-db", methods=["GET","POST"])
 def delete_db_version():
-  # Run raw SQL to delete the broken revision
-  db.session.execute("DELETE FROM alembic_version;")
-  db.session.commit()
-  return "DB Version Deleted"
+    # Run raw SQL to delete the broken revision
+    db.session.execute("DELETE FROM alembic_version;")
+    db.session.commit()
+    return render_template("logout.html"), 200
 
 
 #deprecated
