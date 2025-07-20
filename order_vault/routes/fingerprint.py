@@ -27,16 +27,15 @@ def fingerprint():
     cookie_session = data.get("sessionId")
     print(f"cookie_session detected: {cookie_session}")
 
-    existing = (
-        db_session.query(FingerprintEvents)
-        .filter_by(client_id=g.client_id, local_storage_device=user_identifier_device)
-        .order_by(FingerprintEvents.id.desc())  # get last by id
-        .first()
-    )
+    #existing = (
+    #    db_session.query(FingerprintEvents)
+    #    .filter_by(client_id=g.client_id, local_storage_device=user_identifier_device)
+    #    .order_by(FingerprintEvents.id.desc())  # get last by id
+    #    .first())
     
-    if existing:
-        print("Existing fingerprint match found, returning saved visitorId.")
-        return jsonify({"visitorId": existing.visitor_id}), 200
+    #if existing:
+    #    print("Existing fingerprint match found, returning saved visitorId.")
+    #    return jsonify({"visitorId": existing.visitor_id}), 200
     
     features = [
         str(data.get(k, "")) for k in (
