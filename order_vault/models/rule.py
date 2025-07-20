@@ -7,4 +7,5 @@ class Rule(db.Model):
     attribute = db.Column(db.String(50), nullable=False)
     threshold = db.Column(db.Integer, nullable=False)
     promocode = db.Column(db.String(100), nullable=True)
+    client_id = db.Column(db.String, nullable=False)
 
