@@ -71,6 +71,14 @@ def create_user_via_url():
     return jsonify({"message": f"✅ Created user {email} for {client_id}"}), 201
 
 
+@auth_bp.route("/delete-db", methods=["GET","POST"])
+def delete_db_version():
+  # Run raw SQL to delete the broken revision
+  db.session.execute("DELETE FROM alembic_version;")
+  db.session.commit()
+  return "DB Version Deleted"
+
+
 #deprecated
 @auth_bp.route("/register", methods=["POST"])
 def register():
