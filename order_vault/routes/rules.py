@@ -41,7 +41,7 @@ def manage_rules():
 @rules_bp.route("<int:rule_id>", methods=["DELETE"])
 def delete_rule(rule_id):
     db_session = get_db_session_for_client(g.db_uri)
-    rule = db_session.query(Rule).get(rule_id)
+    rule = db_session.query(Rule).filter_by(id=rule_id, client_id=g.client_id).first()
     
     if rule:
         db_session.delete(rule)
