@@ -9,6 +9,7 @@ export async function collectData() {
 
     const data = {
       userAgent: await DeviceInfo.getUserAgent(),
+      androidId: await DeviceInfo.getAndroidId(),
       deviceId: DeviceInfo.getDeviceId(),
       brand: DeviceInfo.getBrand(),
       systemName: DeviceInfo.getSystemName(),
