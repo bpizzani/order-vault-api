@@ -71,15 +71,6 @@ def create_user_via_url():
     return jsonify({"message": f"✅ Created user {email} for {client_id}"}), 201
 
 
-@auth_bp.route("/delete-db", methods=["GET","POST"])
-def delete_db_version():
-    try:
-        db.session.execute("DELETE FROM alembic_version;")
-        db.session.commit()
-        return render_template("logout.html"), 200
-    except Exception as e:
-        current_app.logger.error(f"Failed to delete alembic_version: {e}")
-        return f"Error: {str(e)}", 500
 
 
 #deprecated
