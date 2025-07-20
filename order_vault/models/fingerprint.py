@@ -12,4 +12,5 @@ class FingerprintEvents(db.Model):
     local_storage_device = db.Column(db.String, nullable=True)
     user_agent =  db.Column(db.String, nullable=True)
     webdriver = db.Column(db.String, nullable=True)
+    platform = db.Column(db.String, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
