@@ -88,7 +88,7 @@ function getOrCreateUserId() {
 }
 
 // Function to send fingerprint data to the API
-export async function sendFingerprint(api_key, client_id, user_id) {
+export async function sendFingerprint(api_key, client_id, user_id = null) {
     console.log("Sending fingerprint data...");
     try {
         const data = await collectData();
