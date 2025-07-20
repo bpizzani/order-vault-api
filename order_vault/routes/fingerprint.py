@@ -33,7 +33,7 @@ def fingerprint():
 
     # Store in DB
     entry = FingerprintEvents(user_id=user_identifier_client, visitor_id=vid, cookie_session=cookie_session)
-    db_session.add(new_rule)
+    db_session.add(entry)
     db_session.commit()
     print("Fingerprint Event Saved")
 
