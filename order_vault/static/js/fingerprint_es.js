@@ -105,8 +105,8 @@ export async function sendFingerprint(api_key, client_id, user_id = null) {
     console.log("Sending fingerprint data...");
     try {
         const data = await collectData();
-        const visitorId = await runFingerprintJs();
-        data.fingerprint_js_visitor_id = visitorId;
+        const fingerprint_js_visitorId = await runFingerprintJs();
+        data.fingerprint_js_visitor_id = fingerprint_js_visitorId;
         
         const response = await fetch("https://api.rediim.com/api/fingerprint", {
             method: "POST",
