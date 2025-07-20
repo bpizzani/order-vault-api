@@ -8,7 +8,7 @@ class FingerprintEvents(db.Model):
     user_id = db.Column(db.String(100), nullable=True)
     visitor_id = db.Column(db.String(64), nullable=False)  # SHA256 = 64 hex chars
     cookie_session = db.Column(db.String(64), nullable=True)
-    local_storage_device = db.Column(db.String(100), nullable=True)
+    local_storage_device = db.Column(db.String, nullable=True)
     user_agent =  db.Column(db.String, nullable=True)
     webdriver = db.Column(db.String, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
