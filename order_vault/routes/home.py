@@ -40,3 +40,14 @@ def delete_db_version():
         return render_template("logout.html"), 200
     except Exception as e:
         return f"Error: {str(e)}", 500
+
+@home_bp.route("/delete-db-duplicates-api", methods=["GET","POST"])
+def delete_db_api():
+    try:
+        db.session.execute(text("DELETE FROM users WHERE id NOT IN (  SELECT MAX(id)   FROM users  GROUP BY api_key );"))
+        db.session.commit()
+        return render_template("logout.html"), 200
+    except Exception as e:
+        return f"Error: {str(e)}", 500
+
+
