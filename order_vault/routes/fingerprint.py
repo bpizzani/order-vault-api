@@ -12,6 +12,7 @@ def fingerprint():
     if request.method == "OPTIONS":
         return "", 200
     data = request.get_json(silent=True) or {}
+    user_identifier_client = request.headers.get("user_identifier_client")
     features = [
         str(data.get(k, "")) for k in (
             "userAgent","platform","screenRes","colorDepth",
