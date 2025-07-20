@@ -20,7 +20,7 @@ def fingerprint():
     data = request.get_json(silent=True) or {}
     user_identifier_client = request.headers.get("user_identifier_client")
     print(f"user identifier detected: {user_identifier_client}")
-    print(f"sessions_id: {request.headers.get("sessions_id")}")
+    print(f"sessions_id: {request.headers.get('sessions_id')}")
     
     cookie_session = data.get("sessionId")
     print(f"cookie_session detected: {cookie_session}")
