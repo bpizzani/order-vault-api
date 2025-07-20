@@ -12,6 +12,7 @@ fingerprint_bp = Blueprint(
 @fingerprint_bp.route("", methods=["GET","POST","OPTIONS"])
 @require_api_key_fingerprint
 def fingerprint():
+    print(f"client ID  Fignerprint Call: {g.client_id }")
     db_session = get_db_session_for_client(g.db_uri)
 
     if request.method == "OPTIONS":
@@ -32,7 +33,7 @@ def fingerprint():
     vid = hashlib.sha256("|".join(features).encode()).hexdigest()
 
     # Store in DB
-    entry = FingerprintEvents(user_id=user_identifier_client, visitor_id=vid, cookie_session=cookie_session)
+    entry = FingerprintEvents(client_id=g.client_id, user_id=user_identifier_client, visitor_id=vid, cookie_session=cookie_session)
     db_session.add(entry)
     db_session.commit()
     print("Fingerprint Event Saved")
