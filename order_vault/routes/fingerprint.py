@@ -19,7 +19,9 @@ def fingerprint():
         return "", 200
     data = request.get_json(silent=True) or {}
     user_identifier_client = request.headers.get("user_identifier_client")
+    user_identifier_device = data.get("local_user_id") 
     print(f"user identifier detected: {user_identifier_client}")
+    print(f"user_identifier_device detected: {user_identifier_device}")
     print(f"sessions_id: {request.headers.get('sessions_id')}")
     
     cookie_session = data.get("sessionId")
@@ -35,7 +37,7 @@ def fingerprint():
     vid = hashlib.sha256("|".join(features).encode()).hexdigest()
 
     # Store in DB
-    entry = FingerprintEvents(client_id=g.client_id, user_id=user_identifier_client, visitor_id=vid, cookie_session=cookie_session)
+    entry = FingerprintEvents(client_id=g.client_id, user_id=user_identifier_client, visitor_id=vid, cookie_session=cookie_session, local_storage_device=user_identifier_device)
     db_session.add(entry)
     db_session.commit()
     print("Fingerprint Event Saved")
