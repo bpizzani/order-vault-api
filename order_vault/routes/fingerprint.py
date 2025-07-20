@@ -50,7 +50,7 @@ def fingerprint():
     vid = hashlib.sha256("|".join(features).encode()).hexdigest()
 
     # Store in DB
-    entry = FingerprintEvents(client_id=g.client_id, user_id=user_identifier_client, visitor_id=vid, cookie_session=cookie_session, local_storage_device=user_identifier_device)
+    entry = FingerprintEvents(client_id=g.client_id, user_id=user_identifier_client, visitor_id=vid, cookie_session=cookie_session,local_storage_device=user_identifier_device, user_agent=data.get('userAgent'), webdriver=data.get('webdriver'))
     db_session.add(entry)
     db_session.commit()
     print("Fingerprint Event Saved")
