@@ -3,6 +3,7 @@ from flask import request, session, jsonify
 from werkzeug.security import check_password_hash
 from order_vault.utils.auth import login_required
 from order_vault.main import db
+from flask import current_app
 
 home_bp = Blueprint("home", __name__, url_prefix="/")
 
@@ -38,5 +39,4 @@ def delete_db_version():
         db.session.commit()
         return render_template("logout.html"), 200
     except Exception as e:
-        current_app.logger.error(f"Failed to delete alembic_version: {e}")
         return f"Error: {str(e)}", 500
