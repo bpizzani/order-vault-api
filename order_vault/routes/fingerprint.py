@@ -29,5 +29,6 @@ def fingerprint():
     entry = FingerprintEvents(user_id=user_identifier_client, visitor_id=vid, cookie_session=cookie_session)
     db.session.add(entry)
     db.session.commit()
+    print("Fingerprint Event Saved")
 
     return jsonify({"visitorId": vid}), 200
