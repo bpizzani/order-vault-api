@@ -51,7 +51,7 @@ def delete_db_api():
         return f"Error: {str(e)}", 500
 
 @home_bp.route("/update-rule-client-null", methods=["GET","POST"])
-def delete_db_api():
+def update_rule_db_client_id():
     try:
         db.session.execute(text("UPDATE rule SET client_id = 'admin92' WHERE client_id IS NULL;"))
         db.session.commit()
