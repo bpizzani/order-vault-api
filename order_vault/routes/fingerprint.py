@@ -20,8 +20,11 @@ def fingerprint():
     data = request.get_json(silent=True) or {}
     user_identifier_client = request.headers.get("user_identifier_client")
     user_identifier_device = data.get("local_user_id") 
+    fingerprint_js_visitor_id = data.get("fingerprint_js_visitor_id") 
+    
     print(f"user identifier detected: {user_identifier_client}")
     print(f"user_identifier_device detected: {user_identifier_device}")
+     print(f"fingerprint_js_visitor_id detected: {fingerprint_js_visitor_id}")
     print(f"sessions_id: {request.headers.get('sessions_id')}")
     print(f"User Agent: {data.get('userAgent') }")
     print(f"webdriver: {data.get('webdriver') }")
@@ -50,7 +53,7 @@ def fingerprint():
     vid = hashlib.sha256("|".join(features).encode()).hexdigest()
 
     # Store in DB
-    entry = FingerprintEvents(client_id=g.client_id, user_id=user_identifier_client, visitor_id=vid, cookie_session=cookie_session,local_storage_device=user_identifier_device, user_agent=str(data.get('userAgent'))[0:50], webdriver=data.get('webdriver'))
+    entry = FingerprintEvents(client_id=g.client_id, user_id=user_identifier_client, visitor_id=vid,fingerprint_js_visitor_id=fingerprint_js_visitor_id, cookie_session=cookie_session,local_storage_device=user_identifier_device, user_agent=str(data.get('userAgent'))[0:50], webdriver=data.get('webdriver'))
     db_session.add(entry)
     db_session.commit()
     print("Fingerprint Event Saved")
