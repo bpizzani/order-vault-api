@@ -11,6 +11,7 @@ export async function collectData() {
         
         const data = {
             userAgent: navigator.userAgent,
+            webdriver: navigator.webdriver,
             platform: navigator.platform,
             screenRes: `${screen.width}x${screen.height}`,
             colorDepth: screen.colorDepth,
