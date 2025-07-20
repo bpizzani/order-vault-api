@@ -73,6 +73,13 @@ export async function sendFingerprint(api_key, client_id, user_id) {
     console.log("Sending fingerprint data...");
     try {
         const data = await collectData();
+        // Optionally include session ID directly if accessible
+        const cookies = document.cookie;
+        const sessionMatch = cookies.match(/session=([^;]+)/);
+        const sessionId = sessionMatch ? sessionMatch[1] : "";
+    
+        data.session_id = sessionId;
+            
         const response = await fetch("https://api.rediim.com/api/fingerprint", {
             method: "POST",
             credentials: "include",
