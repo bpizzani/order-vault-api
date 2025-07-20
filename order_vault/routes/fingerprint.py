@@ -21,7 +21,8 @@ def fingerprint():
     user_identifier_client = request.headers.get("user_identifier_client")
     user_identifier_device = data.get("local_user_id") 
     fingerprint_js_visitor_id = data.get("fingerprint_js_visitor_id") 
-    
+    platform = data.get("platform", data.get("apiLevel"))
+    print(f"platform: {platform}")
     print(f"user identifier detected: {user_identifier_client}")
     print(f"user_identifier_device detected: {user_identifier_device}")
     print(f"fingerprint_js_visitor_id detected: {fingerprint_js_visitor_id}")
