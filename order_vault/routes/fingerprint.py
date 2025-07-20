@@ -21,7 +21,7 @@ def fingerprint():
     user_identifier_client = request.headers.get("user_identifier_client")
     print(f"user identifier detected: {user_identifier_client}")
     
-    cookie_session = str(data.get("session_id", "")) 
+    cookie_session = request.cookies.get('session') or data.get("session_id")
     print(f"cookie_session detected: {cookie_session}")
     
     features = [
