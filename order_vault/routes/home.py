@@ -3,7 +3,7 @@ from flask import request, session, jsonify
 from werkzeug.security import check_password_hash
 from order_vault.utils.auth import login_required
 from order_vault.main import db
-from flask import current_app
+from sqlalchemy import text
 
 home_bp = Blueprint("home", __name__, url_prefix="/")
 
@@ -35,7 +35,7 @@ def customer_ui():
 @home_bp.route("/delete-db", methods=["GET","POST"])
 def delete_db_version():
     try:
-        db.session.execute("DELETE FROM alembic_version;")
+        db.session.execute(text("DELETE FROM alembic_version;"))
         db.session.commit()
         return render_template("logout.html"), 200
     except Exception as e:
