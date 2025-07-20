@@ -15,7 +15,8 @@ def manage_rules():
             new_rule = Rule(
                 attribute=data['attribute'],
                 threshold=data['threshold'],
-                promocode=data['promocode']
+                promocode=data['promocode'],
+                client_id=g.client_id,
             )
             db_session.add(new_rule)
             db_session.commit()
@@ -23,10 +24,10 @@ def manage_rules():
                 "id": new_rule.id,
                 "attribute": new_rule.attribute,
                 "threshold": new_rule.threshold,
-                "promocode": new_rule.promocode
+                "promocode": new_rule.promocode,
             }), 201
 
-        rules = db_session.query(Rule).all()
+        rules = db_session.query(Rule).filter_by(client_id=g.client_id).all()
         return jsonify([{
             "id": r.id,
             "attribute": r.attribute,
