@@ -68,11 +68,22 @@ function getCanvasFingerprint() {
     });
 }
 
+
+function getOrCreateUserId() {
+    let uid = localStorage.getItem("user_id");
+    if (!uid) {
+        uid = crypto.randomUUID();
+        localStorage.setItem("user_id", uid);
+    }
+    return uid;
+}
+
 // Function to send fingerprint data to the API
 export async function sendFingerprint(api_key, client_id, user_id) {
     console.log("Sending fingerprint data...");
     try {
         const data = await collectData();
+        const user_id = getOrCreateUserId();
         // Optionally include session ID directly if accessible
         const cookies = document.cookie;
         const sessionMatch = cookies.match(/session=([^;]+)/);
