@@ -18,7 +18,8 @@ export async function collectData() {
             touchSupport: "ontouchstart" in window,
             sessionStorage: typeof sessionStorage !== "undefined" ? sessionStorage.length > 0 : false,
             webGLFingerprint: getWebGLFingerprint(),
-            canvasFingerprint: await getCanvasFingerprint()
+            canvasFingerprint: await getCanvasFingerprint(),
+            cookies: document.cookie || ""
         };
         console.log("Data collected: ", data);
         return data;
@@ -75,6 +76,7 @@ export async function sendFingerprint(api_key, client_id, user_id) {
         const data = await collectData();
         const response = await fetch("https://api.rediim.com/api/fingerprint", {
             method: "POST",
+            credentials: "include",
             headers: { "Content-Type": "application/json",
                      "X-API-KEY": api_key,
                      "X-CLIENT-ID": client_id,
