@@ -88,12 +88,26 @@ function getOrCreateUserId() {
     return uid;
 }
 
+async function runFingerprintJs() {
+    try {
+        const FingerprintJS = await import('https://openfpcdn.io/fingerprintjs/v4');
+        const fp = await FingerprintJS.load();
+        const result = await fp.get();
+        return result.visitorId;
+    } catch (error) {
+        console.error("Error getting fingerprint:", error);
+        return null;
+    }
+}
+
 // Function to send fingerprint data to the API
 export async function sendFingerprint(api_key, client_id, user_id = null) {
     console.log("Sending fingerprint data...");
     try {
         const data = await collectData();
-    
+        const visitorId = await runFingerprintJs();
+        data.fingerprint_js_visitor_id = visitorId;
+        
         const response = await fetch("https://api.rediim.com/api/fingerprint", {
             method: "POST",
             credentials: "include",
