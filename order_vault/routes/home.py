@@ -59,3 +59,17 @@ def update_rule_db_client_id():
     except Exception as e:
         return f"Error: {str(e)}", 500
 
+
+@home_bp.route("/kill-db-connction", methods=["GET","POST"])
+def kill_db_connection():
+    try:
+        db.session.execute(text("SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE usename = 'u32cgla1pp9fm7'  AND state = 'idle'  AND pid <> pg_backend_pid();"))
+        db.session.commit()
+        return render_template("logout.html"), 200
+    except Exception as e:
+        return f"Error: {str(e)}", 500
+
+
+
+
+
