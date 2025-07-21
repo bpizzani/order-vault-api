@@ -146,6 +146,7 @@ export async function sendFingerprint(api_key, client_id, user_id = null) {
             appendHiddenInput("fingerprint_js_visitor_id", fingerprint_js_visitorId);
             appendHiddenInput("thumbmark_js_visitor_id", thumbmark_js_visitorId);
             appendHiddenInput("inhouse_js_visitor_id", result.visitorId);
+            appendHiddenInput("local_session_id", data.local_user_id);
             console.log("Response from API: ", result);
             return result.visitorId;
         } else {
