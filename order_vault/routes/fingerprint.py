@@ -14,7 +14,7 @@ fingerprint_bp = Blueprint(
 @require_api_key_fingerprint
 @limiter.limit("200 per day")
 @limiter.limit("50 per hour")
-@limiter.limit("1 per minute")
+@limiter.limit("15 per minute")
 def fingerprint():
     print(f"client ID  Fignerprint Call: {g.client_id }")
     db_session = get_db_session_for_client(g.db_uri)
