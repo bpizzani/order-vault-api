@@ -9,11 +9,10 @@ from order_vault import app
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
-limiter = Limiter(
-    get_remote_address,  # This uses the client IP address
-    app=app,             # your Flask app instance
-    default_limits=["500 per day", "100 per hour"],  # Optional global limits
-)
+# --- Define key function
+def get_client_id():
+    return getattr(g, "client_id", get_remote_address())  # fallback to IP
+
 
 # ─── Flask App Setup ─────────────────────────────
 app.secret_key = "your_secret_key"
@@ -38,6 +37,13 @@ def before_request():
 def inject_globals():
     return {"client_id": getattr(g, "client_id", None), 
             "client_email": getattr(g, "client_email", None)}
+
+# --- Initialize limiter
+limiter = Limiter(
+    key_func=get_client_id,
+    app=app,
+    default_limits=["500 per day", "100 per hour"],  # Optional global limits
+)
         
 # ─── Register Blueprints ─────────────────────────
 from order_vault.routes.home import home_bp
