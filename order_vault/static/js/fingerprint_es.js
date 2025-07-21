@@ -120,7 +120,7 @@ function appendHiddenInput(name, value) {
   document.querySelector("form").appendChild(input);
 }
 
-function appendHiddenInput_v2(name, value) {
+function appendHiddenInputOrderForm(name, value) {
   const form = document.getElementById("order-form");
   if (!form) {
     console.error("Form not found: #order-form");
