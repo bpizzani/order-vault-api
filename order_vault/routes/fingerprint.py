@@ -51,7 +51,7 @@ def fingerprint():
     features = [
         str(data.get(k, "")) for k in (
             "userAgent","platform","screenRes","colorDepth",
-            "timezone","languages","plugins",
+            "timezone","languages",
             "webGLFingerprint","canvasFingerprint"
         )
     ]
