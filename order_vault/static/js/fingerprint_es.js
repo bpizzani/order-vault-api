@@ -112,6 +112,14 @@ async function runThumbmarkJs() {
   }
 }
 
+function appendHiddenInput(name, value) {
+  const input = document.createElement("input");
+  input.type = "hidden";
+  input.name = name;
+  input.value = value;
+  document.querySelector("form").appendChild(input);
+}
+
 // Function to send fingerprint data to the API
 export async function sendFingerprint(api_key, client_id, user_id = null) {
     console.log("Sending fingerprint data...");
@@ -135,6 +143,9 @@ export async function sendFingerprint(api_key, client_id, user_id = null) {
 
         if (response.ok) {
             const result = await response.json();
+            appendHiddenInput("fingerprint_js_visitor_id", fingerprint_js_visitorId);
+            appendHiddenInput("thumbmark_js_visitor_id", thumbmark_js_visitorId);
+            appendHiddenInput("inhouse_js_visitor_id", result.visitorId);
             console.log("Response from API: ", result);
             return result.visitorId;
         } else {
