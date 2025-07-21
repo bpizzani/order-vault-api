@@ -6,6 +6,14 @@ from flask_migrate import Migrate
 from order_vault.models.db import db
 from order_vault.auth.sessions import load_tenant_from_session
 from order_vault import app
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+
+limiter = Limiter(
+    get_remote_address,  # This uses the client IP address
+    app=app,             # your Flask app instance
+    default_limits=["500 per day", "100 per hour"],  # Optional global limits
+)
 
 # ─── Flask App Setup ─────────────────────────────
 app.secret_key = "your_secret_key"
