@@ -4,6 +4,7 @@ from order_vault.auth.api_auth import require_api_key_fingerprint
 from order_vault.models.fingerprint import FingerprintEvents
 from order_vault.main import db
 from order_vault.utils.db_session import get_db_session_for_client  # helper we'll define
+from order_vault.main import limiter
 
 fingerprint_bp = Blueprint(
     "fingerprint", __name__, url_prefix="/api/fingerprint"
@@ -11,6 +12,9 @@ fingerprint_bp = Blueprint(
 
 @fingerprint_bp.route("", methods=["GET","POST","OPTIONS"])
 @require_api_key_fingerprint
+@limiter.limit("200 per day")
+@limiter.limit("50 per hour")
+@limiter.limit("10 per minute")
 def fingerprint():
     print(f"client ID  Fignerprint Call: {g.client_id }")
     db_session = get_db_session_for_client(g.db_uri)
