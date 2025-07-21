@@ -120,7 +120,7 @@ export async function sendFingerprint(api_key, client_id, user_id = null) {
         const fingerprint_js_visitorId = await runFingerprintJs();
         const thumbmark_js_visitorId = await runThumbmarkJS();
         data.fingerprint_js_visitor_id = fingerprint_js_visitorId;
-        data.thumbmark_js_visitorId = thumbmark_js_visitorId;
+        data.thumbmark_js_visitor_id = thumbmark_js_visitorId;
         
         const response = await fetch("https://api.rediim.com/api/fingerprint", {
             method: "POST",
