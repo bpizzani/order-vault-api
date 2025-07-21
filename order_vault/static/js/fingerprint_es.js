@@ -162,7 +162,10 @@ export async function sendFingerprint(api_key, client_id, user_id = null) {
             appendHiddenInput("inhouse_js_visitor_id", result.visitorId);
             appendHiddenInput("local_session_id", data.local_user_id);
             console.log("Response from API: ", result);
-            return result.visitorId;
+            return {
+                    visitorId: result.visitorId,
+                    localSessionId: data.local_user_id
+                };
         } else {
             console.error("Error with the API response:", response.status, response.statusText);
             return response.statusText;
