@@ -105,8 +105,8 @@ async function runThumbmarkJs() {
     await import('https://cdn.jsdelivr.net/npm/@thumbmarkjs/thumbmarkjs/dist/thumbmark.umd.js');
     const tm = new ThumbmarkJS.Thumbmark();
     const result = await tm.get();
-    console.log(result);
-    return result;
+    const thumbmark = result.thumbmark;
+    return thumbmark;
   } catch (err) {
     console.error("Error loading ThumbmarkJS:", err);
   }
