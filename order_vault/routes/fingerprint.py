@@ -21,10 +21,13 @@ def fingerprint():
     user_identifier_client = request.headers.get("user_identifier_client")
     user_identifier_device = data.get("local_user_id") 
     fingerprint_js_visitor_id = data.get("fingerprint_js_visitor_id") 
+    thumbmark_js_visitor_id = data.get("thumbmark_js_visitor_id") 
+
     platform = data.get("platform", data.get("apiLevel"))
     
     print(f"platform: {platform}")
     print(f"user identifier detected: {user_identifier_client}")
+    print(f"thumbmark_js_visitor_id detected: {thumbmark_js_visitor_id}")
     print(f"user_identifier_device detected: {user_identifier_device}")
     print(f"fingerprint_js_visitor_id detected: {fingerprint_js_visitor_id}")
     print(f"sessions_id: {request.headers.get('sessions_id')}")
@@ -55,7 +58,7 @@ def fingerprint():
     vid = hashlib.sha256("|".join(features).encode()).hexdigest()
 
     # Store in DB
-    entry = FingerprintEvents(client_id=g.client_id, user_id=user_identifier_client, visitor_id=vid,js_visitor_id=fingerprint_js_visitor_id, cookie_session=cookie_session,local_storage_device=user_identifier_device, user_agent=str(data.get('userAgent'))[0:50], webdriver=data.get('webdriver'), platform=platform)
+    entry = FingerprintEvents(client_id=g.client_id, user_id=user_identifier_client, visitor_id=vid,js_visitor_id=fingerprint_js_visitor_id,tm_visitor_id=thumbmark_js_visitor_id, cookie_session=cookie_session,local_storage_device=user_identifier_device, user_agent=str(data.get('userAgent'))[0:50], webdriver=data.get('webdriver'), platform=platform)
     db_session.add(entry)
     db_session.commit()
     print("Fingerprint Event Saved")
