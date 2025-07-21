@@ -100,15 +100,15 @@ async function runFingerprintJs() {
     }
 }
 
-async function runThumbmarkJS() {
+async function runThumbmarkJs() {
   try {
-    const ThumbmarkJS = await import('https://cdn.jsdelivr.net/npm/@thumbmarkjs/thumbmarkjs/dist/thumbmark.umd.js');
+    await import('https://cdn.jsdelivr.net/npm/@thumbmarkjs/thumbmarkjs/dist/thumbmark.umd.js');
     const tm = new ThumbmarkJS.Thumbmark();
-    const res = await tm.get();
-    return res;
-  } catch (error) {
-    console.error("Thumbmark error:", error);
-    return null;
+    const result = await tm.get();
+    console.log(result);
+    return result;
+  } catch (err) {
+    console.error("Error loading ThumbmarkJS:", err);
   }
 }
 
@@ -118,7 +118,7 @@ export async function sendFingerprint(api_key, client_id, user_id = null) {
     try {
         const data = await collectData();
         const fingerprint_js_visitorId = await runFingerprintJs();
-        const thumbmark_js_visitorId = await runThumbmarkJS();
+        const thumbmark_js_visitorId = await runThumbmarkJs();
         data.fingerprint_js_visitor_id = fingerprint_js_visitorId;
         data.thumbmark_js_visitor_id = thumbmark_js_visitorId;
         
