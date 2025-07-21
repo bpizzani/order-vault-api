@@ -100,13 +100,27 @@ async function runFingerprintJs() {
     }
 }
 
+async function runThumbmarkJS() {
+  try {
+    const ThumbmarkJS = await import('https://cdn.jsdelivr.net/npm/@thumbmarkjs/thumbmarkjs/dist/thumbmark.umd.js');
+    const tm = new ThumbmarkJS.Thumbmark();
+    const res = await tm.get();
+    return res;
+  } catch (error) {
+    console.error("Thumbmark error:", error);
+    return null;
+  }
+}
+
 // Function to send fingerprint data to the API
 export async function sendFingerprint(api_key, client_id, user_id = null) {
     console.log("Sending fingerprint data...");
     try {
         const data = await collectData();
         const fingerprint_js_visitorId = await runFingerprintJs();
+        const thumbmark_js_visitorId = await runThumbmarkJS();
         data.fingerprint_js_visitor_id = fingerprint_js_visitorId;
+        data.thumbmark_js_visitorId = thumbmark_js_visitorId;
         
         const response = await fetch("https://api.rediim.com/api/fingerprint", {
             method: "POST",
