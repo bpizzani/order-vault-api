@@ -33,7 +33,7 @@ def build_graph_from_order(order_data: dict) -> nx.Graph:
     G.add_edge(customer_node, order_node)
 
     # Add attribute nodes and edges
-    attributes = ['card_details', 'email', 'device_id', 'phone', 'ip', 'promocode']
+    attributes = ['card_details', 'email', 'device_id', 'phone', 'local_session_id', 'promocode']
     for attr in attributes:
         value = order_data.get(attr)
         if value:
