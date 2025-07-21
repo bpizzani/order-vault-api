@@ -48,7 +48,7 @@ def save_order_in_neo4j(session, order_data):
     G.add_edge(customer_node, order_node)
 
     # Add order attributes as nodes and edges in the graph
-    attributes = ['card_details', 'email', 'device_id', 'phone'] #promocode
+    attributes = ['card_details', 'email', 'device_id', 'phone','local_session_id'] #promocode
 
     for attribute in attributes:
         attr_value = order_data.get(attribute)
