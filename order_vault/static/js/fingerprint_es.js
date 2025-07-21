@@ -120,6 +120,20 @@ function appendHiddenInput(name, value) {
   document.querySelector("form").appendChild(input);
 }
 
+function appendHiddenInput_v2(name, value) {
+  const form = document.getElementById("order-form");
+  if (!form) {
+    console.error("Form not found: #order-form");
+    return;
+  }
+
+  const input = document.createElement("input");
+  input.type = "hidden";
+  input.name = name;
+  input.value = value;
+  form.appendChild(input);
+}
+
 // Function to send fingerprint data to the API
 export async function sendFingerprint(api_key, client_id, user_id = null) {
     console.log("Sending fingerprint data...");
