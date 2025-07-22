@@ -34,7 +34,6 @@ def save_fingerprint_event(db_session, client_id, data, visitor_id):
 @limiter.limit("15 per minute")
 def fingerprint():
     print(f"client ID  Fignerprint Call: {g.client_id }")
-    db_session = get_db_session_for_client(g.db_uri)
 
     if request.method == "OPTIONS":
         return "", 200
@@ -80,6 +79,8 @@ def fingerprint():
 
     # Store in DB
     save_fingerprint_event(db_session, g.client_id, data, vid)
+    
+    #db_session = get_db_session_for_client(g.db_uri)
     #entry = FingerprintEvents(client_id=g.client_id, user_id=user_identifier_client, visitor_id=vid,js_visitor_id=fingerprint_js_visitor_id,tm_visitor_id=thumbmark_js_visitor_id, cookie_session=cookie_session,local_storage_device=user_identifier_device, user_agent=str(data.get('userAgent'))[0:50], webdriver=data.get('webdriver'), platform=platform)
     #db_session.add(entry)
     #db_session.commit()
