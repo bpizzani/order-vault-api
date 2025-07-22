@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, send_from_directory, request, session, jsonif
+from flask import Blueprint, render_template, send_from_directory, request, session, jsonify
 from werkzeug.security import check_password_hash
 from order_vault.utils.auth import login_required
 from order_vault.main import db
