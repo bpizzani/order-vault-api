@@ -11,7 +11,7 @@ fingerprint_bp = Blueprint(
     "fingerprint", __name__, url_prefix="/api/fingerprint"
 )
 
-def async_save_fingerprint_event(db_uri, client_id, data, visitor_id):
+def async_save_fingerprint_event(db_uri, client_id, user_identifier_client, data, visitor_id):
     # Create a new DB session in the background thread
     session = get_db_session_for_client(db_uri)
     try:
