@@ -73,17 +73,15 @@ def kill_db_connection():
 def no_listing():
     return "Access denied", 403
 
-@home_bp.route("/static/js/fingerprint_es.js")
+@home_bp.route("/sdk-loader")
 @require_api_key_fingerprint
 def serve_fingerprint_js():
     return send_from_directory("static/js", "fingerprint_es.js")
 
-
-@home_bp.route("/static/js/fingerprint_es.min.js")
+@home_bp.route("/sdk-loader")
 @require_api_key_fingerprint
-def serve_fingerprint_js_min():
+def serve_fingerprint_min_js():
     return send_from_directory("static/js", "fingerprint_es.min.js")
-
 
 
 
