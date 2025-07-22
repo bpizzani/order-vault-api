@@ -116,7 +116,7 @@ def save_fingerprint_event(db_session, client_id, user_identifier_client, data, 
 @limiter.limit("200 per day")
 @limiter.limit("50 per hour")
 @limiter.limit("15 per minute")
-@limit_fingerprint_events(max_events=5)
+@limit_fingerprint_events(max_events=300)
 def fingerprint():
     print(f"client ID  Fignerprint Call: {g.client_id }")
 
