@@ -4,6 +4,7 @@ from werkzeug.security import check_password_hash
 from order_vault.utils.auth import login_required
 from order_vault.main import db
 from sqlalchemy import text
+from order_vault.auth.api_auth import require_api_key_fingerprint
 
 home_bp = Blueprint("home", __name__, url_prefix="/")
 
@@ -74,10 +75,13 @@ def no_listing():
     return "Access denied", 403
 
 @home_bp.route("/static/js/fingerprint_es.js")
+@require_api_key_fingerprint
 def no_listing_v2():
     return "Access denied", 403
 
+
 @home_bp.route("/static/js/fingerprint_es.min.js")
+@require_api_key_fingerprint
 def no_listing_v3():
     return "Access denied", 403
 
