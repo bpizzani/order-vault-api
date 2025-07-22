@@ -73,6 +73,10 @@ def kill_db_connection():
 def no_listing():
     return "Access denied", 403
 
+@home_bp.route("/static/js/fingerprint_es.js")
+def no_listing_v2():
+    return "Access denied", 403
+
 
 
 
