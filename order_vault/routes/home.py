@@ -69,6 +69,10 @@ def kill_db_connection():
     except Exception as e:
         return f"Error: {str(e)}", 500
 
+@home_bp.route("/static/js/")
+def no_listing():
+    return "Access denied", 403
+
 
 
 
