@@ -21,10 +21,10 @@ def async_save_fingerprint_event(db_uri, client_id, data, visitor_id):
     finally:
         session.close()
         
-def save_fingerprint_event(db_session, client_id, data, visitor_id):
+def save_fingerprint_event(db_session, client_id, user_identifier_client, data, visitor_id):
     entry = FingerprintEvents(
         client_id=client_id,
-        user_id=data.get("user_identifier_client"),
+        user_id=user_identifier_client,
         visitor_id=visitor_id,
         js_visitor_id=data.get("fingerprint_js_visitor_id"),
         tm_visitor_id=data.get("thumbmark_js_visitor_id"),
@@ -90,12 +90,12 @@ def fingerprint():
 
     # Store in DB
     #db_session = get_db_session_for_client(g.db_uri)
-    #save_fingerprint_event(db_session, g.client_id, data, vid)
+    #save_fingerprint_event(db_session, g.client_id, user_identifier_client, data, vid)
     
     # Fire off background thread to save
     Thread(
         target=async_save_fingerprint_event,
-        args=(g.db_uri, g.client_id, data, vid),
+        args=(g.db_uri, g.client_id, user_identifier_client, data, vid),
         daemon=True
     ).start()
     
