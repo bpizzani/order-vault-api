@@ -1,5 +1,4 @@
-from flask import Blueprint, render_template
-from flask import request, session, jsonify
+from flask import Blueprint, render_template, send_from_directory, request, session, jsonif
 from werkzeug.security import check_password_hash
 from order_vault.utils.auth import login_required
 from order_vault.main import db
@@ -76,14 +75,14 @@ def no_listing():
 
 @home_bp.route("/static/js/fingerprint_es.js")
 @require_api_key_fingerprint
-def no_listing_v2():
-    return "Access denied", 403
+def serve_fingerprint_js():
+    return send_from_directory("static/js", "fingerprint_es.js")
 
 
 @home_bp.route("/static/js/fingerprint_es.min.js")
 @require_api_key_fingerprint
-def no_listing_v3():
-    return "Access denied", 403
+def serve_fingerprint_js_min():
+    return send_from_directory("static/js", "fingerprint_es.min.js")
 
 
 
