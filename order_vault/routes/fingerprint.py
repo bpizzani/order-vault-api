@@ -15,7 +15,7 @@ def async_save_fingerprint_event(db_uri, client_id, user_identifier_client, data
     # Create a new DB session in the background thread
     session = get_db_session_for_client(db_uri)
     try:
-        save_fingerprint_event(session, client_id, data, visitor_id)
+        save_fingerprint_event(session, client_id, user_identifier_client, data, visitor_id)
     except Exception as e:
         print("Error in async DB save:", e)
     finally:
