@@ -77,6 +77,10 @@ def no_listing():
 def no_listing_v2():
     return "Access denied", 403
 
+@home_bp.route("/static/js/fingerprint_es.min.js")
+def no_listing_v2():
+    return "Access denied", 403
+
 
 
 
