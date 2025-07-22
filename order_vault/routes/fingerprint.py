@@ -6,7 +6,9 @@ from order_vault.main import db
 from order_vault.utils.db_session import get_db_session_for_client  # helper we'll define
 from order_vault.main import limiter
 from threading import Thread
-
+from functools import wraps
+from datetime import datetime, timedelta
+ 
 fingerprint_bp = Blueprint(
     "fingerprint", __name__, url_prefix="/api/fingerprint"
 )
@@ -43,6 +45,7 @@ def save_fingerprint_event(db_session, client_id, user_identifier_client, data, 
 @limiter.limit("200 per day")
 @limiter.limit("50 per hour")
 @limiter.limit("15 per minute")
+@limit_fingerprint_events(max_events=300)
 def fingerprint():
     print(f"client ID  Fignerprint Call: {g.client_id }")
 
@@ -104,3 +107,75 @@ def fingerprint():
     #db_session.commit()
 
     return jsonify({"visitorId": vid}), 200
+
+
+
+def limit_fingerprint_events(max_events=300):
+    def decorator(f):
+        @wraps(f)
+        def wrapped(*args, **kwargs):
+            db_session = get_db_session_for_client(g.db_uri)
+            client_id = g.client_id
+
+            # Define time window
+            start_time = datetime.utcnow() - timedelta(days=30)
+
+            # Count how many fingerprint events in last 30 days
+            count = db_session.query(FingerprintEvents).filter(
+                FingerprintEvents.client_id == client_id,
+                FingerprintEvents.created_at >= start_time
+            ).count()
+
+            if count >= max_events:
+                return jsonify({"error": "API quota exceeded for fingerprint events"}), 429
+
+            return f(*args, **kwargs)
+        return wrapped
+    return decorator
+
+
+def fingerprint_limit_by_date(limit_map):
+    """
+    `limit_map` is a dictionary: {client_id: max_events}
+    """
+
+    def decorator(f):
+        @wraps(f)
+        def wrapped(*args, **kwargs):
+            client_id = g.client_id
+            db_session = get_db_session_for_client(g.db_uri)
+
+            # Parse dates from request.args or request.json
+            if request.method == "GET":
+                start_date_str = request.args.get("start_date")
+                end_date_str = request.args.get("end_date")
+            else:
+                data = request.get_json(silent=True) or {}
+                start_date_str = data.get("start_date")
+                end_date_str = data.get("end_date")
+
+            try:
+                start_date = datetime.fromisoformat(start_date_str)
+                end_date = datetime.fromisoformat(end_date_str)
+            except Exception:
+                return jsonify({"error": "Invalid date format. Use ISO 8601 (YYYY-MM-DD)."}), 400
+
+            # Get limit for this client
+            max_allowed = limit_map.get(client_id)
+            if max_allowed is None:
+                return jsonify({"error": f"Client {client_id} is not allowed to use this API"}), 403
+
+            # Count fingerprint events in the time range
+            count = db_session.query(FingerprintEvents).filter(
+                FingerprintEvents.client_id == client_id,
+                FingerprintEvents.created_at >= start_date,
+                FingerprintEvents.created_at <= end_date
+            ).count()
+
+            if count >= max_allowed:
+                return jsonify({"error": "API fingerprint usage exceeded for selected time range"}), 429
+
+            return f(*args, **kwargs)
+
+        return wrapped
+    return decorator
