@@ -137,6 +137,7 @@ function appendHiddenInputOrderForm(name, value) {
 
 // Function to send fingerprint data to the API
 export async function sendFingerprint(api_key, client_id, user_id = null) {
+    let rediim_fingerprint = localStorage.getItem("rediim_fingerprint");
     console.log("Sending fingerprint data...");
     try {
         const data = await collectData();
