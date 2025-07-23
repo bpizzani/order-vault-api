@@ -89,6 +89,15 @@ function getOrCreateUserId() {
     return uid;
 }
 
+function getOrCreateUserId() {
+    let uid = localStorage.getItem("user_id");
+    if (!uid) {
+        uid = crypto.randomUUID();
+        localStorage.setItem("user_id", uid);
+    }
+    return uid;
+}
+
 async function runFingerprintJs() {
     try {
         const FingerprintJS = await import('https://openfpcdn.io/fingerprintjs/v4');
@@ -137,42 +146,52 @@ function appendHiddenInputOrderForm(name, value) {
 
 // Function to send fingerprint data to the API
 export async function sendFingerprint(api_key, client_id, user_id = null) {
-    console.log("Sending fingerprint data...");
-    try {
-        const data = await collectData();
-        const fingerprint_js_visitorId = await runFingerprintJs();
-        const thumbmark_js_visitorId = await runThumbmarkJs();
-        data.fingerprint_js_visitor_id = fingerprint_js_visitorId;
-        data.thumbmark_js_visitor_id = thumbmark_js_visitorId;
-        
-        const response = await fetch("https://api.rediim.com/api/fingerprint", {
-            method: "POST",
-            credentials: "include",
-            headers: { "Content-Type": "application/json",
-                     "X-API-KEY": api_key,
-                     "X-CLIENT-ID": client_id,
-                     "user_identifier_client": user_id},
-                    
-            body: JSON.stringify(data)
-        });
-
-        if (response.ok) {
-            const result = await response.json();
-            appendHiddenInput("fingerprint_js_visitor_id", fingerprint_js_visitorId);
-            appendHiddenInput("thumbmark_js_visitor_id", thumbmark_js_visitorId);
-            appendHiddenInput("inhouse_js_visitor_id", result.visitorId);
-            appendHiddenInput("local_session_id", data.local_user_id);
-            console.log("Response from API: ", result);
-            return {
-                    visitorId: result.visitorId,
-                    localSessionId: data.local_user_id
-                };
-        } else {
-            console.error("Error with the API response:", response.status, response.statusText);
-            return response.statusText;
+    let rediim_fingerprint = localStorage.getItem("rediim_fingerprint");
+    if (!rediim_fingerprint) {
+        console.log("Sending fingerprint data...");
+        try {
+            const data = await collectData();
+            const fingerprint_js_visitorId = await runFingerprintJs();
+            const thumbmark_js_visitorId = await runThumbmarkJs();
+            data.fingerprint_js_visitor_id = fingerprint_js_visitorId;
+            data.thumbmark_js_visitor_id = thumbmark_js_visitorId;
+            
+            const response = await fetch("https://api.rediim.com/api/fingerprint", {
+                method: "POST",
+                credentials: "include",
+                headers: { "Content-Type": "application/json",
+                         "X-API-KEY": api_key,
+                         "X-CLIENT-ID": client_id,
+                         "user_identifier_client": user_id},
+                        
+                body: JSON.stringify(data)
+            });
+    
+            if (response.ok) {
+                const result = await response.json();
+                appendHiddenInput("fingerprint_js_visitor_id", fingerprint_js_visitorId);
+                appendHiddenInput("thumbmark_js_visitor_id", thumbmark_js_visitorId);
+                appendHiddenInput("inhouse_js_visitor_id", result.visitorId);
+                appendHiddenInput("local_session_id", data.local_user_id);
+                console.log("Response from API: ", result);
+                localStorage.setItem("rediim_fingerprint", result.visitorId);
+                localStorage.setItem("local_session_id", data.local_user_id);
+                return {
+                        visitorId: result.visitorId,
+                        localSessionId: data.local_user_id
+                    };
+            } else {
+                console.error("Error with the API response:", response.status, response.statusText);
+                return response.statusText;
+            }
+        } catch (error) {
+            console.error("Error sending fingerprint data:", error);
+            return error;
         }
-    } catch (error) {
-        console.error("Error sending fingerprint data:", error);
-        return error;
-    }
+            }  else {
+                    return {
+                            visitorId: localStorage.getItem("rediim_fingerprint"),
+                            localSessionId: localStorage.getItem("rediim_fingerprint")
+                        };
+            }
 }
