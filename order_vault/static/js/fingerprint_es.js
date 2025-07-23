@@ -26,8 +26,8 @@ export async function collectData() {
             webGLFingerprint: getWebGLFingerprint(),
             canvasFingerprint: await getCanvasFingerprint(),
                     // Optionally include session ID directly if accessible
-            cookies: cookies,
-            sessionId: sessionId,
+            cookies,
+            sessionId,
             bot_framework: /selenium|headless|bot/i.test(navigator.userAgent),
             local_user_id,
         };
