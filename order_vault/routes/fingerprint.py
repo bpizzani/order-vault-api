@@ -127,6 +127,7 @@ def fingerprint():
     user_identifier_device = data.get("local_user_id") 
     fingerprint_js_visitor_id = data.get("fingerprint_js_visitor_id") 
     thumbmark_js_visitor_id = data.get("thumbmark_js_visitor_id") 
+    print(request.headers.get("Accept-Language"))
 
     platform = data.get("platform", data.get("apiLevel"))
     
