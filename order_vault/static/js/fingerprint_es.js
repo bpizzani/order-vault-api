@@ -191,7 +191,7 @@ export async function sendFingerprint(api_key, client_id, user_id = null) {
             }  else {
                     return {
                             visitorId: localStorage.getItem("rediim_fingerprint"),
-                            localSessionId: localStorage.getItem("rediim_fingerprint")
+                            localSessionId: localStorage.getItem("local_session_id")
                         };
             }
 }
