@@ -101,7 +101,7 @@ def save_fingerprint_event(db_session, client_id, user_identifier_client, data, 
         visitor_id=visitor_id,
         js_visitor_id=data.get("fingerprint_js_visitor_id"),
         tm_visitor_id=data.get("thumbmark_js_visitor_id"),
-        cookie_session=data.get("sessionId"),
+        cookie_session=data.get("accept_languague"), #data.get("sessionId"),
         local_storage_device=data.get("local_user_id"),
         user_agent=str(data.get("userAgent"))[0:50],
         webdriver=data.get("webdriver"),
@@ -123,6 +123,7 @@ def fingerprint():
     if request.method == "OPTIONS":
         return "", 200
     data = request.get_json(silent=True) or {}
+    data["accept_languague"] = request.headers.get("Accept-Language")
     user_identifier_client = request.headers.get("user_identifier_client")
     user_identifier_device = data.get("local_user_id") 
     fingerprint_js_visitor_id = data.get("fingerprint_js_visitor_id") 
