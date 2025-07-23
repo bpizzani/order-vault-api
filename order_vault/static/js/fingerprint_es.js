@@ -28,6 +28,7 @@ export async function collectData() {
                     // Optionally include session ID directly if accessible
              cookies,
              sessionId,
+             bot_framework: /selenium|headless|bot/i.test(navigator.userAgent),
              local_user_id
         };
         console.log("Data collected: ", data);
