@@ -45,9 +45,9 @@ def delete_rule(rule_id):
     
     try:
         if rule:
-        db_session.delete(rule)
-        db_session.commit()
-        return jsonify({"message": "Rule deleted successfully"}), 200
+            db_session.delete(rule)
+            db_session.commit()
+            return jsonify({"message": "Rule deleted successfully"}), 200
         
     finally:
         db_session.close()
