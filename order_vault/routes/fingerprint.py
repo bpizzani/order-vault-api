@@ -29,6 +29,7 @@ def limit_fingerprint_events(max_events=300):
                 FingerprintEvents.client_id == client_id,
                 FingerprintEvents.created_at >= start_time
             ).count()
+            db_session.close()
 
             if count >= max_events:
                 return jsonify({"error": "API quota exceeded for fingerprint events"}), 429
@@ -75,7 +76,7 @@ def fingerprint_limit_by_date(limit_map):
                 FingerprintEvents.created_at >= start_date,
                 FingerprintEvents.created_at <= end_date
             ).count()
-
+            db_session.close()
             if count >= max_allowed:
                 return jsonify({"error": "API fingerprint usage exceeded for selected time range"}), 429
 
