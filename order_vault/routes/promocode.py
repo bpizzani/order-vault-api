@@ -4,6 +4,7 @@ import traceback
 promocode_bp = Blueprint("promocode", __name__, url_prefix="/api/promocode")
 
 @promocode_bp.route("/usage", methods=["GET"])
+@login_required
 def usage():
     promocode = request.args.get("promocode", "").strip()
 
@@ -166,6 +167,7 @@ def usage():
         return jsonify({"error": "Database error", "details": str(e)}), 500
 
 @promocode_bp.route("/order-count", methods=["GET"])
+@login_required
 def order_count():
     email = request.args.get("email", "").strip().lower()
 
@@ -211,6 +213,7 @@ def order_count():
 
 
 @promocode_bp.route("/abuse-by-day", methods=["GET"])
+@login_required
 def abuse_by_day():
     promocode = request.args.get("promocode", "").strip()
 
@@ -279,6 +282,7 @@ def abuse_by_day():
 
 
 @promocode_bp.route("/abuse-history", methods=["GET"])
+@login_required
 def abuse_history_all_promocodes():
     query_old = """
     MATCH (o:Order)
