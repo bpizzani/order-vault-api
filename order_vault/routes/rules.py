@@ -43,11 +43,12 @@ def delete_rule(rule_id):
     db_session = get_db_session_for_client(g.db_uri)
     rule = db_session.query(Rule).filter_by(id=rule_id, client_id=g.client_id).first()
     
-    if rule:
+    try:
+        if rule:
         db_session.delete(rule)
         db_session.commit()
-        db_session.close()
         return jsonify({"message": "Rule deleted successfully"}), 200
         
-    db_session.close()
+    finally:
+        db_session.close()
     return jsonify({"error": "Rule not found"}), 404
