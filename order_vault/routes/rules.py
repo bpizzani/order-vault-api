@@ -46,5 +46,8 @@ def delete_rule(rule_id):
     if rule:
         db_session.delete(rule)
         db_session.commit()
+        db_session.close()
         return jsonify({"message": "Rule deleted successfully"}), 200
+        
+    db_session.close()
     return jsonify({"error": "Rule not found"}), 404
