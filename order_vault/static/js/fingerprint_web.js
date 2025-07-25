@@ -180,6 +180,8 @@ export async function sendFingerprint(api_key, client_id, user_id = null) {
             return error;
         }
     } else { 
+        appendHiddenInput("inhouse_js_visitor_id", localStorage.getItem("rediim_fingerprint"));
+        appendHiddenInput("local_session_id", localStorage.getItem("local_session_id"));
         return {
                 visitorId: localStorage.getItem("rediim_fingerprint"),
                 localSessionId: localStorage.getItem("local_session_id")
