@@ -7,6 +7,7 @@ from order_vault.utils.db_session import get_db_session_for_client  # helper we'
 rules_bp = Blueprint("rules", __name__, url_prefix="/api/rules")
 
 @rules_bp.route("", methods=["GET","POST"])
+@login_required
 def manage_rules():
     db_session = get_db_session_for_client(g.db_uri)
     try:
@@ -39,6 +40,7 @@ def manage_rules():
         db_session.close()
 
 @rules_bp.route("<int:rule_id>", methods=["DELETE"])
+@login_required
 def delete_rule(rule_id):
     db_session = get_db_session_for_client(g.db_uri)
     rule = db_session.query(Rule).filter_by(id=rule_id, client_id=g.client_id).first()
