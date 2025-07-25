@@ -51,4 +51,3 @@ def delete_rule(rule_id):
         
     finally:
         db_session.close()
-    return jsonify({"error": "Rule not found"}), 404
