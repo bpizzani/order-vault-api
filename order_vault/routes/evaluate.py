@@ -19,7 +19,7 @@ def evaluate():
     raw = evaluate_attributes(g.neo4j_driver.session(), types, promo)
 
     # Batch load rules
-    rule_objs = Rule.query.filter(Rule.attribute.in_(types), Rule.promocode == promo).all()
+    rule_objs = Rule.query.filter(Rule.attribute.in_(types), Rule.promocode == promo,Rule.client_id=g.client_id).all()
     rule_map = {rule.attribute: rule for rule in rule_objs}
 
     final = {}
