@@ -86,14 +86,14 @@ def evaluate():
 
     print("Evaluate total time:", time.time() - start)
 
+    risk_decision = {"evaluation_results": final, "overall_abusive": overall}
     # Fire off background thread to save
+
     Thread(
-        target=async_save_fingerprint_event,
-        args=(g.db_uri, g.client_id, user_identifier_client, data, vid),
+        target=async_save_evaluation_event,
+        args=(g.db_uri, g.client_id, user_id, checkout_id, order_id, session_id, values, risk_decision),
         daemon=True
     ).start()
-
-    risk_decision = {"evaluation_results": final, "overall_abusive": overall}
 
     return jsonify({"evaluation_results": final, "overall_abusive": overall}), 200
 
