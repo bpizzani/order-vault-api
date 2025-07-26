@@ -80,6 +80,7 @@ def create_subscription_via_url():
     start_date = request.args.get("start_date")  # expected format: YYYY-MM-DD
     end_date = request.args.get("end_date")      # expected format: YYYY-MM-DD
     max_api_calls = request.args.get("max_api_calls")
+    max_api_fingerprint_calls = request.args.get("max_api_fingerprint_calls")
     
     if not client_id or not start_date or not end_date or not max_api_calls:
         return jsonify({"error": "Missing parameters"}), 400
@@ -88,6 +89,7 @@ def create_subscription_via_url():
         subscription_start = datetime.strptime(start_date, "%Y-%m-%d")
         subscription_end = datetime.strptime(end_date, "%Y-%m-%d")
         max_api_calls = int(max_api_calls)
+        max_api_fingerprint_calls = int(max_api_fingerprint_calls)
     except ValueError as e:
         return jsonify({"error": f"Invalid date or number format: {str(e)}"}), 400
 
@@ -96,7 +98,8 @@ def create_subscription_via_url():
         type=type,
         subscription_start=subscription_start,
         subscription_end=subscription_end,
-        max_api_calls=max_api_calls
+        max_api_calls=max_api_calls,
+        max_api_fingerprint_calls=max_api_fingerprint_calls,
     )
 
     db.session.add(subscription)
