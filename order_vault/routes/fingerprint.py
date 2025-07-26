@@ -8,7 +8,9 @@ from order_vault.main import limiter
 from threading import Thread
 from functools import wraps
 from datetime import datetime, timedelta
- 
+from order_vault.models.client_subscription import ClientSubscription
+from order_vault.models.fingerprint_events import FingerprintEvents  # adjust import if needed
+
 fingerprint_bp = Blueprint(
     "fingerprint", __name__, url_prefix="/api/fingerprint"
 )
@@ -39,52 +41,45 @@ def limit_fingerprint_events(max_events=300):
     return decorator
 
 
-def fingerprint_limit_by_date(limit_map):
-    """
-    `limit_map` is a dictionary: {client_id: max_events}
-    """
-
+def limit_fingerprint_events_subscription():
     def decorator(f):
         @wraps(f)
         def wrapped(*args, **kwargs):
-            client_id = g.client_id
             db_session = get_db_session_for_client(g.db_uri)
+            client_id = g.get("client_id")
 
-            # Parse dates from request.args or request.json
-            if request.method == "GET":
-                start_date_str = request.args.get("start_date")
-                end_date_str = request.args.get("end_date")
-            else:
-                data = request.get_json(silent=True) or {}
-                start_date_str = data.get("start_date")
-                end_date_str = data.get("end_date")
+            if not client_id:
+                db_session.close()
+                return jsonify({"error": "Missing client_id"}), 400
 
-            try:
-                start_date = datetime.fromisoformat(start_date_str)
-                end_date = datetime.fromisoformat(end_date_str)
-            except Exception:
-                return jsonify({"error": "Invalid date format. Use ISO 8601 (YYYY-MM-DD)."}), 400
+            now = datetime.utcnow()
 
-            # Get limit for this client
-            max_allowed = limit_map.get(client_id)
-            if max_allowed is None:
-                return jsonify({"error": f"Client {client_id} is not allowed to use this API"}), 403
+            # Fetch the active subscription
+            subscription = db_session.query(ClientSubscription).filter(
+                ClientSubscription.client_id == client_id,
+                ClientSubscription.subscription_start <= now,
+                ClientSubscription.subscription_end >= now
+            ).first()
 
-            # Count fingerprint events in the time range
+            if not subscription:
+                db_session.close()
+                return jsonify({"error": "No active subscription found"}), 403
+
+            # Count fingerprint events during the subscription period
             count = db_session.query(FingerprintEvents).filter(
                 FingerprintEvents.client_id == client_id,
-                FingerprintEvents.created_at >= start_date,
-                FingerprintEvents.created_at <= end_date
+                FingerprintEvents.created_at >= subscription.subscription_start,
+                FingerprintEvents.created_at <= subscription.subscription_end
             ).count()
-            db_session.close()
-            if count >= max_allowed:
-                return jsonify({"error": "API fingerprint usage exceeded for selected time range"}), 429
+
+            if count >= subscription.max_api_calls:
+                db_session.close()
+                return jsonify({"error": "API quota exceeded"}), 429
 
             return f(*args, **kwargs)
-
         return wrapped
     return decorator
-
+ 
 def async_save_fingerprint_event(db_uri, client_id, user_identifier_client, data, visitor_id):
     # Create a new DB session in the background thread
     session = get_db_session_for_client(db_uri)
@@ -117,7 +112,8 @@ def save_fingerprint_event(db_session, client_id, user_identifier_client, data, 
 @limiter.limit("200 per day")
 @limiter.limit("100 per hour")
 @limiter.limit("15 per minute")
-@limit_fingerprint_events(max_events=300)
+#@limit_fingerprint_events(max_events=300)
+@limit_fingerprint_events_subscription
 def fingerprint():
     print(f"client ID  Fignerprint Call: {g.client_id }")
 
