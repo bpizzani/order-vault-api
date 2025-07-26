@@ -19,7 +19,7 @@ def async_save_evaluation_event(db_uri, client_id,  user_id, checkout_id, order_
         session.close()
         
 def save_evaluation_event(db_session, client_id, user_id, checkout_id, order_id, session_id, values, risk_decision):
-    entry = FingerprintEvents(
+    entry = Evaluation(
         client_id = client_id,
         user_id = user_id,
         checkout_id = checkout_id,
