@@ -11,7 +11,8 @@ def evaluate():
     types = request.args.get("attribute_types", "device_id").split(",")
     promo = request.args.get("promocode")
     values = {t: request.args.get(t) for t in types if request.args.get(t)}
-
+    checkout_id = request.args.get("checkout_id")
+    
     import time
     start = time.time()
 
