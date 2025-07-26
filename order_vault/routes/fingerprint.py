@@ -146,16 +146,6 @@ def fingerprint():
     
     cookie_session = data.get("sessionId")
     print(f"cookie_session detected: {cookie_session}")
-
-    #existing = (
-    #    db_session.query(FingerprintEvents)
-    #    .filter_by(client_id=g.client_id, local_storage_device=user_identifier_device)
-    #    .order_by(FingerprintEvents.id.desc())  # get last by id
-    #    .first())
-    
-    #if existing:
-    #    print("Existing fingerprint match found, returning saved visitorId.")
-    #    return jsonify({"visitorId": existing.visitor_id}), 200
     
     features = [
         str(data.get(k, "")) for k in (
@@ -166,20 +156,14 @@ def fingerprint():
     ]
     vid = hashlib.sha256("|".join(features).encode()).hexdigest()
 
-    # Store in DB
-    #db_session = get_db_session_for_client(g.db_uri)
-    #save_fingerprint_event(db_session, g.client_id, user_identifier_client, data, vid)
-    
+
     # Fire off background thread to save
     Thread(
         target=async_save_fingerprint_event,
         args=(g.db_uri, g.client_id, user_identifier_client, data, vid),
         daemon=True
     ).start()
-    
-    #entry = FingerprintEvents(client_id=g.client_id, user_id=user_identifier_client, visitor_id=vid,js_visitor_id=fingerprint_js_visitor_id,tm_visitor_id=thumbmark_js_visitor_id, cookie_session=cookie_session,local_storage_device=user_identifier_device, user_agent=str(data.get('userAgent'))[0:50], webdriver=data.get('webdriver'), platform=platform)
-    #db_session.add(entry)
-    #db_session.commit()
+
 
     return jsonify({"visitorId": vid}), 200
 
