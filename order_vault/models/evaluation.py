@@ -8,9 +8,9 @@ class Evaluation(db.Model):
     user_id = db.Column(db.String, nullable=True)
     checkout_id = db.Column(db.String, nullable=True)
     order_id = db.Column(db.String, nullable=True)
+    session_id = db.Column(db.String, nullable=True)
     promocode = db.Column(db.String, nullable=True)
     promotion_id = db.Column(db.String, nullable=True)
-    session_id = db.Column(db.String, nullable=True)
     visitor_id = db.Column(db.String, nullable=False)  # SHA256 = 64 hex chars
     local_storage_device = db.Column(db.String, nullable=True)
     risk_decision = db.Column(db.String, nullable=True)
