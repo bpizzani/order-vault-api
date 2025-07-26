@@ -8,6 +8,46 @@ from threading import Thread
 
 evaluate_bp = Blueprint("evaluate", __name__, url_prefix="/api")
 
+
+def limit_risk_evlauation_events_subscription():
+    def decorator(f):
+        @wraps(f)
+        def wrapped(*args, **kwargs):
+            db_session = get_db_session_for_client(g.db_uri)
+            client_id = g.get("client_id")
+
+            if not client_id:
+                db_session.close()
+                return jsonify({"error": "Missing client_id"}), 400
+
+            now = datetime.utcnow()
+
+            # Fetch the active subscription
+            subscription = db_session.query(ClientSubscription).filter(
+                ClientSubscription.client_id == client_id,
+                ClientSubscription.subscription_start <= now,
+                ClientSubscription.subscription_end >= now
+            ).first()
+
+            if not subscription:
+                db_session.close()
+                return jsonify({"error": "No active subscription found"}), 403
+
+            # Count fingerprint events during the subscription period
+            count = db_session.query(FingerprintEvents).filter(
+                FingerprintEvents.client_id == client_id,
+                FingerprintEvents.created_at >= subscription.subscription_start,
+                FingerprintEvents.created_at <= subscription.subscription_end
+            ).count()
+            
+            db_session.close()
+            if count >= subscription.max_api_calls:
+                return jsonify({"error": "API quota exceeded"}), 429
+
+            return f(*args, **kwargs)
+        return wrapped
+    return decorator
+ 
  
 def async_save_evaluation_event(db_uri, client_id,  user_id, checkout_id, order_id, session_id, promo, values, risk_decision):
     # Create a new DB session in the background thread
