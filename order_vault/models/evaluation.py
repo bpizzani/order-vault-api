@@ -6,6 +6,7 @@ class Evaluation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     client_id = db.Column(db.String(100), nullable=False)
     user_id = db.Column(db.String, nullable=True)
+    checkout_id = db.Column(db.String, nullable=True)
     visitor_id = db.Column(db.String, nullable=False)  # SHA256 = 64 hex chars
     local_storage_device = db.Column(db.String, nullable=True)
     risk_decision = db.Column(db.String, nullable=True)
