@@ -4,6 +4,7 @@ from order_vault.services.neo4j_service import evaluate_attributes
 from order_vault.auth.api_auth import require_api_key   
 from order_vault.utils.db_session import get_db_session_for_client 
 from order_vault.models.evaluation import Evaluation  
+from threading import Thread
 
 evaluate_bp = Blueprint("evaluate", __name__, url_prefix="/api")
 
