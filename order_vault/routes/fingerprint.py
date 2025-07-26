@@ -57,7 +57,6 @@ def limit_fingerprint_events_subscription():
             # Fetch the active subscription
             subscription = db_session.query(ClientSubscription).filter(
                 ClientSubscription.client_id == client_id,
-                ClientSubscription.type == 'demo',
                 ClientSubscription.subscription_start <= now,
                 ClientSubscription.subscription_end >= now
             ).first()
@@ -74,7 +73,7 @@ def limit_fingerprint_events_subscription():
             ).count()
             
             db_session.close()
-            if count >= subscription.max_api_calls:
+            if count >= subscription.max_api_fingerprint_calls:
                 return jsonify({"error": "API quota exceeded"}), 429
 
             return f(*args, **kwargs)
