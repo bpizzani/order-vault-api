@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify, session, current_app, redirect, url_for, render_template
 from order_vault.models.user import User
+from order_vault.models.client_subscription import ClientSubscription
 from order_vault.main import db
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -71,6 +72,36 @@ def create_user_via_url():
     return jsonify({"message": f"✅ Created user {email} for {client_id}"}), 201
 
 
+@auth_bp.route("/create-subscription", methods=["GET"])
+def create_subscription_via_url():
+    client_id = request.args.get("client_id")
+    type = request.args.get("type")
+    start_date = request.args.get("start_date")  # expected format: YYYY-MM-DD
+    end_date = request.args.get("end_date")      # expected format: YYYY-MM-DD
+    max_api_calls = request.args.get("max_api_calls")
+    
+    if not client_id or not start_date or not end_date or not max_api_calls:
+        return jsonify({"error": "Missing parameters"}), 400
+
+    try:
+        subscription_start = datetime.strptime(start_date, "%Y-%m-%d")
+        subscription_end = datetime.strptime(end_date, "%Y-%m-%d")
+        max_api_calls = int(max_api_calls)
+    except ValueError as e:
+        return jsonify({"error": f"Invalid date or number format: {str(e)}"}), 400
+
+    subscription = ClientSubscription(
+        client_id=client_id,
+        type=type,
+        subscription_start=subscription_start,
+        subscription_end=subscription_end,
+        max_api_calls=max_api_calls
+    )
+
+    db.session.add(subscription)
+    db.session.commit()
+
+    return jsonify({"message": f"✅ Created subscription for {client_id}"}), 201
 
 
 #deprecated
