@@ -12,6 +12,7 @@ def evaluate():
     promo = request.args.get("promocode")
     values = {t: request.args.get(t) for t in types if request.args.get(t)}
     checkout_id = request.args.get("checkout_id")
+    print(checkout_id)
     
     import time
     start = time.time()
