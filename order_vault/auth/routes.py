@@ -3,6 +3,7 @@ from order_vault.models.user import User
 from order_vault.models.client_subscription import ClientSubscription
 from order_vault.main import db
 from werkzeug.security import check_password_hash, generate_password_hash
+from datetime import datetime
 
 auth_bp = Blueprint("auth", __name__)
 
