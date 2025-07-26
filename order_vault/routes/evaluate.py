@@ -73,7 +73,6 @@ def save_evaluation_event(db_session, client_id, user_id, checkout_id, order_id,
         local_storage_device = values["local_session_id"],
         risk_decision = risk_decision["overall_abusive"],
         risk_features = risk_decision["evaluation_results"],
-        created_at = db.Column(db.DateTime, default=datetime.utcnow),
     )
     db_session.add(entry)
     db_session.commit()
