@@ -9,8 +9,8 @@ class ClientSubscription(db.Model):
     type = db.Column(db.String, nullable=False)
     subscription_start = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     subscription_end = db.Column(db.DateTime, nullable=False)
-    max_api_calls = db.Column(db.Integer, nullable=False)
-    #api_calls_made = db.Column(db.Integer, default=0, nullable=True)
+    max_api_calls = db.Column(db.Integer, default=0, nullable=False)
+    max_api_fingerprint_calls = db.Column(db.Integer, default=0, nullable=True)
 
     def __repr__(self):
         return f"<ClientSubscription client_id={self.client_id} start={self.subscription_start} end={self.subscription_end} max_api_calls={self.max_api_calls}>"
