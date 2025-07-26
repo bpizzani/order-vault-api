@@ -9,7 +9,7 @@ from threading import Thread
 from functools import wraps
 from datetime import datetime, timedelta
 from order_vault.models.client_subscription import ClientSubscription
-from order_vault.models.fingerprint_events import FingerprintEvents  # adjust import if needed
+from order_vault.models.fingerprint import FingerprintEvents  # adjust import if needed
 
 fingerprint_bp = Blueprint(
     "fingerprint", __name__, url_prefix="/api/fingerprint"
