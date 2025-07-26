@@ -9,17 +9,17 @@ from threading import Thread
 evaluate_bp = Blueprint("evaluate", __name__, url_prefix="/api")
 
  
-def async_save_evaluation_event(db_uri, client_id,  user_id, checkout_id, order_id, session_id, values, risk_decision):
+def async_save_evaluation_event(db_uri, client_id,  user_id, checkout_id, order_id, session_id, promo, values, risk_decision):
     # Create a new DB session in the background thread
     session = get_db_session_for_client(db_uri)
     try:
-        save_evaluation_event(session, client_id, user_id, checkout_id, order_id, session_id, values, risk_decision)
+        save_evaluation_event(session, client_id, user_id, checkout_id, order_id, session_id, promo, values, risk_decision)
     except Exception as e:
         print("Error in async DB save:", e)
     finally:
         session.close()
         
-def save_evaluation_event(db_session, client_id, user_id, checkout_id, order_id, session_id, values, risk_decision):
+def save_evaluation_event(db_session, client_id, user_id, checkout_id, order_id, session_id, promo, values, risk_decision):
     entry = Evaluation(
         client_id = client_id,
         user_id = user_id,
