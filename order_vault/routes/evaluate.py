@@ -8,9 +8,11 @@ evaluate_bp = Blueprint("evaluate", __name__, url_prefix="/api")
 @evaluate_bp.route("/evaluate", methods=["GET"])
 @require_api_key
 def evaluate():
+    accepted_types = ['card_details', 'email', 'device_id', 'phone', 'local_session_id']
+    
     types = request.args.get("attribute_types", "device_id").split(",")
     promo = request.args.get("promocode")
-    values = {t: request.args.get(t) for t in types if request.args.get(t)}
+    values = {t: request.args.get(t) for t in accepted_types if request.args.get(t)}
     checkout_id = request.args.get("checkout_id","")
     user_id = request.args.get("user_id","")
 
@@ -19,16 +21,16 @@ def evaluate():
     start = time.time()
 
     # Run Cypher query
-    raw = evaluate_attributes(g.neo4j_driver.session(), types, promo)
+    raw = evaluate_attributes(g.neo4j_driver.session(), accepted_types, promo)
 
     # Batch load rules
-    rule_objs = Rule.query.filter(Rule.attribute.in_(types), Rule.promocode == promo,Rule.client_id == g.client_id).all()
+    rule_objs = Rule.query.filter(Rule.attribute.in_(accepted_types), Rule.promocode == promo,Rule.client_id == g.client_id).all()
     rule_map = {rule.attribute: rule for rule in rule_objs}
 
     final = {}
     overall = False
 
-    for t in types:
+    for t in accepted_types:
         input_value = values.get(t)
         recs = raw.get(t, [])
         
