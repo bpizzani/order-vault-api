@@ -8,11 +8,11 @@ from order_vault.models.evaluation import Evaluation
 evaluate_bp = Blueprint("evaluate", __name__, url_prefix="/api")
 
  
-def async_save_evaluation_event(db_uri, client_id, user_identifier_client, data, visitor_id):
+def async_save_evaluation_event(db_uri, client_id,  user_id, checkout_id, order_id, session_id, values, risk_decision):
     # Create a new DB session in the background thread
     session = get_db_session_for_client(db_uri)
     try:
-        save_evaluation_event(session, client_id, user_identifier_client, data, visitor_id)
+        save_evaluation_event(session, client_id, user_id, checkout_id, order_id, session_id, values, risk_decision)
     except Exception as e:
         print("Error in async DB save:", e)
     finally:
