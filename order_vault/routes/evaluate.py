@@ -92,7 +92,7 @@ def evaluate():
 
     Thread(
         target=async_save_evaluation_event,
-        args=(g.db_uri, g.client_id, user_id, checkout_id, order_id, session_id, values, risk_decision),
+        args=(g.db_uri, g.client_id, user_id, checkout_id, order_id, session_id, promo, values, risk_decision),
         daemon=True
     ).start()
 
