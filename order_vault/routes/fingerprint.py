@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 from order_vault.models.client_subscription import ClientSubscription
 from order_vault.models.fingerprint import FingerprintEvents  # adjust import if needed
 from order_vault.utils.auth import login_required
+from sqlalchemy import text
 
 fingerprint_bp = Blueprint(
     "fingerprint", __name__, url_prefix="/api/fingerprint"
@@ -174,10 +175,10 @@ def device_usage():
     
     try:
         # Assuming fingerprint_events has columns user_id and device_id
-        results = session.execute("""
+        results = session.execute(text("""
             SELECT case when user_id = 'null' then local_storage_device else user_id end as user_id, tm_visitor_id FROM fingerprint_events
             WHERE user_id IS NOT NULL AND tm_visitor_id IS NOT NULL
-        """).fetchall()
+        """)).fetchall()
 
         device_users = defaultdict(set)
         user_ids = set()
