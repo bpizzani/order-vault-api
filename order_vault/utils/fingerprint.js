@@ -1,6 +1,5 @@
 <script>
-	let user_id = null;
-  
+	
     function getUserId() {
             let uid = localStorage.getItem("user_id");
             if (!uid) {
