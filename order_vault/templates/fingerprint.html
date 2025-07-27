@@ -75,7 +75,7 @@
                 // Update counters
                 document.getElementById("totalDevices").innerText = data.total_devices;
                 document.getElementById("totalUsers").innerText = data.total_users;
-                document.getElementById("abusiveDevices").innerText = data.abusive_devices;
+                document.getElementById("abusiveDevices").innerText = data.duplicate_users;
 
                 // Chart for users per device
                 const labels = data.user_per_device.map(d => d.device_id);
