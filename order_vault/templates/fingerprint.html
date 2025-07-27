@@ -71,11 +71,11 @@
                     alert(data.error);
                     return;
                 }
-
+                const duplicateRate = (data.duplicate_users / data.total_devices) * 100;
                 // Update counters
                 document.getElementById("totalDevices").innerText = data.total_devices;
                 document.getElementById("totalUsers").innerText = data.total_users;
-                document.getElementById("abusiveDevices").innerText = data.duplicate_users;
+                document.getElementById("abusiveDevices").innerText = `${duplicateRate.toFixed(2)}%`;
 
                 // Chart for users per device
                 const labels = data.user_per_device.map(d => d.device_id);
