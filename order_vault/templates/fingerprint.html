@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Promocode Dashboard</title>
+    <title>Duplicate Account Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body class="bg-[#0d0d0d] text-[#f5f5f5] font-sans">
+<body class="bg-[#0d0d0d] text-white">
     <div class="flex h-screen overflow-hidden">
         <!-- Sidebar -->
         {% include "_sidebar.html" %}
@@ -15,406 +15,111 @@
         <!-- Main Content -->
         <main class="flex-1 overflow-y-auto p-10">
             <!-- Title -->
-            <h1 class="text-4xl font-extrabold text-white mb-8">Promo Abuse Intelligence</h1>
+            <h1 class="text-4xl font-extrabold mb-8">Duplicate Account Intelligence</h1>
 
-            <!-- Search -->
-            <div class="mb-10 flex justify-center">
-                <input type="text" id="promocodeInput" placeholder="Enter promocode..."
-                    class="p-3 w-1/2 bg-[#1f1f1f] border border-[#ff3b2f] rounded-l-md text-white focus:outline-none focus:ring-2 focus:ring-[#ff3b2f]">
-                <button onclick="fetchPromocodeUsage()"
-                    class="bg-[#ff3b2f] px-6 py-3 rounded-r-md text-white font-semibold hover:bg-[#ff1a0f] transition-all">Search</button>
-            </div>
-
-            <!-- Cards -->
+            <!-- Metrics Cards -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
                 <div class="bg-[#1f1f1f] p-6 rounded-xl shadow-lg">
-                    <h2 class="text-lg text-[#00d4ff]">Total Users</h2>
-                    <p id="totalOrders" class="text-4xl font-bold mt-2">0</p>
+                    <h2 class="text-lg text-[#00d4ff]">Total Devices</h2>
+                    <p id="totalDevices" class="text-4xl font-bold mt-2">0</p>
                 </div>
                 <div class="bg-[#1f1f1f] p-6 rounded-xl shadow-lg">
-                    <h2 class="text-lg text-green-400">Genuine Users</h2>
-                    <p id="uniqueUsers" class="text-4xl font-bold mt-2">0</p>
+                    <h2 class="text-lg text-green-400">Total Users</h2>
+                    <p id="totalUsers" class="text-4xl font-bold mt-2">0</p>
                 </div>
                 <div class="bg-[#1f1f1f] p-6 rounded-xl shadow-lg">
-                    <h2 class="text-lg text-[#ff3b2f]">Abusive Users</h2>
-                    <p id="abusiveUsers" class="text-4xl font-bold mt-2">0</p>
-                    <p id="abusivePercentage" class="text-sm text-[#ff3b2f] mt-2">0%</p>
+                    <h2 class="text-lg text-[#ff3b2f]">Abusive Devices</h2>
+                    <p id="abusiveDevices" class="text-4xl font-bold mt-2">0</p>
                 </div>
             </div>
 
-                <!-- Dashboard Charts Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
-                    <!-- Promocode Bar Chart -->
-                    <div class="bg-[#1a1a1a] p-6 rounded-lg shadow">
-                        <h3 class="text-xl font-bold text-white mb-4 text-center">Order Breakdown</h3>
-                        <canvas id="promocodeChart"></canvas>
-                    </div>
-                
-                    <!-- Abuse Rate -->
-                    <div class="bg-[#1a1a1a] p-6 rounded-lg shadow">
-                        <h3 class="text-xl font-bold text-white mb-4 text-center">Abuse Rate by Day</h3>
-                        <canvas id="abuseRateChart"></canvas>
-                    </div>
-                
-                    <!-- Total Orders -->
-                    <div class="bg-[#1a1a1a] p-6 rounded-lg shadow">
-                        <h3 class="text-xl font-bold text-white mb-4 text-center">Total Orders by Day</h3>
-                        <canvas id="totalOrdersChart"></canvas>
-                    </div>
-                
-                    <!-- Global Trends Button -->
-                    <div class="flex items-center justify-center bg-[#1a1a1a] rounded-lg p-6 shadow">
-                        <button onclick="fetchAllPromocodeHistory()" class="bg-[#00d4ff] text-black px-6 py-3 rounded-md font-semibold hover:bg-[#00bcd4] transition">
-                            📊 Show Global Abuse Trends
-                        </button>
-                    </div>
-                </div>
+            <!-- Top Devices Chart -->
+            <div class="bg-[#1a1a1a] p-6 rounded-lg shadow">
+                <h3 class="text-xl font-bold text-white mb-4 text-center">Top Devices by User Count</h3>
+                <canvas id="deviceUsageChart"></canvas>
+            </div>
 
             <!-- Loader -->
-            <div id="loading" class="text-center text-white hidden">Loading...</div>
-
-            <!-- New chart for multiple promocodes -->
-            <div class="mt-10">
-                <h3 class="text-2xl font-bold text-white text-center mb-4">Abuse Rate by Day (All Promocodes)</h3>
-                <canvas id="allPromosChart"></canvas>
+            <div id="loading" class="text-center mt-10 hidden">
+                <p class="text-sm text-gray-400">Loading data...</p>
             </div>
-            
         </main>
     </div>
-</body>
 
     <script>
-        
-        // Fetching promocode usage and rendering the dashboard
-    function fetchPromocodeUsage() {
-        const promocode = document.getElementById("promocodeInput").value.trim();
-        if (!promocode) {
-            alert("Please enter a promocode");
-            return;
-        }
-    
-        document.getElementById("loading").classList.remove("hidden");
-    
-        // Fetch summary usage data
-        fetch(`https://console.rediim.com/api/promocode/usage?promocode=${promocode}`, {
-                method: "GET",
-                credentials: "include"
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (!data || data.length === 0 || data.message) {
-                    alert("No data found for this promocode");
-                    document.getElementById("loading").classList.add("hidden");
-                    return;
-                }
-        
-                const promoData = data[0];
-        
-                // Update stats
-                document.getElementById("totalOrders").innerText = promoData.total_users || 0;
-                document.getElementById("uniqueUsers").innerText = promoData.genuine_users || 0;
-                document.getElementById("abusiveUsers").innerText = promoData.abusive_users || 0;
-                document.getElementById("abusivePercentage").innerText = promoData.abuse_user_rate_percentage ? `${promoData.abuse_user_rate_percentage.toFixed(2)}%` : "0%";
-        
-                // Chart data
-                const chartData = {
-                    labels: ['Genuine Orders', 'Abusive Orders'],
-                    datasets: [{
-                        label: 'Promocode Order Statistics',
-                        data: [promoData.genuine_orders, promoData.abusive_orders],
-                        backgroundColor: ['#00bcd4', '#f44336'],
-                        borderColor: ['#0097a7', '#d32f2f'],
-                        borderWidth: 1
-                    }]
-                };
-        
-                renderBarChart(chartData);
-            })
-            .catch(error => {
-                console.error("Error fetching promocode usage data:", error);
-                alert("Failed to fetch data. Please try again later.");
-            })
-            .finally(() => {
-                document.getElementById("loading").classList.add("hidden");
-            });
-    
-        // Fetch abuse rate by day
-        fetch(`https://console.rediim.com/api/promocode/abuse-by-day?promocode=${promocode}`, {
-                method: "GET",
-                credentials: "include"
-            })
-            .then(response => response.json())
-            .then(data => {
-                // ✅ Log raw data for debugging
-                console.log("Abuse by Day API Data:", data);
-        
-                // ✅ Filter out invalid entries
-                const filtered = data.filter(
-                    item =>
-                        item.order_date &&
-                        typeof item.abuse_rate === "number" &&
-                        item.abuse_rate >= 0
-                );
-        
-                // ✅ Optional: sort by date if backend doesn't guarantee it
-                filtered.sort((a, b) => new Date(a.order_date) - new Date(b.order_date));
-        
-                const labels = filtered.map(item => item.order_date);
-                const abuseRates = filtered.map(item => parseFloat(item.abuse_rate.toFixed(2)));
-                const totalOrders = filtered.map(item => item.total_orders || 0);
-        
-                if (labels.length === 0) {
-                    console.warn("No valid abuse rate data available to render.");
-                    return;
-                }
-        
-                renderAbuseRateChart(labels, abuseRates);
-                renderTotalOrdersChart(labels, totalOrders);
-            })
-            .catch(error => {
-                console.error("Error fetching abuse-by-day data:", error);
-            });
-    }
+        document.addEventListener("DOMContentLoaded", () => {
+            document.getElementById("loading").classList.remove("hidden");
+            fetch(`/api/fingerprint/device-usage`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                        return;
+                    }
 
-        
-        let barChartInstance = null;  // Declare outside the function so it persists between calls
+                    // Update counters
+                    document.getElementById("totalDevices").innerText = data.total_devices;
+                    document.getElementById("totalUsers").innerText = data.total_users;
+                    document.getElementById("abusiveDevices").innerText = data.abusive_devices;
 
-        // Function to render the Bar Chart
-        function renderBarChart(chartData) {
-            const ctx = document.getElementById("promocodeChart").getContext('2d');
+                    // Chart
+                    const labels = data.user_per_device.map(d => d.device_id);
+                    const counts = data.user_per_device.map(d => d.user_count);
 
-            // 🧹 Clean up any previous chart instance
-            if (barChartInstance) {
-                barChartInstance.destroy();
-            }
-                    
-            barChartInstance = new Chart(ctx, {
-                type: 'bar',
-                data: chartData,
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                stepSize: 1
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            position: 'top',
+                    const ctx = document.getElementById("deviceUsageChart").getContext("2d");
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels,
+                            datasets: [{
+                                label: 'Users per Device',
+                                data: counts,
+                                backgroundColor: '#facc15',
+                                borderColor: '#eab308',
+                                borderWidth: 1
+                            }]
                         },
-                        tooltip: {
-                            callbacks: {
-                                label: function(tooltipItem) {
-                                    return `${tooltipItem.label}: ${tooltipItem.raw}`;
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                tooltip: {
+                                    callbacks: {
+                                        label: (context) => `${context.raw} users`
+                                    }
+                                },
+                                legend: { display: false }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'User Count'
+                                    }
+                                },
+                                x: {
+                                    ticks: {
+                                        callback: function(value, index, ticks) {
+                                            return labels[index].slice(0, 6) + '...';  // Truncate device_id
+                                        }
+                                    },
+                                    title: {
+                                        display: true,
+                                        text: 'Device ID'
+                                    }
                                 }
                             }
                         }
-                    }
-                }
-            });
-        }
-
-        let renderAbuseRateChartInstance = null;  // Declare outside the function so it persists between calls
-
-        function renderAbuseRateChart(labels, data) {
-            const ctx = document.getElementById("abuseRateChart").getContext("2d");
-
-            // 🧹 Clean up any previous chart instance
-            if (renderAbuseRateChartInstance) {
-                renderAbuseRateChartInstance.destroy();
-            }
-            
-            renderAbuseRateChartInstance = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Abuse Rate (%)',
-                        data: data,
-                        fill: false,
-                        borderColor: '#f87171',
-                        tension: 0.3
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 100,
-                            title: {
-                                display: true,
-                                text: 'Abuse Rate (%)'
-                            }
-                        },
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Date'
-                            }
-                        }
-                    },
-                    plugins: {
-                        tooltip: {
-                            callbacks: {
-                                label: (context) => `${context.parsed.y}%`
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        let renderTotalOrdersChartInstance = null;  // Declare outside the function so it persists between calls
-
-        function renderTotalOrdersChart(labels, data) {
-            const ctx = document.getElementById("totalOrdersChart").getContext("2d");
-
-            // 🧹 Clean up any previous chart instance
-            if (renderTotalOrdersChartInstance) {
-                renderTotalOrdersChartInstance.destroy();
-            }
-            
-            renderTotalOrdersChartInstance = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Total Orders per Day',
-                        data: data,
-                        backgroundColor: '#38bdf8',
-                        borderColor: '#0ea5e9',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Orders'
-                            }
-                        },
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Date'
-                            }
-                        }
-                    },
-                    plugins: {
-                        tooltip: {
-                            callbacks: {
-                                label: (context) => `Total Orders: ${context.raw}`
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        let allPromosChartInstance = null;
-
-function fetchAllPromocodeHistory() {
-    document.getElementById("loading").classList.remove("hidden");
-
-    fetch("https://console.rediim.com/api/promocode/abuse-history", {
-        method: "GET",
-        credentials: "include"
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (!data || data.length === 0) {
-            alert("No abuse history data found.");
-            return;
-        }
-
-        // Group data by promocode
-        const grouped = {};
-        for (const entry of data) {
-            if (!grouped[entry.promocode]) grouped[entry.promocode] = [];
-            grouped[entry.promocode].push(entry);
-        }
-
-        // Sort by date inside each group
-        Object.keys(grouped).forEach(promo => {
-            grouped[promo].sort((a, b) => new Date(a.order_date) - new Date(b.order_date));
+                    });
+                })
+                .catch(err => {
+                    console.error("Error fetching device usage:", err);
+                    alert("Failed to load data.");
+                })
+                .finally(() => {
+                    document.getElementById("loading").classList.add("hidden");
+                });
         });
-
-        // Build chart dataset
-        const labels = Array.from(new Set(data.map(d => d.order_date))).sort();
-        const datasets = Object.entries(grouped).map(([promo, records]) => {
-            const map = {};
-            records.forEach(r => map[r.order_date] = r.abuse_rate);
-
-            return {
-                label: promo,
-                data: labels.map(l => map[l] || 0),
-                fill: false,
-                borderWidth: 2,
-                tension: 0.3
-            };
-        });
-
-        renderAllPromosChart(labels, datasets);
-    })
-    .catch(err => {
-        console.error("Error loading abuse history:", err);
-        alert("Failed to load global abuse history.");
-    })
-    .finally(() => {
-        document.getElementById("loading").classList.add("hidden");
-    });
-}
-
-    function renderAllPromosChart(labels, datasets) {
-        const ctx = document.getElementById("allPromosChart").getContext("2d");
-    
-        if (allPromosChartInstance) {
-            allPromosChartInstance.destroy();
-        }
-    
-        allPromosChartInstance = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels,
-                datasets
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'top'
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: (ctx) => `${ctx.dataset.label}: ${ctx.parsed.y}%`
-                        }
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 100,
-                        title: {
-                            display: true,
-                            text: "Abuse Rate (%)"
-                        }
-                    },
-                    x: {
-                        title: {
-                            display: true,
-                            text: "Date"
-                        }
-                    }
-                }
-            }
-        });
-    }
     </script>
+</body>
 </html>
