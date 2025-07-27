@@ -163,7 +163,8 @@ def fingerprint():
         daemon=True
     ).start()
 
-
+    return jsonify({"visitorId": vid}), 200
+    
 # API route to fetch duplicate usage stats
 @fingerprint_bp.route("/device-usage", methods=["GET"])
 @login_required
@@ -208,8 +209,5 @@ def device_usage():
         return jsonify({"error": str(e)}), 500
     finally:
         session.close()
-
-
-    return jsonify({"visitorId": vid}), 200
 
 
