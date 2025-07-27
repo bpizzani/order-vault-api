@@ -147,7 +147,7 @@
                 const labels = data.map(d => d.date);
                 const duplicateRate = data.map(d => d.duplicate_rate);
                 const duplicates = data.map(d => d.total_duplicate_user);
-                const totals = data.map(d => d.total_users);
+                const totals = data.map(d => d.total_devices);
 
                 // Line chart: duplicate rate
                 const rateCtx = document.getElementById("duplicateRateChart").getContext("2d");
@@ -193,7 +193,7 @@
                         labels,
                         datasets: [
                             {
-                                label: "Duplicate Devices",
+                                label: "Duplicate Users",
                                 data: duplicates,
                                 backgroundColor: "#fb923c"
                             },
