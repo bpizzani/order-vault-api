@@ -211,3 +211,62 @@ def device_usage():
         session.close()
 
 
+@fingerprint_bp.route("/duplicate-rate-daily", methods=["GET"])
+@login_required
+def daily_duplicate_rate():
+    db_uri = g.db_uri
+    client_id = g.client_id
+    if not db_uri:
+        return jsonify({"error": "Missing db_uri"}), 400
+
+    session = get_db_session_for_client(db_uri)
+
+    try:
+        query = text("""
+            WITH main AS (
+                SELECT 
+                    date_trunc('day', created_at) AS p_date,
+                    CASE 
+                        WHEN tm_visitor_id IS NULL OR tm_visitor_id = 'null' THEN js_visitor_id
+                        WHEN js_visitor_id IS NULL OR js_visitor_id = 'null' THEN visitor_id
+                        ELSE visitor_id
+                    END AS device_id,
+                    COUNT(DISTINCT 
+                        CASE 
+                            WHEN user_id = 'null' THEN local_storage_device 
+                            ELSE user_id 
+                        END
+                    ) AS total_users
+                FROM fingerprint_events
+                WHERE client_id = :client_id
+                AND user_id IS NOT NULL
+                GROUP BY 1, 2
+            )
+            SELECT 
+                p_date,
+                COUNT(CASE WHEN total_users >= 2 THEN device_id END) AS total_duplicate_user,
+                COUNT(device_id) AS total_users,
+                1.0 * COUNT(CASE WHEN total_users >= 2 THEN device_id END) / COUNT(device_id) AS duplicate_rate
+            FROM main
+            GROUP BY 1
+            ORDER BY 1;
+        """)
+
+        rows = session.execute(query, {"client_id": client_id}).fetchall()
+
+        result = []
+        for row in rows:
+            result.append({
+                "date": row.p_date.strftime('%Y-%m-%d'),
+                "total_duplicate_user": row.total_duplicate_user,
+                "total_users": row.total_users,
+                "duplicate_rate": round(row.duplicate_rate * 100, 2)  # as %
+            })
+
+        return jsonify(result)
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        session.close()
+
