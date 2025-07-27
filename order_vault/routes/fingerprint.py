@@ -169,6 +169,7 @@ def fingerprint():
 @login_required
 def device_usage():
     db_uri = g.db_uri
+    client_id = g.client_id
     if not db_uri:
         return jsonify({"error": "Missing db_uri"}), 400
 
@@ -178,8 +179,10 @@ def device_usage():
         # Assuming fingerprint_events has columns user_id and device_id
         results = session.execute(text("""
             SELECT case when user_id = 'null' then local_storage_device else user_id end as user_id, tm_visitor_id FROM fingerprint_events
-            WHERE user_id IS NOT NULL AND tm_visitor_id IS NOT NULL
-        """)).fetchall()
+            WHERE client_id = :client_id
+            AND user_id IS NOT NULL AND tm_visitor_id IS NOT NULL
+        """), 
+    {"client_id": client_id}).fetchall()
 
         device_users = defaultdict(set)
         user_ids = set()
