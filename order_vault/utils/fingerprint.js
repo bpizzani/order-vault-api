@@ -23,7 +23,7 @@
     window.onload = function() {
       	key_api = "abcd";
         client_id = "meeder";
-		user_id = getUserId();
+	user_id = getUserId();
         runInHouseFingerprint();
     };
 
