@@ -234,57 +234,60 @@ def daily_duplicate_rate():
 
     try:
         query = text("""
-            WITH base AS (
-                SELECT 
-                    date_trunc('day', created_at) AS p_date,
-                    CASE 
-                        WHEN tm_visitor_id IS NULL OR tm_visitor_id = 'null' THEN js_visitor_id
-                        WHEN js_visitor_id IS NULL OR js_visitor_id = 'null' THEN visitor_id
-                        ELSE visitor_id
-                    END AS device_id,
-                    CASE 
-                        WHEN user_id = 'null' THEN local_storage_device 
-                        ELSE user_id 
-                    END AS user_id
-                FROM fingerprint_events
-                WHERE client_id = :client_id
-                AND user_id IS NOT NULL
-            ),
-            users_per_device AS (
+                 WITH base AS (
+                    SELECT 
+                        date_trunc('day', created_at) AS p_date,
+                        CASE 
+                            WHEN tm_visitor_id IS NULL OR tm_visitor_id = 'null' THEN js_visitor_id
+                            WHEN js_visitor_id IS NULL OR js_visitor_id = 'null' THEN visitor_id
+                            ELSE visitor_id
+                        END AS device_id,
+                        CASE 
+                            WHEN user_id = 'null' THEN local_storage_device 
+                            ELSE user_id 
+                        END AS user_id
+                    FROM fingerprint_events
+                    WHERE client_id = :client_id
+                    AND user_id IS NOT NULL
+                ),
+                users_per_device AS (
+                    SELECT 
+                        p_date,
+                        device_id,
+                        COUNT(DISTINCT user_id) AS user_count
+                    FROM base
+                    GROUP BY p_date, device_id
+                ),
+                devices_per_user AS (
+                    SELECT 
+                        p_date,
+                        user_id,
+                        COUNT(DISTINCT device_id) AS device_count
+                    FROM base
+                    GROUP BY p_date, user_id
+                ),
+                daily_summary AS (
+                    SELECT
+                        b.p_date,
+                        COUNT(DISTINCT b.device_id) AS total_devices,
+                        COUNT(DISTINCT b.user_id) AS total_users,
+                        COUNT(DISTINCT CASE WHEN u.user_count > 1 THEN b.user_id END) AS duplicate_users
+                    FROM base b
+                    JOIN devices_per_user d
+                      ON b.user_id = d.user_id AND b.p_date = d.p_date
+                    JOIN users_per_device u 
+                      ON b.device_id = u.device_id AND b.p_date = d.p_date
+                    GROUP BY b.p_date
+                )
+                
                 SELECT 
                     p_date,
-                    device_id,
-                    COUNT(DISTINCT user_id) AS user_count
-                FROM base
-                GROUP BY p_date, device_id
-            ),
-            devices_per_user AS (
-                SELECT 
-                    p_date,
-                    user_id,
-                    COUNT(DISTINCT device_id) AS device_count
-                FROM base
-                GROUP BY p_date, user_id
-            ),
-            daily_summary AS (
-                SELECT
-                    b.p_date,
-                    COUNT(DISTINCT b.device_id) AS total_devices,
-                    COUNT(DISTINCT b.user_id) AS total_users,
-                    COUNT(DISTINCT CASE WHEN d.device_count > 1 THEN b.user_id END) AS duplicate_users
-                FROM base b
-                JOIN devices_per_user d
-                  ON b.user_id = d.user_id AND b.p_date = d.p_date
-                GROUP BY b.p_date
-            )
-            SELECT 
-                p_date,
-                total_devices,
-                total_users,
-                duplicate_users,
-                ROUND(100.0 * duplicate_users / NULLIF(total_users, 0), 2) AS duplicate_user_rate
-            FROM daily_summary
-            ORDER BY p_date;
+                    total_devices,
+                    total_users,
+                    duplicate_users,
+                    ROUND(100.0 * duplicate_users / NULLIF(total_users, 0), 2) AS duplicate_user_rate
+                FROM daily_summary
+                ORDER BY p_date;
         """)
 
         rows = session.execute(query, {"client_id": client_id}).fetchall()
