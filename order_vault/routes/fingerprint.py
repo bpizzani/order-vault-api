@@ -177,30 +177,42 @@ def device_usage():
     session = get_db_session_for_client(db_uri)
     
     try:
-        # Assuming fingerprint_events has columns user_id and device_id
         results = session.execute(text("""
-            SELECT case when user_id = 'null' then local_storage_device else user_id end as user_id, tm_visitor_id AS device_id FROM fingerprint_events
+            SELECT 
+                CASE 
+                    WHEN user_id = 'null' THEN local_storage_device 
+                    ELSE user_id 
+                END AS user_id,
+                tm_visitor_id AS device_id 
+            FROM fingerprint_events
             WHERE client_id = :client_id
-            AND user_id IS NOT NULL AND tm_visitor_id IS NOT NULL
-        """), 
-    {"client_id": client_id}).fetchall()
+              AND user_id IS NOT NULL 
+              AND tm_visitor_id IS NOT NULL
+        """), {"client_id": client_id}).fetchall()
 
         device_users = defaultdict(set)
-        user_ids = set()
+        all_users = set()
 
         for row in results:
             device_users[row.device_id].add(row.user_id)
-            user_ids.add(row.user_id)
+            all_users.add(row.user_id)
+
+        # Compute duplicate users (those sharing device with someone else)
+        duplicate_users = set()
+        for users in device_users.values():
+            if len(users) >= 2:
+                duplicate_users.update(users)
 
         stats = {
             "total_devices": len(device_users),
-            "total_users": len(user_ids),
-            "duplicate_users": sum(1 for users in device_users.values() if len(users) >= 2),
+            "total_users": len(all_users),
+            "duplicate_users": len(duplicate_users),
+            "duplicate_user_rate": round(100.0 * len(duplicate_users) / len(all_users), 2) if all_users else 0,
             "user_per_device": sorted(
-                [{"device_id": d, "user_count": len(u)} for d, u in device_users.items()],
+                [{"device_id": device_id, "user_count": len(users)} for device_id, users in device_users.items()],
                 key=lambda x: x["user_count"],
                 reverse=True
-            )[:20]  # Top 20
+            )[:20]  # Top 20 devices
         }
 
         return jsonify(stats)
