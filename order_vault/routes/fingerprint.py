@@ -178,7 +178,7 @@ def device_usage():
     try:
         # Assuming fingerprint_events has columns user_id and device_id
         results = session.execute(text("""
-            SELECT case when user_id = 'null' then local_storage_device else user_id end as user_id, tm_visitor_id FROM fingerprint_events
+            SELECT case when user_id = 'null' then local_storage_device else user_id end as user_id, tm_visitor_id AS device_id FROM fingerprint_events
             WHERE client_id = :client_id
             AND user_id IS NOT NULL AND tm_visitor_id IS NOT NULL
         """), 
