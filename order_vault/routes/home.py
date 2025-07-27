@@ -34,6 +34,11 @@ def rules_ui():
 def customer_ui():
     return render_template("island.html")
 
+@home_bp.route("/fingerprint", methods=["GET"])
+@login_required
+def customer_ui():
+    return render_template("fingerprint.html")
+
 
 @home_bp.route("/update-subscription-limit", methods=["GET", "POST"])
 def update_subscription_limit():
