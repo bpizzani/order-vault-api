@@ -328,6 +328,7 @@ def daily_duplicate_rate_deprecate():
                 p_date,
                 COUNT(CASE WHEN total_users >= 2 THEN device_id END) AS total_duplicate_user,
                 COUNT(device_id) AS total_users,
+                COUNT(DISTINCT device_id) AS total_devices,
                 1.0 * COUNT(CASE WHEN total_users >= 2 THEN device_id END) / COUNT(device_id) AS duplicate_rate
             FROM main
             GROUP BY 1
