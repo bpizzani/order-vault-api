@@ -145,8 +145,8 @@
                 }
 
                 const labels = data.map(d => d.date);
-                const duplicateRate = data.map(d => d.duplicate_rate);
-                const duplicates = data.map(d => d.total_duplicate_user);
+                const duplicateRate = data.map(d => d.duplicate_user_rate);
+                const duplicates = data.map(d => d.duplicate_users);
                 const totals = data.map(d => d.total_devices);
 
                 // Line chart: duplicate rate
