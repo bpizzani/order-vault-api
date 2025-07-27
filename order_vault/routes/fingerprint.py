@@ -235,6 +235,76 @@ def daily_duplicate_rate():
 
     try:
         query = text("""
+            SELECT 
+                date_trunc('day', created_at) AS p_date,
+                CASE 
+                    WHEN tm_visitor_id IS NULL OR tm_visitor_id = 'null' THEN js_visitor_id
+                    WHEN js_visitor_id IS NULL OR js_visitor_id = 'null' THEN visitor_id
+                    ELSE visitor_id
+                END AS device_id,
+                CASE 
+                    WHEN user_id = 'null' THEN local_storage_device
+                    ELSE user_id
+                END AS user_id
+            FROM fingerprint_events
+            WHERE client_id = :client_id
+              AND user_id IS NOT NULL
+              AND created_at IS NOT NULL
+        """)
+
+        rows = session.execute(query, {"client_id": client_id}).fetchall()
+
+        from collections import defaultdict
+
+        # Organize by date
+        per_day_devices = defaultdict(lambda: defaultdict(set))  # {date: {device_id: set(user_ids)}}
+        per_day_users = defaultdict(set)
+
+        for row in rows:
+            date = row.p_date.date()
+            device_id = row.device_id
+            user_id = row.user_id
+
+            if device_id and user_id:
+                per_day_devices[date][device_id].add(user_id)
+                per_day_users[date].add(user_id)
+
+        result = []
+
+        for date in sorted(per_day_devices.keys()):
+            device_map = per_day_devices[date]
+            user_pool = per_day_users[date]
+
+            duplicate_users = set()
+            for users in device_map.values():
+                if len(users) >= 2:
+                    duplicate_users.update(users)
+
+            result.append({
+                "date": date.strftime("%Y-%m-%d"),
+                "total_duplicate_user": len(duplicate_users),
+                "total_users": len(user_pool),
+                "duplicate_rate": round(100.0 * len(duplicate_users) / len(user_pool), 2) if user_pool else 0
+            })
+
+        return jsonify(result)
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        session.close()
+        
+
+def daily_duplicate_rate_deprecate():
+    db_uri = g.db_uri
+    client_id = g.client_id
+    if not db_uri:
+        return jsonify({"error": "Missing db_uri"}), 400
+
+    session = get_db_session_for_client(db_uri)
+
+    try:
+        query = text("""
             WITH main AS (
                 SELECT 
                     date_trunc('day', created_at) AS p_date,
