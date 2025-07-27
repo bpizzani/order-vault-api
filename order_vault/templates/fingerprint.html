@@ -59,80 +59,176 @@
         </main>
     </div>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            document.getElementById("loading").classList.remove("hidden");
-            fetch(`/api/fingerprint/device-usage`)
-                .then(res => res.json())
-                .then(data => {
-                    if (data.error) {
-                        alert(data.error);
-                        return;
-                    }
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        document.getElementById("loading").classList.remove("hidden");
 
-                    // Update counters
-                    document.getElementById("totalDevices").innerText = data.total_devices;
-                    document.getElementById("totalUsers").innerText = data.total_users;
-                    document.getElementById("abusiveDevices").innerText = data.abusive_devices;
+        // Fetch device usage stats
+        fetch(`/api/fingerprint/device-usage`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
 
-                    // Chart
-                    const labels = data.user_per_device.map(d => d.device_id);
-                    const counts = data.user_per_device.map(d => d.user_count);
+                // Update counters
+                document.getElementById("totalDevices").innerText = data.total_devices;
+                document.getElementById("totalUsers").innerText = data.total_users;
+                document.getElementById("abusiveDevices").innerText = data.abusive_devices;
 
-                    const ctx = document.getElementById("deviceUsageChart").getContext("2d");
-                    new Chart(ctx, {
-                        type: 'bar',
-                        data: {
-                            labels,
-                            datasets: [{
-                                label: 'Users per Device',
-                                data: counts,
-                                backgroundColor: '#facc15',
-                                borderColor: '#eab308',
-                                borderWidth: 1
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            plugins: {
-                                tooltip: {
-                                    callbacks: {
-                                        label: (context) => `${context.raw} users`
-                                    }
-                                },
-                                legend: { display: false }
+                // Chart for users per device
+                const labels = data.user_per_device.map(d => d.device_id);
+                const counts = data.user_per_device.map(d => d.user_count);
+
+                const ctx = document.getElementById("deviceUsageChart").getContext("2d");
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels,
+                        datasets: [{
+                            label: 'Users per Device',
+                            data: counts,
+                            backgroundColor: '#facc15',
+                            borderColor: '#eab308',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: (context) => `${context.raw} users`
+                                }
                             },
-                            scales: {
-                                y: {
-                                    beginAtZero: true,
-                                    title: {
-                                        display: true,
-                                        text: 'User Count'
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'User Count'
+                                }
+                            },
+                            x: {
+                                ticks: {
+                                    callback: function(value, index, ticks) {
+                                        return labels[index].slice(0, 6) + '...';  // Truncate device_id
                                     }
                                 },
-                                x: {
-                                    ticks: {
-                                        callback: function(value, index, ticks) {
-                                            return labels[index].slice(0, 6) + '...';  // Truncate device_id
-                                        }
-                                    },
-                                    title: {
-                                        display: true,
-                                        text: 'Device ID'
-                                    }
+                                title: {
+                                    display: true,
+                                    text: 'Device ID'
                                 }
                             }
                         }
-                    });
-                })
-                .catch(err => {
-                    console.error("Error fetching device usage:", err);
-                    alert("Failed to load data.");
-                })
-                .finally(() => {
-                    document.getElementById("loading").classList.add("hidden");
+                    }
                 });
-        });
+            })
+            .catch(err => {
+                console.error("Error fetching device usage:", err);
+                alert("Failed to load data.");
+            })
+            .finally(() => {
+                document.getElementById("loading").classList.add("hidden");
+            });
+
+        // 🔥 NEW: Fetch duplicate rate by day
+        fetch("/api/fingerprint/duplicate-rate-daily")
+            .then(res => res.json())
+            .then(data => {
+                if (!Array.isArray(data)) {
+                    console.error("Unexpected response for duplicate rate:", data);
+                    return;
+                }
+
+                const labels = data.map(d => d.date);
+                const duplicateRate = data.map(d => d.duplicate_rate);
+                const duplicates = data.map(d => d.total_duplicate_user);
+                const totals = data.map(d => d.total_users);
+
+                // Line chart: duplicate rate
+                const rateCtx = document.getElementById("duplicateRateChart").getContext("2d");
+                new Chart(rateCtx, {
+                    type: "line",
+                    data: {
+                        labels,
+                        datasets: [{
+                            label: "Duplicate Rate (%)",
+                            data: duplicateRate,
+                            borderColor: "#f87171",
+                            backgroundColor: "#f87171",
+                            tension: 0.3,
+                            fill: false
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100,
+                                title: {
+                                    display: true,
+                                    text: "Rate (%)"
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: "Date"
+                                }
+                            }
+                        }
+                    }
+                });
+
+                // Bar chart: duplicate vs total
+                const countCtx = document.getElementById("duplicateUserChart").getContext("2d");
+                new Chart(countCtx, {
+                    type: "bar",
+                    data: {
+                        labels,
+                        datasets: [
+                            {
+                                label: "Duplicate Devices",
+                                data: duplicates,
+                                backgroundColor: "#fb923c"
+                            },
+                            {
+                                label: "Total Devices",
+                                data: totals,
+                                backgroundColor: "#38bdf8"
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: "Devices"
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: "Date"
+                                }
+                            }
+                        }
+                    }
+                });
+            })
+            .catch(err => {
+                console.error("Error fetching daily duplicate rate:", err);
+            });
+    });
+</script>
     </script>
 </body>
 </html>
