@@ -7,7 +7,7 @@ export async function collectData() {
         const cookies = document.cookie || "";
         const sessionMatch = cookies.match(/session=([^;]+)/);
         const sessionId = sessionMatch ? sessionMatch[1] : "";
-        const local_user_id = getOrCreateUserId();
+        const local_session_id = getOrCreateUserId();
 
         const data = {
             userAgent: navigator.userAgent,
@@ -29,7 +29,7 @@ export async function collectData() {
              cookies,
              sessionId,
              bot_framework: /selenium|headless|bot/i.test(navigator.userAgent),
-             local_user_id
+             local_session_id
         };
         console.log("Data collected: ", data);
         return data;
@@ -163,13 +163,13 @@ export async function sendFingerprint(api_key, client_id, user_id = null) {
                 appendHiddenInput("fingerprint_js_visitor_id", fingerprint_js_visitorId);
                 appendHiddenInput("thumbmark_js_visitor_id", thumbmark_js_visitorId);
                 appendHiddenInput("inhouse_js_visitor_id", result.visitorId);
-                appendHiddenInput("local_session_id", data.local_user_id);
+                appendHiddenInput("local_session_id", data.local_session_id);
                 localStorage.setItem("rediim_fingerprint", result.visitorId);
-                localStorage.setItem("local_session_id", data.local_user_id);
+                localStorage.setItem("local_session_id", data.local_session_id);
                 console.log("Response from API: ", result);
                 return {
                         visitorId: result.visitorId,
-                        localSessionId: data.local_user_id
+                        localSessionId: data.local_session_id
                     };
             } else {
                 console.error("Error with the API response:", response.status, response.statusText);
