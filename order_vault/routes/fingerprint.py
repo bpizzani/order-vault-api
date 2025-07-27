@@ -195,7 +195,7 @@ def device_usage():
         stats = {
             "total_devices": len(device_users),
             "total_users": len(user_ids),
-            "abusive_devices": sum(1 for users in device_users.values() if len(users) >= 2),
+            "duplicate_users": sum(1 for users in device_users.values() if len(users) >= 2),
             "user_per_device": sorted(
                 [{"device_id": d, "user_count": len(u)} for d, u in device_users.items()],
                 key=lambda x: x["user_count"],
