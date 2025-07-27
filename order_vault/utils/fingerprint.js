@@ -21,9 +21,9 @@
     }
 
     window.onload = function() {
-      	key_api = "abcd";
-        client_id = "meeder";
-	user_id = getUserId();
+        const key_api = "abcd";
+        const client_id = "meeder";
+        const user_id = getUserId();
         runInHouseFingerprint();
     };
 
