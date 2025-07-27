@@ -10,6 +10,7 @@ from functools import wraps
 from datetime import datetime, timedelta
 from order_vault.models.client_subscription import ClientSubscription
 from order_vault.models.fingerprint import FingerprintEvents  # adjust import if needed
+from order_vault.utils.auth import login_required
 
 fingerprint_bp = Blueprint(
     "fingerprint", __name__, url_prefix="/api/fingerprint"
@@ -159,6 +160,49 @@ def fingerprint():
         args=(g.db_uri, g.client_id, user_identifier_client, data, vid),
         daemon=True
     ).start()
+
+
+# API route to fetch duplicate usage stats
+@fingerprint_bp.route("/device-usage", methods=["GET"])
+@login_required
+def device_usage():
+    db_uri = g.db_uri
+    if not db_uri:
+        return jsonify({"error": "Missing db_uri"}), 400
+
+    session = get_db_session_for_client(db_uri)
+    
+    try:
+        # Assuming fingerprint_events has columns user_id and device_id
+        results = session.execute("""
+            SELECT case when user_id = 'null' then local_storage_device else user_id end as user_id, tm_visitor_id FROM fingerprint_events
+            WHERE user_id IS NOT NULL AND tm_visitor_id IS NOT NULL
+        """).fetchall()
+
+        device_users = defaultdict(set)
+        user_ids = set()
+
+        for row in results:
+            device_users[row.device_id].add(row.user_id)
+            user_ids.add(row.user_id)
+
+        stats = {
+            "total_devices": len(device_users),
+            "total_users": len(user_ids),
+            "abusive_devices": sum(1 for users in device_users.values() if len(users) > 2),
+            "user_per_device": sorted(
+                [{"device_id": d, "user_count": len(u)} for d, u in device_users.items()],
+                key=lambda x: x["user_count"],
+                reverse=True
+            )[:20]  # Top 20
+        }
+
+        return jsonify(stats)
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        session.close()
 
 
     return jsonify({"visitorId": vid}), 200
