@@ -12,6 +12,7 @@ from order_vault.models.client_subscription import ClientSubscription
 from order_vault.models.fingerprint import FingerprintEvents  # adjust import if needed
 from order_vault.utils.auth import login_required
 from sqlalchemy import text
+from collections import defaultdict
 
 fingerprint_bp = Blueprint(
     "fingerprint", __name__, url_prefix="/api/fingerprint"
@@ -190,7 +191,7 @@ def device_usage():
         stats = {
             "total_devices": len(device_users),
             "total_users": len(user_ids),
-            "abusive_devices": sum(1 for users in device_users.values() if len(users) > 2),
+            "abusive_devices": sum(1 for users in device_users.values() if len(users) >= 2),
             "user_per_device": sorted(
                 [{"device_id": d, "user_count": len(u)} for d, u in device_users.items()],
                 key=lambda x: x["user_count"],
