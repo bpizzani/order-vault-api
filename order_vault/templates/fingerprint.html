@@ -71,7 +71,7 @@
                     alert(data.error);
                     return;
                 }
-                const duplicateRate = (data.duplicate_users / data.total_devices) * 100;
+                const duplicateRate = (data.duplicate_users / data.total_users) * 100;
                 // Update counters
                 document.getElementById("totalDevices").innerText = data.total_devices;
                 document.getElementById("totalUsers").innerText = data.total_users;
