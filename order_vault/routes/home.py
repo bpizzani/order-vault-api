@@ -36,7 +36,7 @@ def customer_ui():
 
 @home_bp.route("/fingerprint", methods=["GET"])
 @login_required
-def customer_ui():
+def fingerprint_ui():
     return render_template("fingerprint.html")
 
 
