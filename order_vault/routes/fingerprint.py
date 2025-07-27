@@ -222,7 +222,6 @@ def device_usage():
     finally:
         session.close()
 
-
 @fingerprint_bp.route("/duplicate-rate-daily", methods=["GET"])
 @login_required
 def daily_duplicate_rate():
@@ -235,77 +234,7 @@ def daily_duplicate_rate():
 
     try:
         query = text("""
-            SELECT 
-                date_trunc('day', created_at) AS p_date,
-                CASE 
-                    WHEN tm_visitor_id IS NULL OR tm_visitor_id = 'null' THEN js_visitor_id
-                    WHEN js_visitor_id IS NULL OR js_visitor_id = 'null' THEN visitor_id
-                    ELSE visitor_id
-                END AS device_id,
-                CASE 
-                    WHEN user_id = 'null' THEN local_storage_device
-                    ELSE user_id
-                END AS user_id
-            FROM fingerprint_events
-            WHERE client_id = :client_id
-              AND user_id IS NOT NULL
-              AND created_at IS NOT NULL
-        """)
-
-        rows = session.execute(query, {"client_id": client_id}).fetchall()
-
-        from collections import defaultdict
-
-        # Organize by date
-        per_day_devices = defaultdict(lambda: defaultdict(set))  # {date: {device_id: set(user_ids)}}
-        per_day_users = defaultdict(set)
-
-        for row in rows:
-            date = row.p_date.date()
-            device_id = row.device_id
-            user_id = row.user_id
-
-            if device_id and user_id:
-                per_day_devices[date][device_id].add(user_id)
-                per_day_users[date].add(user_id)
-
-        result = []
-
-        for date in sorted(per_day_devices.keys()):
-            device_map = per_day_devices[date]
-            user_pool = per_day_users[date]
-
-            duplicate_users = set()
-            for users in device_map.values():
-                if len(users) >= 2:
-                    duplicate_users.update(users)
-
-            result.append({
-                "date": date.strftime("%Y-%m-%d"),
-                "total_duplicate_user": len(duplicate_users),
-                "total_users": len(user_pool),
-                "duplicate_rate": round(100.0 * len(duplicate_users) / len(user_pool), 2) if user_pool else 0
-            })
-
-        return jsonify(result)
-    
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-    finally:
-        session.close()
-        
-
-def daily_duplicate_rate_deprecate():
-    db_uri = g.db_uri
-    client_id = g.client_id
-    if not db_uri:
-        return jsonify({"error": "Missing db_uri"}), 400
-
-    session = get_db_session_for_client(db_uri)
-
-    try:
-        query = text("""
-            WITH main AS (
+            WITH base AS (
                 SELECT 
                     date_trunc('day', created_at) AS p_date,
                     CASE 
@@ -313,26 +242,49 @@ def daily_duplicate_rate_deprecate():
                         WHEN js_visitor_id IS NULL OR js_visitor_id = 'null' THEN visitor_id
                         ELSE visitor_id
                     END AS device_id,
-                    COUNT(DISTINCT 
-                        CASE 
-                            WHEN user_id = 'null' THEN local_storage_device 
-                            ELSE user_id 
-                        END
-                    ) AS total_users
+                    CASE 
+                        WHEN user_id = 'null' THEN local_storage_device 
+                        ELSE user_id 
+                    END AS user_id
                 FROM fingerprint_events
                 WHERE client_id = :client_id
                 AND user_id IS NOT NULL
-                GROUP BY 1, 2
+            ),
+            users_per_device AS (
+                SELECT 
+                    p_date,
+                    device_id,
+                    COUNT(DISTINCT user_id) AS user_count
+                FROM base
+                GROUP BY p_date, device_id
+            ),
+            devices_per_user AS (
+                SELECT 
+                    p_date,
+                    user_id,
+                    COUNT(DISTINCT device_id) AS device_count
+                FROM base
+                GROUP BY p_date, user_id
+            ),
+            daily_summary AS (
+                SELECT
+                    b.p_date,
+                    COUNT(DISTINCT b.device_id) AS total_devices,
+                    COUNT(DISTINCT b.user_id) AS total_users,
+                    COUNT(DISTINCT CASE WHEN d.device_count > 1 THEN b.user_id END) AS duplicate_users
+                FROM base b
+                JOIN devices_per_user d
+                  ON b.user_id = d.user_id AND b.p_date = d.p_date
+                GROUP BY b.p_date
             )
             SELECT 
                 p_date,
-                COUNT(CASE WHEN total_users >= 2 THEN device_id END) AS total_duplicate_user,
-                COUNT(device_id) AS total_users,
-                COUNT(DISTINCT device_id) AS total_devices,
-                1.0 * COUNT(CASE WHEN total_users >= 2 THEN device_id END) / COUNT(device_id) AS duplicate_rate
-            FROM main
-            GROUP BY 1
-            ORDER BY 1;
+                total_devices,
+                total_users,
+                duplicate_users,
+                ROUND(100.0 * duplicate_users / NULLIF(total_users, 0), 2) AS duplicate_user_rate
+            FROM daily_summary
+            ORDER BY p_date;
         """)
 
         rows = session.execute(query, {"client_id": client_id}).fetchall()
@@ -341,9 +293,10 @@ def daily_duplicate_rate_deprecate():
         for row in rows:
             result.append({
                 "date": row.p_date.strftime('%Y-%m-%d'),
-                "total_duplicate_user": row.total_duplicate_user,
+                "total_devices": row.total_devices,
                 "total_users": row.total_users,
-                "duplicate_rate": round(row.duplicate_rate * 100, 2)  # as %
+                "duplicate_users": row.duplicate_users,
+                "duplicate_user_rate": float(row.duplicate_user_rate or 0)
             })
 
         return jsonify(result)
@@ -353,3 +306,4 @@ def daily_duplicate_rate_deprecate():
     finally:
         session.close()
 
+ 
