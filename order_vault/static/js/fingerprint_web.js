@@ -85,6 +85,7 @@ function getOrCreateSessionId() {
     if (!uid) {
         uid = crypto.randomUUID();
         localStorage.setItem("local_session_id", uid);
+        localStorage.setItem("test2", "test2");
     }
     return uid;
 }
