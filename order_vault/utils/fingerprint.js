@@ -55,14 +55,14 @@
         }
     }
 
-    function getUserId() {
-            let uid = localStorage.getItem("user_id");
-            if (!uid) {
-                uid = crypto.randomUUID();
-                localStorage.setItem("user_id", uid);
-            }
-            return uid;
-        }
+	function getUserId() {
+	    let uid = localStorage.getItem("user_id");
+	    if (!uid) {
+	        uid = Math.floor(Math.random() * 1000) + 1; // Random number between 1 and 1000
+	        localStorage.setItem("user_id", uid);
+	    }
+	    return uid;
+	}
   
     async function runInHouseFingerprint(key_api, client_id, user_id = 0) {
             try {
