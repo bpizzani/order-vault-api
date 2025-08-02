@@ -70,7 +70,6 @@
 	card_details,
 	promocode,
 	device_id,
-	ip_address: "0.0.0.0", // Replace with actual IP if needed
 	created_at: new Date().toISOString(),
 	local_session_id
 	};
