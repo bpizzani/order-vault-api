@@ -7,7 +7,7 @@ export async function collectData() {
         const cookies = document.cookie || "";
         const sessionMatch = cookies.match(/session=([^;]+)/);
         const sessionId = sessionMatch ? sessionMatch[1] : "";
-        const local_session_id = getOrCreateUserId();
+        const local_session_id = getOrCreateSessionId();
 
         const data = {
             userAgent: navigator.userAgent,
@@ -80,11 +80,11 @@ function getCanvasFingerprint() {
 }
 
 
-function getOrCreateUserId() {
-    let uid = localStorage.getItem("user_id");
+function getOrCreateSessionId() {
+    let uid = localStorage.getItem("local_session_id");
     if (!uid) {
         uid = crypto.randomUUID();
-        localStorage.setItem("user_id", uid);
+        localStorage.setItem("local_session_id", uid);
     }
     return uid;
 }
