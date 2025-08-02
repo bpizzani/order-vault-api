@@ -86,7 +86,9 @@ def evaluate():
     types = request.args.get("attribute_types", "device_id").split(",")
     promo = request.args.get("promocode")
     values = {t: request.args.get(t) for t in accepted_types if request.args.get(t)}
-
+    
+    print(values["device_id"])
+    
     checkout_id = request.args.get("checkout_id","")
     user_id = request.args.get("user_id","")
     session_id = request.args.get("session_id","")
