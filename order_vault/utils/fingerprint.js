@@ -1,8 +1,6 @@
 <script>
-    async function evaluateUserRisk() {
+    async function evaluateUserRisk(apiKey, client_id) {
 	    
-        const apiKey = "abcde";
-        const client_id = "client_c";
         const clientUrl = "https://api.rediim.com/api/evaluate";
     
 	function generateRandomId(prefix = "") {
@@ -66,7 +64,7 @@
             return uid;
         }
   
-    async function runInHouseFingerprint() {
+    async function runInHouseFingerprint(key_api, client_id, user_id = 0) {
             try {
                 const InHouseFingerprint = await import('https://api.rediim.com/static/js/fingerprint_web.js');
                 const { visitorId, localSessionId } = await InHouseFingerprint.sendFingerprint(key_api, client_id, user_id);
@@ -77,11 +75,19 @@
     }
 
     window.onload = function() {
-        const key_api = "abcd";
-        const client_id = "meeder";
+
         const user_id = getUserId();
-        runInHouseFingerprint();
-        evaluateUserRisk();
+	    
+        const key_api_fingerprint = "trial_abc";
+        const client_id_fingerprint = "client_1";
+
+        runInHouseFingerprint(key_api_fingerprint,client_id_fingerprint, user_id);
+	    
+        const apiKey = "abcde";
+        const client_id = "client_c";
+        evaluateUserRisk(apiKey, client_id);
+
+	    
     };
 
 
