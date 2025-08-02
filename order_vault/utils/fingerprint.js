@@ -1,8 +1,9 @@
 <script>
-    async function evaluateUserRisk(apiKey, client_id) {
+
+async function evaluateUserRisk(apiKey, client_id) {
 	    
-        const clientUrl = "https://api.rediim.com/api/evaluate";
-    
+    const clientUrl = "https://api.rediim.com/api/evaluate";
+
 	function generateRandomId(prefix = "") {
 	    return prefix + Math.random().toString(36).substring(2, 10);
 	}
@@ -31,7 +32,7 @@
                 method: "GET",
                 headers: {
                     "X-API-KEY": apiKey,
-		    "X-CLIENT-ID":client_id,
+		    		"X-CLIENT-ID":client_id,
                 }
             });
 
@@ -44,7 +45,7 @@
             console.log("Risk Evaluation Results:", data);
 
             if (data.overall_abusive) {
-                alert("⚠️ Risk detected! This user may be abusing the promocode.");
+                alert("⚠ Risk detected! This user may be abusing the promocode.");
             } else {
                 alert("✅ User is clean.");
             }
@@ -54,42 +55,43 @@
             alert("An error occurred while evaluating risk.");
         }
     }
-
-	function getUserId() {
-	    let uid = localStorage.getItem("user_id");
-	    if (!uid) {
-	        uid = Math.floor(Math.random() * 1000) + 1; // Random number between 1 and 1000
-	        localStorage.setItem("user_id", uid);
-	    }
-	    return uid;
-	}
+        
+    
   
-    async function runInHouseFingerprint(key_api, client_id, user_id = 0) {
+function getUserId() {
+    let uid = localStorage.getItem("user_id");
+    if (!uid) {
+	uid = Math.floor(Math.random() * 1000) + 1; // Random number between 1 and 1000
+	localStorage.setItem("user_id", uid);
+    }
+    return uid;
+}
+  
+            
+
+    async function runInHouseFingerprint(api_key,client_id, user_id = 0) {
             try {
                 const InHouseFingerprint = await import('https://api.rediim.com/static/js/fingerprint_web.js');
-                const { visitorId, localSessionId } = await InHouseFingerprint.sendFingerprint(key_api, client_id, user_id);
+                const { visitorId, localSessionId } = await InHouseFingerprint.sendFingerprint(api_key, client_id,user_id);
 
             } catch (error) {
                 console.error("Error getting InHouseFingerprint:", error);
             }
     }
 
-    window.onload = function() {
+
+    window.onload = async function() {
 
         const user_id = getUserId();
-	    
-        const key_api_fingerprint = "trial_abc";
-        const client_id_fingerprint = "client_1";
+        const key_api_fingerprint = "abcd";
+        const client_id_fingerprint = "meeder";
+	   
 
-        runInHouseFingerprint(key_api_fingerprint,client_id_fingerprint, user_id);
+        await runInHouseFingerprint(key_api_fingerprint,client_id_fingerprint, user_id );
 	    
-        const apiKey = "abcde";
-        const client_id = "client_c";
+        const apiKey = "abcd";
+        const client_id = "meeder";
         evaluateUserRisk(apiKey, client_id);
-
-	    
-    };
-
-
-
- </script>
+        
+    };
+ </script>
