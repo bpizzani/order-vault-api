@@ -1,12 +1,13 @@
 <script>
     async function evaluateUserRisk() {
-        const apiKey = "abcde";  // Replace with your actual API key
+	    
+        const apiKey = "abcde";
+        const client_id = "client_c";
         const clientUrl = "https://api.rediim.com/api/evaluate";
-	const client_id = "client_c"
-
-		function generateRandomId(prefix = "") {
-		    return prefix + Math.random().toString(36).substring(2, 10);
-		}
+    
+	function generateRandomId(prefix = "") {
+	    return prefix + Math.random().toString(36).substring(2, 10);
+	}
 		
 	const user_id = localStorage.getItem("user_id");
 	const device_id = localStorage.getItem("rediim_fingerprint");
@@ -14,7 +15,8 @@
 	    
         // Sample values (replace with real ones from your app)
 	const params = new URLSearchParams({
-	    promocode:`promo_{Math.floor(Math.random() * 1000)}`,
+	    promocode:`promo_${Math.floor(Math.random() * 1000)}`,
+		
 	    device_id: device_id,
 	    email: `user${Math.floor(Math.random() * 10000)}@example.com`,
 	    phone: `555${Math.floor(1000000 + Math.random() * 9000000)}`,
