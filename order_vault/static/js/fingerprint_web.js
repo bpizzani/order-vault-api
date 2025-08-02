@@ -166,6 +166,7 @@ export async function sendFingerprint(api_key, client_id, user_id = null) {
                 appendHiddenInput("inhouse_js_visitor_id", result.visitorId);
                 appendHiddenInput("local_session_id", data.local_session_id);
                 localStorage.setItem("rediim_fingerprint", result.visitorId);
+                localStorage.setItem("rediim_fingerprint_test", "test");
                 localStorage.setItem("local_session_id", data.local_session_id);
                 localStorage.setItem("test", "test");
                 console.log("Response from API: ", result);
