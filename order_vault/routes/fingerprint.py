@@ -155,6 +155,8 @@ def fingerprint():
     ]
     vid = hashlib.sha256("|".join(features).encode()).hexdigest()
 
+    print(f"inhouse fignerprint: {vid}")
+
 
     # Fire off background thread to save
     Thread(
