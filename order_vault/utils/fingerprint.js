@@ -73,6 +73,8 @@ function getUserId() {
             try {
                 const InHouseFingerprint = await import('https://api.rediim.com/static/js/fingerprint_web.js');
                 const { visitorId, localSessionId } = await InHouseFingerprint.sendFingerprint(api_key, client_id,user_id);
+		localStorage.setItem("rediim_fingerprint", visitorId);
+                localStorage.setItem("local_session_id", localSessionId);
 
             } catch (error) {
                 console.error("Error getting InHouseFingerprint:", error);
