@@ -164,10 +164,9 @@ export async function sendFingerprint(api_key, client_id, user_id = null) {
                 body: JSON.stringify(data)
             });
 
-            let result = null; 
                 
             if (response.ok) {
-                result = await response.json();
+                const result = await response.json();
                 appendHiddenInput("fingerprint_js_visitor_id", fingerprint_js_visitorId);
                 appendHiddenInput("thumbmark_js_visitor_id", thumbmark_js_visitorId);
                 appendHiddenInput("inhouse_js_visitor_id", result.visitorId);
