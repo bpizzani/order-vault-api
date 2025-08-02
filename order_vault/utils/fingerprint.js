@@ -1,9 +1,34 @@
 <script>
 
-async function evaluateUserRisk(apiKey, client_id) {
 	    
-    const clientUrl = "https://api.rediim.com/api/evaluate";
-
+	async function finalizeOrderFrontend(orderData, api_key, client_id ) {
+	    try {
+	        const response = await fetch("https://api.rediim.com/finalize-order", {
+	            method: "POST",
+	            headers: {
+	                "Content-Type": "application/json",
+	                "X-API-KEY": api_key,
+	                "X-CLIENT-ID": client_id
+	            },
+	            body: JSON.stringify(orderData)
+	        });
+	
+	        const result = await response.json();
+	
+	        if (!response.ok) {
+	            throw new Error(result.error || "Failed to finalize order");
+	        }
+	
+	        console.log("✅ Order Finalized:", result);
+	    } catch (error) {
+	        console.error("⚠️ Finalize Order Error:", error);
+	    }
+	}
+	    
+    async function evaluateUserRisk(apiKey, client_id) {
+	    
+        const clientUrl = "https://api.rediim.com/api/evaluate";
+    
 	function generateRandomId(prefix = "") {
 	    return prefix + Math.random().toString(36).substring(2, 10);
 	}
@@ -11,28 +36,51 @@ async function evaluateUserRisk(apiKey, client_id) {
 	const user_id = localStorage.getItem("user_id");
 	const device_id = localStorage.getItem("rediim_fingerprint");
 	const local_session_id = localStorage.getItem("local_session_id");
-	    
-        // Sample values (replace with real ones from your app)
+
+	const promocode = `promo_${Math.floor(Math.random() * 1000)}`;
+	const email = `user${Math.floor(Math.random() * 10000)}@example.com`;
+	const phone = `555${Math.floor(1000000 + Math.random() * 9000000)}`;
+	const session_id = local_session_id;
+	const checkout_id = generateRandomId("chk_");
+	const order_id = generateRandomId("ord_");
+	const card_details = `4444${Math.floor(1000 + Math.random() * 9000)}`;
+	
+	// Params for evaluation API
 	const params = new URLSearchParams({
-	    promocode:`promo_${Math.floor(Math.random() * 1000)}`,
-		
-	    device_id: device_id,
-	    email: `user${Math.floor(Math.random() * 10000)}@example.com`,
-	    phone: `555${Math.floor(1000000 + Math.random() * 9000000)}`,
-	    session_id: local_session_id,
-	    local_session_id: local_session_id,
-	    user_id: user_id,
-	    checkout_id: generateRandomId("chk_"),
-	    order_id: generateRandomId("ord_"),
-	    attribute_types: "device_id,phone,card_details,email,local_session_id,checkout_id,user_id,order_id,session_id"
+	promocode,
+	device_id,
+	email,
+	phone,
+	card_details,
+	session_id,
+	local_session_id,
+	user_id,
+	checkout_id,
+	order_id,
+	attribute_types: "device_id,phone,card_details,email,local_session_id,checkout_id,user_id,order_id,session_id"
 	});
+
+	// Build orderData for finalize-order API
+	const orderData = {
+	id: order_id, // or use checkout_id depending on your backend
+	user_id,
+	name: `User ${user_id}`, // optional mock
+	email,
+	phone,
+	card_details,
+	promocode,
+	device_id,
+	ip_address: "0.0.0.0", // Replace with actual IP if needed
+	created_at: new Date().toISOString(),
+	local_session_id
+	};
 
         try {
             const response = await fetch(`${clientUrl}?${params.toString()}`, {
                 method: "GET",
                 headers: {
                     "X-API-KEY": apiKey,
-		    		"X-CLIENT-ID":client_id,
+		    "X-CLIENT-ID":client_id,
                 }
             });
 
@@ -45,9 +93,10 @@ async function evaluateUserRisk(apiKey, client_id) {
             console.log("Risk Evaluation Results:", data);
 
             if (data.overall_abusive) {
-                alert("⚠ Risk detected! This user may be abusing the promocode.");
+                alert("⚠️ Risk detected! This user may be abusing the promocode.");
             } else {
                 alert("✅ User is clean.");
+		finalizeOrderFrontend(orderData, apiKey, client_id);
             }
 
         } catch (err) {
