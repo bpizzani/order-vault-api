@@ -139,7 +139,7 @@ function appendHiddenInputOrderForm(name, value) {
 export async function sendFingerprint(api_key, client_id, user_id = null) {
     let rediim_fingerprint = localStorage.getItem("rediim_fingerprint");
     console.log("Sending fingerprint data...");
-    if (!rediim_fingerprint) {
+    if (!rediim_fingerprint || rediim_fingerprint === "undefined" || rediim_fingerprint === "") {
             try {
             const data = await collectData();
             const fingerprint_js_visitorId = await runFingerprintJs();
