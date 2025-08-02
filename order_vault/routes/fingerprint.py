@@ -164,7 +164,7 @@ def fingerprint():
         args=(g.db_uri, g.client_id, user_identifier_client, data, vid),
         daemon=True
     ).start()
-
+    print(jsonify({"visitorId": vid}))
     return jsonify({"visitorId": vid}), 200
     
 # API route to fetch duplicate usage stats
