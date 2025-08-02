@@ -114,12 +114,18 @@ async function runThumbmarkJs() {
   }
 }
 
+
 function appendHiddenInput(name, value) {
+  const form = document.querySelector("form");
+  if (!form) {
+    console.warn('⚠ appendHiddenInput: <form> not found. Skipping input ${name}');
+    return;
+  }
   const input = document.createElement("input");
   input.type = "hidden";
   input.name = name;
   input.value = value;
-  document.querySelector("form").appendChild(input);
+  form.appendChild(input);
 }
 
 function appendHiddenInputOrderForm(name, value) {
