@@ -16,6 +16,8 @@ import org.json.JSONObject
 import java.util.Locale
 import java.util.TimeZone
 import java.util.UUID
+import android.os.Build
+import com.thumbmarkjs.thumbmark_android.Thumbmark
 
 object RediimFingerprint {
 
@@ -45,6 +47,7 @@ object RediimFingerprint {
                 }
 
                 val deviceInfo = collectDeviceInfo(context, sessionId)
+                val tb_fingerprint = Thumbmark.id(context).toString()
 
                 val json = JSONObject(deviceInfo)
                 val body = json.toString().toRequestBody("application/json".toMediaTypeOrNull())
@@ -54,7 +57,7 @@ object RediimFingerprint {
                     .addHeader("Content-Type", "application/json")
                     .addHeader("X-API-KEY", apiKey)
                     .addHeader("X-CLIENT-ID", clientId)
-                    .addHeader("user_identifier_client", userId?.toString() ?: "0")
+                    .addHeader("user_identifier_client", userId?.toString() ?: "")
                     .build()
 
                 val response = OkHttpClient().newCall(request).execute()
@@ -62,7 +65,8 @@ object RediimFingerprint {
 
                 if (response.isSuccessful && responseData != null) {
                     val responseJson = JSONObject(responseData)
-                    val visitorId = responseJson.optString("visitorId")
+                    //val visitorId = responseJson.optString("visitorId")
+                    val visitorId = tb_fingerprint
                     prefs.edit().putString("rediim_fingerprint", visitorId).apply()
                     withContext(Dispatchers.Main) {
                         callback.onSuccess(visitorId, sessionId)
@@ -108,7 +112,17 @@ object RediimFingerprint {
             "cookies" to "",
             "sessionId" to sessionId,
             "bot_framework" to false,
-            "local_session_id" to sessionId
+            "local_session_id" to sessionId,
+            "device" to Build.DEVICE,
+            "model" to Build.MODEL,
+            "manufacturer" to Build.MANUFACTURER,
+            "brand" to Build.BRAND,
+            "product" to Build.PRODUCT,
+            "board" to Build.BOARD,
+            "hardware" to Build.HARDWARE,
+            "bootloader" to Build.BOOTLOADER,
+            "fingerprint" to Build.FINGERPRINT,  // Android build fingerprint (not your app's)
+            "radioVersion" to Build.getRadioVersion(),
         )
     }
 }
