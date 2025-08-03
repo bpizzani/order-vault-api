@@ -1,5 +1,18 @@
 
 def risk_finalize_order_api(order_data, api_key=None, client_id=None):
+    """       order_data = {
+            "id": order_id,
+            "user_id": new_order.user_id,
+            "name": new_order.name,
+            "email": new_order.email,
+            "phone": new_order.phone,
+            "card_details": new_order.card_details,
+            "promocode": new_order.promocode,
+            "device_id": new_order.device_id,
+            #"ip_address": new_order.ip_address,
+            "created_at": str(new_order.created_at), # Format the datetime properly if needed
+            "local_session_id": local_session_id
+        }"""
     # Define the URL for the finalize-order API endpoint
     finalize_url = "https://api.rediim.com/finalize-order"
     
