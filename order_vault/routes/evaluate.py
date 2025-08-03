@@ -76,7 +76,7 @@ def save_evaluation_event(db_session, client_id, user_id, checkout_id, order_id,
     )
     db_session.add(entry)
     db_session.commit()
-    print("Fingerprint Event Saved")
+    print("Risk Evaluation Event Saved")
     
 @evaluate_bp.route("/evaluate", methods=["GET"])
 @require_api_key
