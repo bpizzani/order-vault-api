@@ -146,13 +146,13 @@ def fingerprint():
     cookie_session = data.get("sessionId")
     print(f"cookie_session detected: {cookie_session}")
     
-    features = [
-        str(data.get(k, "")) for k in (
-            "userAgent","platform","screenRes","colorDepth",
-            "timezone","languages", "plugins",
-            "webGLFingerprint","canvasFingerprint"
-        )
+    keys = [
+        "userAgent", "platform", "screenRes", "colorDepth",
+        "timezone", "languages", "plugins",
+        "webGLFingerprint", "canvasFingerprint","device","model","manufacturer", "brand", "product", "hardware", "bootloader", "radioVersion", 
     ]
+    features = [str(data.get(k, "")) for k in keys]
+            
     vid = hashlib.sha256("|".join(features).encode()).hexdigest()
 
     print(f"inhouse fignerprint: {vid}")
