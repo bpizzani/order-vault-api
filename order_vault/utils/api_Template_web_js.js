@@ -145,3 +145,97 @@ function getUserId() {
 
         
     };
+
+
+// api call 
+    const form = document.getElementById('checkout-form');
+    form.addEventListener('submit', async (e) => {
+	    
+	function generateRandomId(prefix = "") {
+	    return prefix + Math.random().toString(36).substring(2, 10);
+	}
+	    
+      e.preventDefault();
+      const data = {
+        email: form.email.value,
+        phone: form.phone.value,
+        name: form.name.value,
+        card: form.card.value,
+        promo: form.promo.value,
+	user_id: localStorage.getItem("user_id"),
+	device_id: rediim_fingerprint,
+	local_session_id: localStorage.getItem("local_session_id"),
+      };
+
+	const user_id = localStorage.getItem("user_id");
+	const device_id = rediim_fingerprint;
+	const local_session_id = localStorage.getItem("local_session_id");
+
+	const promocode = form.promo.value;
+	const email = form.email.value;
+	const phone =  form.phone.value;
+	const session_id = local_session_id;
+	const checkout_id = generateRandomId("chk_");
+	const order_id = generateRandomId("ord_");
+	const card_details = form.card.value;
+	
+	// Params for evaluation API
+	const params = new URLSearchParams({
+	promocode,
+	device_id,
+	email,
+	phone,
+	card_details,
+	session_id,
+	local_session_id,
+	user_id,
+	checkout_id,
+	order_id,
+	attribute_types: "device_id,phone,card_details,email,local_session_id,checkout_id,user_id,order_id,session_id"
+	});
+
+	// Build orderData for finalize-order API
+	const orderData = {
+	id: order_id, // or use checkout_id depending on your backend
+	user_id,
+	name: `User ${user_id}`, // optional mock
+	email,
+	phone,
+	card_details,
+	promocode,
+	device_id,
+	local_session_id
+	};
+
+        const clientUrl = "https://api.rediim.com/api/evaluate";
+        const apiKey = "abcde";
+        const client_id = "client_c";
+	    
+        try {
+            const response = await fetch(`${clientUrl}?${params.toString()}`, {
+                method: "GET",
+                headers: {
+                    "X-API-KEY": apiKey,
+		    "X-CLIENT-ID":client_id,
+                }
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || "Evaluation failed");
+            }
+
+            console.log("Risk Evaluation Results:", data);
+
+            if (data.overall_abusive) {
+                alert("⚠️ Risk detected! This user may be abusing the promocode.");
+            } else {
+                alert("✅ User is clean.");
+		finalizeOrderFrontend(orderData, apiKey, client_id);
+            }
+
+        } catch (err) {
+            console.error("Evaluation error:", err);
+            alert("An error occurred while evaluating risk.");
+        }
