@@ -17,6 +17,8 @@
 
 
             val attributeTypes = listOf("device_id", "phone", "card_details", "email", "local_session_id","checkout_id","user_id","order_id","session_id")
+            val checkoutId = generateCheckoutId().toString().orEmpty()
+            val orderId = generateOrderId().toString().orEmpty()
 
             val values = mapOf(
                 "device_id" to visitorId.toString().orEmpty(),
@@ -28,9 +30,9 @@
                 "user_id" to userId.toString().orEmpty(),
                 "local_session_id" to localSessionId.orEmpty(),
                 "session_id" to localSessionId.orEmpty(),
-                "order_id" to generateCheckoutId().toString().orEmpty(),
-                "id" to generateOrderId().toString().orEmpty(),
-                "checkout_id" to generateCheckoutId().toString().orEmpty(),
+                "order_id" to orderId, // risk evaluation event save
+                "id" to orderId, // finalize order save
+                "checkout_id" to checkoutId, // risk evaluation event save
                 "created_at" to ZonedDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME).toString().orEmpty(), // also generated on backened just in case
             )
 
