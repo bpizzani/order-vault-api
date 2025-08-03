@@ -22,7 +22,41 @@
 	        console.error("⚠️ Finalize Order Error:", error);
 	    }
 	}
+
+    async function evaluateUserRiskApi(params, orderData, apiKey, client_id) {
 	    
+	        const clientUrl = "https://api.rediim.com/api/evaluate";
+		    
+	        try {
+	            const response = await fetch(`${clientUrl}?${params.toString()}`, {
+	                method: "GET",
+	                headers: {
+	                    "X-API-KEY": apiKey,
+			    "X-CLIENT-ID":client_id,
+	                }
+	            });
+	
+	            const data = await response.json();
+	
+	            if (!response.ok) {
+	                throw new Error(data.error || "Evaluation failed");
+	            }
+	
+	            console.log("Risk Evaluation Results:", data);
+	
+	            if (data.overall_abusive) {
+	                alert("⚠️ Risk detected! This user may be abusing the promocode.");
+	            } else {
+	                alert("✅ User is clean.");
+			finalizeOrderFrontend(orderData, apiKey, client_id);
+	            }
+	
+	        } catch (err) {
+	            console.error("Evaluation error:", err);
+	            alert("An error occurred while evaluating risk.");
+	        }
+	}	  
+
     async function evaluateUserRisk(apiKey, client_id) {
 	    
         const clientUrl = "https://api.rediim.com/api/evaluate";
@@ -206,36 +240,19 @@ function getUserId() {
 	device_id,
 	local_session_id
 	};
-
-        const clientUrl = "https://api.rediim.com/api/evaluate";
         const apiKey = "abcde";
         const client_id = "client_c";
 	    
-        try {
-            const response = await fetch(`${clientUrl}?${params.toString()}`, {
-                method: "GET",
-                headers: {
-                    "X-API-KEY": apiKey,
-		    "X-CLIENT-ID":client_id,
-                }
-            });
+	evaluateUserRiskApi(params, orderData, apiKey, client_id);
+	    
+      //const response = await fetch('https://order-vault-client-webapp-13ee822f0ba9.herokuapp.com/checkout', {
+      //  method: 'POST',
+      //  headers: {
+      //    'Content-Type': 'application/json'
+      //  },
+      //  body: JSON.stringify(data)
+      //});
 
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.error || "Evaluation failed");
-            }
-
-            console.log("Risk Evaluation Results:", data);
-
-            if (data.overall_abusive) {
-                alert("⚠️ Risk detected! This user may be abusing the promocode.");
-            } else {
-                alert("✅ User is clean.");
-		finalizeOrderFrontend(orderData, apiKey, client_id);
-            }
-
-        } catch (err) {
-            console.error("Evaluation error:", err);
-            alert("An error occurred while evaluating risk.");
-        }
+      //const result = await response.json();
+      //document.getElementById('response').textContent = JSON.stringify(result, null, 2);
+    });
