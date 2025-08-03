@@ -1,3 +1,28 @@
+
+def risk_finalize_order_api(order_data, api_key=None, client_id=None):
+    # Define the URL for the finalize-order API endpoint
+    finalize_url = "https://api.rediim.com/finalize-order"
+    
+    headers = {
+        "X-API-KEY": api_key,  # 🛡️ Important: pass the API key in the header
+        "X-CLIENT-ID": client_id 
+    }
+    
+    # Make the API call to finalize the order
+    try:
+        # Send the entire order data as JSON
+        response = requests.post(finalize_url, json=order_data, headers=headers)
+        
+        # Handle the response
+        if response.status_code == 200:
+            return response.json()  # Assume the response is JSON
+        else:
+            return {"status": "failed", "error": f"Error: {response.status_code} - {response.text}"}
+    
+    except requests.exceptions.RequestException as e:
+        return {"status": "failed", "error": f"Request failed: {str(e)}"}
+
+
 def risk_api(attribute_types=None, values=None, promocode=None, api_key=None, client_id=None):
     """
     Calls the business API to get aggregated data by multiple attribute types (e.g., device_id, phone) 
@@ -34,29 +59,3 @@ def risk_api(attribute_types=None, values=None, promocode=None, api_key=None, cl
             return {"error": f"Error: {response.status_code} - {response.text}"}
     except requests.exceptions.RequestException as e:
         return {"error": f"Request failed: {str(e)}"}
-
-
-
-
-def risk_finalize_order_api(order_data, api_key=None, client_id=None):
-    # Define the URL for the finalize-order API endpoint
-    finalize_url = "https://api.rediim.com/finalize-order"
-    
-    headers = {
-        "X-API-KEY": api_key,  # 🛡️ Important: pass the API key in the header
-        "X-CLIENT-ID": client_id 
-    }
-    
-    # Make the API call to finalize the order
-    try:
-        # Send the entire order data as JSON
-        response = requests.post(finalize_url, json=order_data, headers=headers)
-        
-        # Handle the response
-        if response.status_code == 200:
-            return response.json()  # Assume the response is JSON
-        else:
-            return {"status": "failed", "error": f"Error: {response.status_code} - {response.text}"}
-    
-    except requests.exceptions.RequestException as e:
-        return {"status": "failed", "error": f"Request failed: {str(e)}"}
