@@ -1,0 +1,1 @@
+https://github.com/bpizzani/rediim_android_sdk
