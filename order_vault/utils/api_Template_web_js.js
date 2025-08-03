@@ -68,7 +68,6 @@
 	card_details,
 	promocode,
 	device_id,
-	created_at: new Date().toISOString(),
 	local_session_id
 	};
 
