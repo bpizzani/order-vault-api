@@ -140,7 +140,8 @@ function getUserId() {
         const apiKey = "abcde";
         const client_id = "client_c";
 	    
-        //await evaluateUserRisk(apiKey, client_id);
+        await evaluateUserRisk(apiKey, client_id);
+	    
 	//finalizeOrderFrontend(orderData);
 
         
