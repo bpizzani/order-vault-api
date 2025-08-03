@@ -61,10 +61,22 @@ def risk_api(attribute_types=None, values=None, promocode=None, api_key=None, cl
         return {"error": f"Request failed: {str(e)}"}
 
 
+def checkout():
+    data = request.json
+    email = data.get('email')
+    phone = data.get('phone')
+    name = data.get('name')
+    card_details = data.get('card')  # ⚠️ Unsafe to handle in real-world app
+    promocode = data.get('promo')
+    user_id = data.get('user_id')
+    device_id = data.get('device_id')
+    local_session_id = data.get('local_session_id')
 
-      
+    checkout_id = f"chk_{uuid.uuid4().hex[:12]}" 
+    order_id = f"ord_{uuid.uuid4().hex[:12]}"
+    
         # Fetch aggregated data by device and phone if promocode is not null
-        values = {
+    values = {
             "device_id": device_id,  
             "phone": phone,  
             "card_details": card_details,  
@@ -72,35 +84,36 @@ def risk_api(attribute_types=None, values=None, promocode=None, api_key=None, cl
             "local_session_id": local_session_id,
             "checkout_id":checkout_id,
             "user_id": user_id,
-            "order_id": checkout_id,
+            "order_id": order_id,
             "session_id": local_session_id,
         }
-        abuse = 0
-        if promocode:
-            risk_response = risk_api(attribute_types=["device_id", "phone", "card_details", "email", "local_session_id","checkout_id","user_id","order_id","session_id"], values=values, promocode=promocode, api_key="abcde", client_id="client_c")
-            if risk_response["overall_abusive"] == True:
-                abuse = 1
-                return jsonify({"error": "PROMO ABUSE - Device or Phone or Card is already associated with more than one account"}), 500
-        
+    abuse = 0
+    if promocode:
+        risk_response = risk_api(attribute_types=["device_id", "phone", "card_details", "email", "local_session_id","checkout_id","user_id","order_id","session_id"], values=values, promocode=promocode, api_key="abcde", client_id="client_c")
+        if risk_response["overall_abusive"] == True:
+            abuse = 1
+            return jsonify({"error": "PROMO ABUSE - Device or Phone or Card is already associated with more than one account"}), 500
+    
+    if abuse == 0:
 
-            # Prepare order data to send in API call
-            order_data = {
-                "id": new_order.id,
-                "user_id": new_order.user_id,
-                "name": new_order.name,
-                "email": new_order.email,
-                "phone": new_order.phone,
-                "card_details": new_order.card_details,
-                "promocode": new_order.promocode,
-                "device_id": new_order.device_id,
-                "ip_address": new_order.ip_address,
-                "created_at": str(new_order.created_at), # Format the datetime properly if needed
-                "local_session_id": local_session_id
-            }
+        # Prepare order data to send in API call
+        order_data = {
+            "id": order_id,
+            "user_id": new_order.user_id,
+            "name": new_order.name,
+            "email": new_order.email,
+            "phone": new_order.phone,
+            "card_details": new_order.card_details,
+            "promocode": new_order.promocode,
+            "device_id": new_order.device_id,
+            #"ip_address": new_order.ip_address,
+            "created_at": str(new_order.created_at), # Format the datetime properly if needed
+            "local_session_id": local_session_id
+        }
 
 
-            Thread(
-                target=async_finalize_order,
-                args=(order_data, "abcde", "client_c"),
-                daemon=True
-            ).start()
+        Thread(
+            target=async_finalize_order,
+            args=(order_data, "abcde", "client_c"),
+            daemon=True
+        ).start()
