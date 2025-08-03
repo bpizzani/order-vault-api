@@ -146,4 +146,31 @@ function getUserId() {
         evaluateUserRisk(apiKey, client_id);
         
     };
+
+
+    const form = document.getElementById('checkout-form');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const data = {
+        email: form.email.value,
+        phone: form.phone.value,
+        name: form.name.value,
+        card: form.card.value,
+        promo: form.promo.value,
+	user_id: localStorage.getItem("user_id"),
+	device_id: rediim_fingerprint,
+	local_session_id: localStorage.getItem("local_session_id"),
+      };
+
+      const response = await fetch('https://order-vault-client-webapp-13ee822f0ba9.herokuapp.com/checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      });
+
+      const result = await response.json();
+      document.getElementById('response').textContent = JSON.stringify(result, null, 2);
+    });
  </script>
