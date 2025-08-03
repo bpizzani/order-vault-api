@@ -28,7 +28,7 @@ def risk_api(attribute_types=None, values=None, promocode=None, api_key=None, cl
     Calls the business API to get aggregated data by multiple attribute types (e.g., device_id, phone) 
     with corresponding values, and returns the overall evaluation (true/false for abusive).
 
-    :param attribute_types: List of attribute types to aggregate by (e.g., ["device_id", "phone"])
+    :param attribute_types: List of attribute types to aggregate by (e.g., ["device_id", "phone", "card_details", "email", "local_session_id","checkout_id","user_id","order_id","session_id"])
     :param values: Dictionary of attribute values corresponding to each attribute type (e.g., {"device_id": "12345", "phone": "9876543210"})
     :param promocode: Optional promocode filter (default is None)
     :return: A dictionary containing the overall abusive evaluation (True/False), or an error message
