@@ -78,21 +78,23 @@ def save_evaluation_event(db_session, client_id, user_id, checkout_id, order_id,
     db_session.commit()
     print("Risk Evaluation Event Saved")
     
-@evaluate_bp.route("/evaluate", methods=["GET"])
+@evaluate_bp.route("/evaluate", methods=["POST"])
 @require_api_key
 def evaluate():
+    data = request.get_json(force=True)
+    
     accepted_types = ['card_details', 'email', 'device_id', 'phone', 'local_session_id']
     
-    types = request.args.get("attribute_types", "device_id").split(",")
-    promo = request.args.get("promocode")
-    values = {t: request.args.get(t) for t in accepted_types if request.args.get(t)}
+    types = data.get("attribute_types", ["device_id"])
+    promo = data.get("promocode")
+    values = {t: data.get(t) for t in accepted_types if data.get(t)}
     
     print(values["device_id"])
-    
-    checkout_id = request.args.get("checkout_id","")
-    user_id = request.args.get("user_id","")
-    session_id = request.args.get("session_id","")
-    order_id = request.args.get("order_id","")
+
+    checkout_id = data.get("checkout_id", "")
+    user_id = data.get("user_id", "")
+    session_id = data.get("session_id", "")
+    order_id = data.get("order_id", "")
     
     import time
     start = time.time()
