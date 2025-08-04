@@ -78,36 +78,22 @@
         }
 
 
-// Rediim Risk Evaluation API
+   // Rediim Risk Evaluation API
     fun riskApi(
-        attributeTypes: List<String>,
-        values: Map<String, String>,
-        promocode: String? = null,
+        values: JSONObject,
         apiKey: String,
         clientId: String
     ): Map<String, Any> {
         val client = OkHttpClient()
-        val baseUrl = "https://api.rediim.com/api/evaluate".toHttpUrlOrNull() ?: return mapOf("error" to "Invalid URL")
-
-        val urlBuilder = baseUrl.newBuilder()
-            .addQueryParameter("attribute_types", attributeTypes.joinToString(","))
-
-        // Add values for each attribute type
-        for (attribute in attributeTypes) {
-            values[attribute]?.let {
-                urlBuilder.addQueryParameter(attribute, it)
-            }
-        }
-
-        promocode?.let {
-            urlBuilder.addQueryParameter("promocode", it)
-        }
+        val url = "https://api.rediim.com/api/evaluate"
+        val body = values.toString().toRequestBody("application/json".toMediaTypeOrNull())
 
         val request = Request.Builder()
-            .url(urlBuilder.build())
+            .url(url)
+            .post(body)
+            .addHeader("Content-Type", "application/json")
             .addHeader("X-API-KEY", apiKey)
             .addHeader("X-CLIENT-ID", clientId)
-            .get()
             .build()
 
         return try {
