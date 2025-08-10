@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Rediim Fingerprint (Web) – Quick Start</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #0b1220;
+      --panel: #121a2b;
+      --muted: #95a3b3;
+      --text: #e9eef5;
+      --accent: #7dd3fc;
+      --accent-2: #a78bfa;
+      --code: #0f172a;
+      --border: #1e293b;
+      --success: #22c55e;
+      --warn: #f59e0b;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font: 15px/1.6 system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    header {
+      padding: 48px 20px 24px;
+      background:
+        radial-gradient(600px 200px at 20% -10%, rgba(125,211,252,.15), transparent),
+        radial-gradient(600px 200px at 80% -10%, rgba(167,139,250,.12), transparent);
+      border-bottom: 1px solid var(--border);
+    }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 0 20px; }
+    h1 { margin: 0 0 8px; font-size: 32px; line-height: 1.1; letter-spacing: .2px; }
+    .subtitle { color: var(--muted); margin: 0 0 6px; }
+    .badge { display: inline-block; font-size: 12px; padding: 4px 8px; border-radius: 999px; background: rgba(125,211,252,.12); color: var(--accent); border: 1px solid rgba(125,211,252,.25); }
+    main { padding: 28px 0 80px; }
+    h2 { margin: 32px 0 12px; font-size: 24px; line-height: 1.25; }
+    h3 { margin: 26px 0 10px; font-size: 18px; }
+    p { margin: 10px 0; }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+      margin: 16px 0;
+    }
+    .grid { display: grid; gap: 16px; grid-template-columns: 1fr; }
+    @media (min-width: 900px) { .grid { grid-template-columns: 1fr 1fr; } }
+    pre, code, kbd {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      font-size: 13px;
+    }
+    pre {
+      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      overflow: auto;
+      margin: 14px 0;
+    }
+    code { background: rgba(148,163,184,.14); padding: 2px 6px; border-radius: 6px; }
+    .callout { border-left: 4px solid var(--accent); padding: 10px 12px; background: rgba(125,211,252,.06); border-radius: 8px; }
+    .callout.warn { border-left-color: var(--warn); background: rgba(245,158,11,.08); }
+    .pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      border:1px solid var(--border); background: rgba(148,163,184,.08);
+      padding: 6px 10px; border-radius: 999px; color: var(--muted); font-size: 12px;
+    }
+    .toc { list-style:none; padding:0; margin:10px 0 0; display:grid; gap:6px; }
+    .toc a { color: var(--text); }
+    footer { color: var(--muted); border-top: 1px solid var(--border); padding: 22px 0; }
+    .ok { color: var(--success); }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="badge">Web SDK</div>
+      <h1>Rediim Fingerprint – Quick Start</h1>
+      <p class="subtitle">Create a stable per‑device ID (<code>visitorId</code>) and a per‑session ID (<code>localSessionId</code>) on the web.</p>
+      <ul class="toc">
+        <li>• <a href="#what-it-does">What it does</a></li>
+        <li>• <a href="#install">1) Install: dynamic import</a></li>
+        <li>• <a href="#returned">2) Returned values & storage</a></li>
+        <li>• <a href="#attach">3) Attach IDs to your API calls</a></li>
+        <li>• <a href="#example">4) Minimal full example</a></li>
+        <li>• <a href="#pitfalls">5) Common pitfalls</a></li>
+        <li>• <a href="#what-to-send">6) What to send to your backend</a></li>
+      </ul>
+    </div>
+  </header>
+
+    <main class="wrap">
+      <section id="what-it-does">
+        <h2>What it does</h2>
+        <div class="panel">
+          <p>Rediim Fingerprint creates:</p>
+          <ul>
+            <li><strong><code>visitorId</code></strong> – a stable, per‑device identifier</li>
+            <li><strong><code>localSessionId</code></strong> – a per‑tab/visit session id</li>
+          </ul>
+          <p>Call it <em>right after login</em> (or on any page you want to track). Pass your own <code>user_id</code> so we can analyze duplicates across users/devices.</p>
+        </div>
+      </section>
+
+      <section id="install">
+        <h2>1) Install: dynamic import</h2>
+        <p>No bundler or NPM required. Dynamically import our script and call a single function.</p>
+<pre><code>&lt;script&gt;
+  // Store safely (env injected or server templated)
+  const REDIIM_API_KEY = "trial_abc";     // &lt;-- replace
+  const REDIIM_CLIENT_ID = "client_1";    // &lt;-- replace
+
+  // Optional: your own user identifier. If you don’t have one, use 0 or skip.
+  function getUserId() {
+    let uid = localStorage.getItem("user_id");
+    if (!uid) {
+      uid = Math.floor(Math.random() * 1_000_000);
+      localStorage.setItem("user_id", uid);
+    }
+    return uid;
+  }
+
+  // Call this on pages you want to track (commonly right after login)
+  async function runInHouseFingerprint(apiKey, clientId, userId = 0) {
+    try {
+      const InHouseFingerprint = await import('https://api.rediim.com/static/js/fingerprint_web.js');
+      const { visitorId, localSessionId } = await InHouseFingerprint.sendFingerprint(apiKey, clientId, userId);
+
+      // Cache for reuse across the site
+      localStorage.setItem("rediim_fingerprint", visitorId);
+      localStorage.setItem("local_session_id", localSessionId);
+
+      // Optional: expose globally if you like
+      window.REDIIM = { visitorId, localSessionId, userId };
+
+      console.log("[Rediim] Fingerprint ready", { visitorId, localSessionId, userId });
+      return { visitorId, localSessionId };
+    } catch (error) {
+      console.error("[Rediim] Error getting fingerprint:", error);
+      // Don’t block UX; you can retry later
+      return null;
+    }
+  }
+
+  // Example: run on page load (post-login is ideal)
+  window.addEventListener('load', async () =&gt; {
+    const userId = getUserId(); // optional but recommended
+    await runInHouseFingerprint(REDIIM_API_KEY, REDIIM_CLIENT_ID, userId);
+  });
+&lt;/script&gt;
+</code></pre>
+        <div class="callout">
+          <strong>Tip:</strong> You can also call <code>runInHouseFingerprint</code> immediately after a successful login redirect.
+        </div>
+      </section>
+
+      <section id="returned">
+        <h2>2) Returned values &amp; storage</h2>
+        <div class="grid">
+          <div class="panel">
+            <h3>Values</h3>
+            <ul>
+              <li><code>visitorId</code> – stable device id</li>
+              <li><code>localSessionId</code> – per‑visit/per‑tab session id</li>
+            </ul>
+          </div>
+          <div class="panel">
+            <h3>Where we store them</h3>
+            <ul>
+              <li><code>localStorage["rediim_fingerprint"]</code></li>
+              <li><code>localStorage["local_session_id"]</code></li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="attach">
+        <h2>3) Attach IDs to your API calls</h2>
+        <p>Include the fingerprint values whenever the user performs a meaningful action (e.g., checkout, evaluate, finalize):</p>
+<pre><code>const device_id = localStorage.getItem("rediim_fingerprint");
+const local_session_id = localStorage.getItem("local_session_id");
+const user_id = localStorage.getItem("user_id") ?? null;
+
+await fetch("/api/my-checkout", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    user_id,
+    device_id,
+    local_session_id,
+    // ... your other fields
+  })
+});
+</code></pre>
+        <div class="callout warn">
+          <strong>Security:</strong> Avoid putting IDs in <code>GET</code> query strings. Prefer <code>POST</code> bodies or headers.
+        </div>
+      </section>
+
+      <section id="example">
+        <h2>4) Minimal full example</h2>
+<pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;&lt;meta charset="utf-8"/&gt;&lt;title&gt;Fingerprint Demo&lt;/title&gt;&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Welcome&lt;/h1&gt;
+
+  &lt;script&gt;
+    const REDIIM_API_KEY = "trial_abc";   // replace
+    const REDIIM_CLIENT_ID = "client_1";  // replace
+
+    function getUserId() {
+      let uid = localStorage.getItem("user_id");
+      if (!uid) {
+        uid = Math.floor(Math.random() * 1_000_000);
+        localStorage.setItem("user_id", uid);
+      }
+      return uid;
+    }
+
+    async function runInHouseFingerprint(apiKey, clientId, userId = 0) {
+      try {
+        const InHouseFingerprint = await import('https://api.rediim.com/static/js/fingerprint_web.js');
+        const { visitorId, localSessionId } = await InHouseFingerprint.sendFingerprint(apiKey, clientId, userId);
+        localStorage.setItem("rediim_fingerprint", visitorId);
+        localStorage.setItem("local_session_id", localSessionId);
+        console.log("[Rediim] FP:", { visitorId, localSessionId, userId });
+        return { visitorId, localSessionId };
+      } catch (e) {
+        console.error("[Rediim] FP error:", e);
+        return null;
+      }
+    }
+
+    window.addEventListener('load', async () =&gt; {
+      const userId = getUserId();  // use your real user id after login
+      await runInHouseFingerprint(REDIIM_API_KEY, REDIIM_CLIENT_ID, userId);
+
+      // Example use:
+      const device_id = localStorage.getItem("rediim_fingerprint");
+      const local_session_id = localStorage.getItem("local_session_id");
+      console.log("Ready to send with actions:", { device_id, local_session_id });
+    });
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+      </section>
+
+      <section id="pitfalls">
+        <h2>5) Common pitfalls</h2>
+        <div class="panel">
+          <p><span class="pill">TypeError: Cannot set properties of null</span><br />
+          You’re writing into an element that isn’t in the DOM yet. Use <code>DOMContentLoaded</code>/<code>load</code> or guard with <code>if (el)</code>. If you don’t use hidden inputs, remove those lines.</p>
+        </div>
+        <div class="panel">
+          <p><span class="pill">CSP / Adblock / Mixed Content</span><br />
+          Serve over <strong>HTTPS</strong> and allow <code>https://api.rediim.com</code> in <code>script-src</code> and <code>connect-src</code>.</p>
+        </div>
+        <div class="panel">
+          <p><span class="pill">Key/Client mismatch</span><br />
+          <code>X-API-KEY</code> and <code>X-CLIENT-ID</code> must belong together. If you rotate keys, update both.</p>
+        </div>
+        <div class="panel">
+          <p><span class="pill">Retries</span><br />
+          <code>sendFingerprint()</code> is idempotent. If it fails (network/CSP), don’t block UX—log and retry later.</p>
+        </div>
+      </section>
+
+      <section id="what-to-send">
+        <h2>6) What to send to your backend</h2>
+        <p>On meaningful actions (checkout, evaluation, etc.), include:</p>
+        <ul>
+          <li><code>user_id</code> – your internal id (recommended)</li>
+          <li><code>device_id</code> – <code>localStorage["rediim_fingerprint"]</code></li>
+          <li><code>local_session_id</code> – <code>localStorage["local_session_id"]</code></li>
+          <li>Your normal fields (email, phone, card, etc.)</li>
+        </ul>
+        <p class="ok">This enables duplicate detection and device reuse analysis for promo abuse prevention.</p>
+      </section>
+    </main>
+
+    <footer>
+      <div class="wrap">
+        <small>© <span id="yr"></span> Rediim. All rights reserved.</small>
+      </div>
+    </footer>
+
+    <script>
+      document.getElementById('yr').textContent = new Date().getFullYear();
+    </script>
+</body>
+</html>
