@@ -1,6 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Highlight.js CSS theme -->
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  
+  <!-- Highlight.js core script -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  
+  <!-- Load JavaScript language support -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/javascript.min.js"></script>
+
   <meta charset="utf-8" />
   <title>Rediim Fingerprint (Web) – Quick Start</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -315,6 +325,11 @@ await fetch("/api/my-checkout", {
     </footer>
 
     <script>
+      // Initialize highlighting on page load
+      document.addEventListener("DOMContentLoaded", () => {
+        hljs.highlightAll();
+      });
+      
       document.getElementById('yr').textContent = new Date().getFullYear();
     </script>
 </body>
