@@ -282,7 +282,26 @@ await fetch("/api/my-checkout", {
       </section>
 
 
-
+      <section id="monitor">
+        <h2>4) Monitoring your traffic in the Rediim Fingerprint Dashboard</h2>
+        <div class="panel">
+          <p>Once you’ve integrated the fingerprint snippet on your site, you can monitor device and session activity in the
+            <a href="https://console.rediim.com/fingerprint" target="_blank">Rediim Fingerprint Dashboard</a>.</p>
+          <ul>
+            <li>See real-time <strong>visitorId</strong> and <strong>localSessionId</strong> creation events.</li>
+            <li>Search by <code>user_id</code> to find all devices used by the same account.</li>
+            <li>Search by <code>device_id</code> (visitorId) to see how many accounts use the same device.</li>
+            <li>Filter by <strong>promocode</strong> to detect promo abuse patterns.</li>
+          </ul>
+          <p>To get meaningful insights:</p>
+          <ul>
+            <li>Always pass a <code>user_id</code> to <code>sendFingerprint()</code> when known.</li>
+            <li>If applicable, pass the <code>promocode</code> offered or used at the time of fingerprinting.</li>
+            <li>Ensure your frontend sends the same <strong>device_id</strong> and <strong>local_session_id</strong> to your backend for risk evaluation calls.</li>
+          </ul>
+          <p class="ok">With these identifiers in place, the dashboard will let you monitor traffic, detect duplicate devices across users, and catch suspicious promo usage.</p>
+        </div>
+      </section>
 
       
     </main>
