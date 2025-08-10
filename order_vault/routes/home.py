@@ -141,7 +141,7 @@ def serve_fingerprint_min_js():
     return send_from_directory("static/js", "fingerprint_es.min.js")
 
 
-@home_bp.route("/documentation", methods=["GET"])
+@home_bp.route("/documentation_web", methods=["GET"])
 @login_required
 def documentation():
     return render_template("fingerprint_web_documentation.html")
