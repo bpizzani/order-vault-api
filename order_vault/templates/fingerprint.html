@@ -217,7 +217,17 @@
       const box = $("resUserId"); if (box) box.textContent = "Searching...";
       try {
         const data = await runSearch("/api/fingerprint/search/by-user", { user_id });
-        if (box) box.innerHTML = `<div class="text-xs text-gray-400 mb-2">device_count: <b>${data.device_count}</b>, promocode_count: <b>${data.promocode_count}</b></div>`;
+        //if (box) box.innerHTML = `<div class="text-xs text-gray-400 mb-2">device_count: <b>${data.device_count}</b>, promocode_count: <b>${data.promocode_count}</b></div>`;
+        if (box) {
+              box.innerHTML = `
+                <div class="bg-[#1f2937] border border-gray-700 rounded-lg px-4 py-3 mb-3">
+                  <p class="text-xs text-gray-400">
+                    <span class="mr-4">💻 Unique Devices: <b class="text-emerald-400">${data.device_count}</b></span>
+                    <span>💻 Unique Promocodes: <b class="text-sky-400">${data.promocode_count}</b></span>
+                  </p>
+                </div>
+              `;
+            }
         show("searchTables");
         setText("titleA", `Devices for user ${user_id}`);
         setText("titleB", `Promocodes for user ${user_id}`);
@@ -234,7 +244,17 @@
       const box = $("resDeviceId"); if (box) box.textContent = "Searching...";
       try {
         const data = await runSearch("/api/fingerprint/search/by-device", { device_id });
-        if (box) box.innerHTML = `<div class="text-xs text-gray-400 mb-2">user_count: <b>${data.user_count}</b>, promocode_count: <b>${data.promocode_count}</b></div>`;
+        //if (box) box.innerHTML = `<div class="text-xs text-gray-400 mb-2">user_count: <b>${data.user_count}</b>, promocode_count: <b>${data.promocode_count}</b></div>`;
+        if (box) {
+              box.innerHTML = `
+                <div class="bg-[#1f2937] border border-gray-700 rounded-lg px-4 py-3 mb-3">
+                  <p class="text-xs text-gray-400">
+                    <span class="mr-4">👤 Unique Users: <b class="text-emerald-400">${data.user_count}</b></span>
+                    <span>💻 Unique Promocodes: <b class="text-sky-400">${data.promocode_count}</b></span>
+                  </p>
+                </div>
+              `;
+            }
         show("searchTables");
         setText("titleA", `Users on device ${device_id.slice(0,8)}…`);
         setText("titleB", `Promocodes used by device`);
