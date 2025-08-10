@@ -207,8 +207,8 @@ await fetch("/api/my-checkout", {
   &lt;h1&gt;Welcome&lt;/h1&gt;
 
   &lt;script&gt;
-    const REDIIM_API_KEY = "trial_abc";   // replace
-    const REDIIM_CLIENT_ID = "client_1";  // replace
+    const REDIIM_API_KEY = "api_key";   // replace
+    const REDIIM_CLIENT_ID = "client_id";  // replace
 
     function getUserId() {
       let uid = localStorage.getItem("user_id");
@@ -235,6 +235,7 @@ await fetch("/api/my-checkout", {
 
     window.addEventListener('load', async () =&gt; {
       const userId = getUserId();  // use your real user id after login
+      const promocode = getPromoCode(); // optional but recommended
       await runInHouseFingerprint(REDIIM_API_KEY, REDIIM_CLIENT_ID, userId, promocode);
 
       // Example use:
