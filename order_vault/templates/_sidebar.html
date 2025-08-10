@@ -2,6 +2,7 @@
     <div class="mb-8">
         <img src="{{ url_for('static', filename='images/rediim_logo.svg') }}" class="h-10 mx-auto" alt="Logo">
     </div>
+
     {% if client_id %}
     <div class="text-sm text-gray-400 mb-8 border-b border-gray-700 pb-4">
         <p class="text-xs uppercase">Client</p>
@@ -10,11 +11,26 @@
     </div>
     {% endif %}
 
+    {# Lock the non-fingerprint links when on the fingerprint_demo plan #}
+    {# Flip to != "fingerprint_demo" if you want the opposite behavior #}
+    {% set lock_others = (subscription_type == "fingerprint_demo") %}
+
     <nav class="flex flex-col space-y-3">
-        <a href="{{ url_for('home.promotion_ui') }}" class="sidebar-link">📊 Dashboard</a>
-        <a href="{{ url_for('home.rules_ui') }}" class="sidebar-link">📐 Reglas</a>
-        <a href="{{ url_for('home.customer_ui') }}" class="sidebar-link">🔍 User Search</a>
+        <a href="{{ url_for('home.promotion_ui') }}"
+           class="sidebar-link {% if lock_others %}locked{% endif %}"
+           {% if lock_others %}aria-disabled="true" tabindex="-1" title="Locked on demo plan"{% endif %}>📊 Dashboard</a>
+
+        <a href="{{ url_for('home.rules_ui') }}"
+           class="sidebar-link {% if lock_others %}locked{% endif %}"
+           {% if lock_others %}aria-disabled="true" tabindex="-1" title="Locked on demo plan"{% endif %}>📐 Reglas</a>
+
+        <a href="{{ url_for('home.customer_ui') }}"
+           class="sidebar-link {% if lock_others %}locked{% endif %}"
+           {% if lock_others %}aria-disabled="true" tabindex="-1" title="Locked on demo plan"{% endif %}>🔍 User Search</a>
+
+        {# Fingerprint remains available #}
         <a href="{{ url_for('home.fingerprint_ui') }}" class="sidebar-link">🔍 Fingerprint</a>
+
         <a href="https://rediim.com" class="sidebar-link">🌐 Web</a>
         <a href="/logout" class="sidebar-link">🚪 Logout</a>
     </nav>
@@ -26,6 +42,7 @@
             font-weight: 500;
             transition: all 0.2s ease;
             color: #d1d5db;
+            position: relative; /* needed for overlay positioning */
         }
 
         .sidebar-link:hover {
@@ -37,6 +54,29 @@
             background-color: #ff3b2f;
             color: #ffffff;
         }
+
+        /* Lock “overlay” */
+        .sidebar-link.locked {
+            pointer-events: none;  /* blocks clicks */
+            opacity: 0.6;
+            filter: grayscale(0.2);
+            cursor: not-allowed;
+        }
+        .sidebar-link.locked::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.25);
+            border-radius: 0.5rem;
+        }
+        .sidebar-link.locked::after {
+            content: "🔒";
+            position: absolute;
+            right: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.95rem;
+        }
     </style>
 
     <script>
@@ -44,9 +84,10 @@
         const links = document.querySelectorAll('.sidebar-link');
         const path = window.location.pathname;
         links.forEach(link => {
-            if (link.getAttribute('href') === path) {
-                link.classList.add('active');
-            }
+            try {
+                const href = link.getAttribute('href') || "";
+                if (href === path) link.classList.add('active');
+            } catch (_) {}
         });
     </script>
 </aside>
