@@ -314,3 +314,123 @@ def daily_duplicate_rate():
         session.close()
 
  
+
+def device_coalesce_sql():
+    # Prefer tm_visitor_id, then js_visitor_id, then visitor_id
+    return """
+        CASE 
+          WHEN tm_visitor_id IS NOT NULL AND tm_visitor_id <> 'null' THEN tm_visitor_id
+          WHEN js_visitor_id IS NOT NULL AND js_visitor_id <> 'null' THEN js_visitor_id
+          ELSE visitor_id
+        END
+    """
+
+# 1) By USER
+@fingerprint_bp.route("/search/by-user", methods=["GET"])
+def search_by_user():
+    db_uri = g.db_uri
+    client_id = g.client_id
+    user_id = request.args.get("user_id")
+    if not db_uri or not client_id or not user_id:
+        return jsonify({"error": "Missing db_uri/client_id/user_id"}), 400
+
+    session = get_db_session_for_client(db_uri)
+    try:
+        q = text(f"""
+            SELECT DISTINCT
+              {device_coalesce_sql()} AS device_id,
+              COALESCE(promocode, '') AS promocode
+            FROM fingerprint_events
+            WHERE client_id = :client_id
+              AND user_id = :user_id
+        """)
+        rows = session.execute(q, {"client_id": client_id, "user_id": user_id}).fetchall()
+
+        devices = sorted({r.device_id for r in rows if r.device_id})
+        promocodes = sorted({r.promocode for r in rows if r.promocode})
+
+        return jsonify({
+            "user_id": user_id,
+            "devices": devices,
+            "promocodes": promocodes,
+            "device_count": len(devices),
+            "promocode_count": len(promocodes),
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        session.close()
+
+
+# 2) By DEVICE
+@fingerprint_bp.route("/search/by-device", methods=["GET"])
+def search_by_device():
+    db_uri = g.db_uri
+    client_id = g.client_id
+    device_id = request.args.get("device_id")
+    if not db_uri or not client_id or not device_id:
+        return jsonify({"error": "Missing db_uri/client_id/device_id"}), 400
+
+    session = get_db_session_for_client(db_uri)
+    try:
+        q = text(f"""
+            SELECT DISTINCT
+              CASE WHEN user_id = 'null' THEN local_storage_device ELSE user_id END AS user_id,
+              COALESCE(promocode, '') AS promocode
+            FROM fingerprint_events
+            WHERE client_id = :client_id
+              AND {device_coalesce_sql()} = :device_id
+        """)
+        rows = session.execute(q, {"client_id": client_id, "device_id": device_id}).fetchall()
+
+        users = sorted({r.user_id for r in rows if r.user_id})
+        promocodes = sorted({r.promocode for r in rows if r.promocode})
+
+        return jsonify({
+            "device_id": device_id,
+            "users": users,
+            "promocodes": promocodes,
+            "user_count": len(users),
+            "promocode_count": len(promocodes),
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        session.close()
+
+
+# 3) By PROMOCODE
+@fingerprint_bp.route("/search/by-promo", methods=["GET"])
+def search_by_promo():
+    db_uri = g.db_uri
+    client_id = g.client_id
+    promocode = request.args.get("promocode")
+    if not db_uri or not client_id or not promocode:
+        return jsonify({"error": "Missing db_uri/client_id/promocode"}), 400
+
+    session = get_db_session_for_client(db_uri)
+    try:
+        q = text(f"""
+            SELECT DISTINCT
+              CASE WHEN user_id = 'null' THEN local_storage_device ELSE user_id END AS user_id,
+              {device_coalesce_sql()} AS device_id
+            FROM fingerprint_events
+            WHERE client_id = :client_id
+              AND promocode = :promocode
+        """)
+        rows = session.execute(q, {"client_id": client_id, "promocode": promocode}).fetchall()
+
+        unique_users = sorted({r.user_id for r in rows if r.user_id})
+        unique_devices = sorted({r.device_id for r in rows if r.device_id})
+
+        return jsonify({
+            "promocode": promocode,
+            "unique_user_count": len(unique_users),
+            "unique_device_count": len(unique_devices),
+            "users": unique_users[:50],    # trim lists if needed
+            "devices": unique_devices[:50] # trim lists if needed
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        session.close()
