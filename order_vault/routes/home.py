@@ -147,5 +147,9 @@ def documentation():
     return render_template("fingerprint_web_documentation.html")
 
 
+@home_bp.route("/documentation_android", methods=["GET"])
+@login_required
+def documentation():
+    return render_template("fingerprint_android_documentation.html")
 
 
