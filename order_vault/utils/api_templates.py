@@ -130,3 +130,68 @@ def checkout():
             args=(order_data, "abcde", "client_c"),
             daemon=True
         ).start()
+
+
+
+
+
+---- JS
+
+	async function finalizeOrderFrontend(orderData, api_key, client_id ) {
+	    try {
+	        const response = await fetch("https://api.rediim.com/finalize-order", {
+	            method: "POST",
+	            headers: {
+	                "Content-Type": "application/json",
+	                "X-API-KEY": api_key,
+	                "X-CLIENT-ID": client_id
+	            },
+	            body: JSON.stringify(orderData)
+	        });
+	
+	        const result = await response.json();
+	
+	        if (!response.ok) {
+	            throw new Error(result.error || "Failed to finalize order");
+	        }
+	
+	        console.log("✅ Order Finalized:", result);
+	    } catch (error) {
+	        console.error("⚠️ Finalize Order Error:", error);
+	    }
+	}
+
+    async function evaluateUserRiskApi(params, orderData, apiKey, client_id) {
+	    
+	        const clientUrl = "https://api.rediim.com/api/evaluate";
+		    
+	        try {
+	            const response = await fetch("https://api.rediim.com/api/evaluate", {
+	                method: "POST",
+	                headers: {
+	                    "X-API-KEY": apiKey,
+			             "X-CLIENT-ID":client_id,
+	                },
+                    body: JSON.stringify(params)
+	            });
+	
+	            const data = await response.json();
+	            
+	            if (!response.ok) {
+	                throw new Error(data.error || "Evaluation failed");
+	            }
+	
+	            console.log("Risk Evaluation Results:", data);
+	
+	            if (data.overall_abusive) {
+	                alert("⚠️ Risk detected! This user may be abusing the promocode.");
+	            } else {
+	                alert("✅ User is clean.");
+			finalizeOrderFrontend(orderData, apiKey, client_id);
+	            }
+	
+	        } catch (err) {
+	            console.error("Evaluation error:", err);
+	            alert("An error occurred while evaluating risk.");
+	        }
+	}	   
