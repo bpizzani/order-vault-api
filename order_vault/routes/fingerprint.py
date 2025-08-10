@@ -348,13 +348,16 @@ def search_by_user():
 
         devices = sorted({r.device_id for r in rows if r.device_id})
         promocodes = sorted({r.promocode for r in rows if r.promocode})
-
+        all_promocodes = [r.promocode for r in rows if r.promocode]  # total list
+        unique_promocodes = sorted(set(all_promocodes))              # unique set
+        
         return jsonify({
             "user_id": user_id,
             "devices": devices,
             "promocodes": promocodes,
             "device_count": len(devices),
-            "promocode_count": len(promocodes),
+            "promocode_count": len(all_promocodes),
+            "promocode_count_unique": len(unique_promocodes),
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -385,13 +388,16 @@ def search_by_device():
 
         users = sorted({r.user_id for r in rows if r.user_id})
         promocodes = sorted({r.promocode for r in rows if r.promocode})
-
+        all_promocodes = [r.promocode for r in rows if r.promocode]  # total list
+        unique_promocodes = sorted(set(all_promocodes))              # unique set
+        
         return jsonify({
             "device_id": device_id,
             "users": users,
             "promocodes": promocodes,
             "user_count": len(users),
-            "promocode_count": len(promocodes),
+            "promocode_count": len(all_promocodes),
+            "promocode_count_unique": len(unique_promocodes),
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
