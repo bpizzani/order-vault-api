@@ -115,7 +115,7 @@
       <section id="install">
         <h2>1) Install: dynamic import</h2>
         <p>No bundler or NPM required. Dynamically import our script and call a single function.</p>
-<pre><code>&lt;script&gt;
+<pre><code class="language-javascript">&lt;script&gt;
   // Store safely (env injected or server templated)
   const REDIIM_API_KEY = "trial_abc";     // &lt;-- replace
   const REDIIM_CLIENT_ID = "client_1";    // &lt;-- replace
@@ -190,7 +190,7 @@
   <!--  <section id="attach">
         <h2>3) Attach IDs to your API calls</h2>
         <p>Include the fingerprint values whenever the user performs a meaningful action (e.g., checkout, evaluate, finalize):</p>
-<pre><code>const device_id = localStorage.getItem("rediim_fingerprint");
+<pre><code class="language-javascript">const device_id = localStorage.getItem("rediim_fingerprint");
 const local_session_id = localStorage.getItem("local_session_id");
 const user_id = localStorage.getItem("user_id") ?? null;
 
@@ -212,7 +212,7 @@ await fetch("/api/my-checkout", {
 
  <!--        <section id="example">
         <h2>4) Minimal full example</h2>
-<pre><code>&lt;!DOCTYPE html&gt;
+<pre><code class="language-javascript">&lt;!DOCTYPE html&gt;
 &lt;html&gt;
 &lt;head&gt;&lt;meta charset="utf-8"/&gt;&lt;title&gt;Fingerprint Demo&lt;/title&gt;&lt;/head&gt;
 &lt;body&gt;
