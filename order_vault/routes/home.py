@@ -62,7 +62,7 @@ def update_subscription_limit():
         # Fetch the active subscription
         subscription = ClientSubscription.query.filter(
             ClientSubscription.client_id == client_id,
-            ClientSubscription.type == type,
+            #ClientSubscription.type == type,
             ClientSubscription.subscription_start <= now,
             ClientSubscription.subscription_end >= now
         ).first()
@@ -73,6 +73,7 @@ def update_subscription_limit():
         # Update the limit
         subscription.max_api_calls = new_limit
         subscription.max_api_fingerprint_calls  = new_limit_fingerprint
+        subscription.type = type
         db.session.commit()
 
         return jsonify({"message": f"✅ Updated max_api_calls to {new_limit} for client '{client_id}'"}), 200
