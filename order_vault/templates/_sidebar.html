@@ -30,7 +30,17 @@
 
         {# Fingerprint remains available #}
         <a href="{{ url_for('home.fingerprint_ui') }}" class="sidebar-link">🖐️ Fingerprint</a>
-        <a href="https://console.rediim.com/documentation" class="sidebar-link">📖 Documentation</a>
+         <!-- <a href="https://console.rediim.com/documentation" class="sidebar-link">📖 Documentation</a>-->
+         <!-- Documentation Toggle -->
+        <button id="doc-toggle" class="sidebar-link flex items-center justify-between">
+            📖 Documentation
+            <span id="doc-arrow">▶</span>
+        </button>
+        <!-- Submenu -->
+        <div id="doc-submenu" class="ml-6 mt-2 space-y-2 hidden">
+            <a href="https://console.rediim.com/documentation" class="sidebar-link">🌐 Web</a>
+            <a href="https://console.rediim.com/documentation" class="sidebar-link">📱 Mobile</a>
+        </div>
         <a href="https://rediim.com" class="sidebar-link">🌐 Web</a>
         <a href="/logout" class="sidebar-link">🚪 Logout</a>
     </nav>
