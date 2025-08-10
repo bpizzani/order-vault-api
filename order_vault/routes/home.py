@@ -143,13 +143,13 @@ def serve_fingerprint_min_js():
 
 @home_bp.route("/documentation_web", methods=["GET"])
 @login_required
-def documentation():
+def documentation_web():
     return render_template("fingerprint_web_documentation.html")
 
 
 @home_bp.route("/documentation_android", methods=["GET"])
 @login_required
-def documentation():
+def documentation_android():
     return render_template("fingerprint_android_documentation.html")
 
 
