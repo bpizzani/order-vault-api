@@ -256,3 +256,23 @@ function getUserId() {
       //const result = await response.json();
       //document.getElementById('response').textContent = JSON.stringify(result, null, 2);
     });
+
+
+
+
+
+  
+    let rediim_fingerprint = null;
+    async function runInHouseFingerprint(api_key,client_id, user_id = 0) {
+            try {
+                const InHouseFingerprint = await import('https://api.rediim.com/static/js/fingerprint_web.js');
+                const { visitorId, localSessionId } = await InHouseFingerprint.sendFingerprint(api_key, client_id,user_id);
+		rediim_fingerprint = visitorId
+				
+		localStorage.setItem("rediim_fingerprint", visitorId);
+        localStorage.setItem("local_session_id", localSessionId);
+
+            } catch (error) {
+                console.error("Error getting InHouseFingerprint:", error);
+            }
+    }
