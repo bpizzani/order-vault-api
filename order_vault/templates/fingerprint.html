@@ -251,7 +251,18 @@
       const box = $("resPromo"); if (box) box.textContent = "Searching...";
       try {
         const data = await runSearch("/api/fingerprint/search/by-promo", { promocode });
-        if (box) box.innerHTML = `<div class="text-xs text-gray-400 mb-2">unique_user_count: <b>${data.unique_user_count}</b>, unique_device_count: <b>${data.unique_device_count}</b></div>`;
+        //if (box) box.innerHTML = `<div class="text-xs text-gray-400 mb-2">unique_user_count: <b>${data.unique_user_count}</b>, unique_device_count: <b>${data.unique_device_count}</b></div>`;
+        if (box) {
+              box.innerHTML = `
+                <div class="bg-[#1f2937] border border-gray-700 rounded-lg px-4 py-3 mb-3">
+                  <p class="text-xs text-gray-400">
+                    <span class="mr-4">👤 Unique Users: <b class="text-emerald-400">${data.unique_user_count}</b></span>
+                    <span>💻 Unique Devices: <b class="text-sky-400">${data.unique_device_count}</b></span>
+                  </p>
+                </div>
+              `;
+            }
+          
         show("searchTables");
         setText("titleA", `Users who used ${promocode}`);
         setText("titleB", `Devices that used ${promocode}`);
