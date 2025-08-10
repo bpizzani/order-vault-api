@@ -32,3 +32,32 @@ def login_required(f):
         )
         return f(*args, **kwargs)
     return decorated_function
+
+
+# Option A: very specific gate for your case
+def require_not_fingerprint_demo(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        sub_type = getattr(g, "subscription_type", None)
+        if sub_type == "fingerprint_demo":
+            # Choose your behavior: 403 or redirect somewhere permissible
+            return abort(403)  # or: return redirect(url_for("home.fingerprint_ui"))
+        return f(*args, **kwargs)
+    return wrapper
+
+
+# Option B: generic gate you can reuse for other plans
+def require_subscription_in(*allowed_types):
+    """
+    Allow access only if g.subscription_type is in allowed_types.
+    Example: @require_subscription_in("pro", "enterprise")
+    """
+    def decorator(f):
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            sub_type = getattr(g, "subscription_type", None)
+            if sub_type not in allowed_types:
+                return abort(403)
+            return f(*args, **kwargs)
+        return wrapper
+    return decorator
