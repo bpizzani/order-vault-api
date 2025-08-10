@@ -280,6 +280,84 @@
                 console.error("Error fetching daily duplicate rate:", err);
             });
     });
+
+        // Search Bar 
+        function renderList(elId, arr) {
+          const el = document.getElementById(elId);
+          el.innerHTML = (arr && arr.length)
+            ? arr.map(v => `<tr><td class="py-1 border-b border-gray-800 break-all">${v}</td></tr>`).join("")
+            : `<tr><td class="py-2 text-gray-400">No data</td></tr>`;
+        }
+        
+        async function runSearch(url, params) {
+          const qs = new URLSearchParams(params).toString();
+          const res = await fetch(`${url}?${qs}`);
+          const data = await res.json();
+          if (!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
+          return data;
+        }
+        
+        document.getElementById("btnUserId").addEventListener("click", async () => {
+          const user_id = document.getElementById("qUserId").value.trim();
+          if (!user_id) return;
+          const box = document.getElementById("resUserId");
+          box.textContent = "Searching...";
+          try {
+            const data = await runSearch("/api/fingerprint/search/by-user", { user_id });
+            box.innerHTML = `
+              <div class="text-xs text-gray-400 mb-2">device_count: <b>${data.device_count}</b>, promocode_count: <b>${data.promocode_count}</b></div>
+            `;
+            document.getElementById("searchTables").style.display = "grid";
+            document.querySelector("#searchTables h4:nth-of-type(1)").textContent = `Devices for user ${user_id}`;
+            document.querySelector("#searchTables h4:nth-of-type(2)").textContent = `Promocodes for user ${user_id}`;
+            renderList("tableA", data.devices);
+            renderList("tableB", data.promocodes);
+          } catch (e) {
+            box.textContent = "Error: " + e.message;
+          }
+        });
+        
+        document.getElementById("btnDeviceId").addEventListener("click", async () => {
+          const device_id = document.getElementById("qDeviceId").value.trim();
+          if (!device_id) return;
+          const box = document.getElementById("resDeviceId");
+          box.textContent = "Searching...";
+          try {
+            const data = await runSearch("/api/fingerprint/search/by-device", { device_id });
+            box.innerHTML = `
+              <div class="text-xs text-gray-400 mb-2">user_count: <b>${data.user_count}</b>, promocode_count: <b>${data.promocode_count}</b></div>
+            `;
+            document.getElementById("searchTables").style.display = "grid";
+            document.querySelector("#searchTables h4:nth-of-type(1)").textContent = `Users on device ${device_id.slice(0,8)}…`;
+            document.querySelector("#searchTables h4:nth-of-type(2)").textContent = `Promocodes used by device`;
+            renderList("tableA", data.users);
+            renderList("tableB", data.promocodes);
+          } catch (e) {
+            box.textContent = "Error: " + e.message;
+          }
+        });
+        
+        document.getElementById("btnPromo").addEventListener("click", async () => {
+          const promocode = document.getElementById("qPromo").value.trim();
+          if (!promocode) return;
+          const box = document.getElementById("resPromo");
+          box.textContent = "Searching...";
+          try {
+            const data = await runSearch("/api/fingerprint/search/by-promo", { promocode });
+            box.innerHTML = `
+              <div class="text-xs text-gray-400 mb-2">
+                unique_user_count: <b>${data.unique_user_count}</b>, unique_device_count: <b>${data.unique_device_count}</b>
+              </div>
+            `;
+            document.getElementById("searchTables").style.display = "grid";
+            document.querySelector("#searchTables h4:nth-of-type(1)").textContent = `Users who used ${promocode}`;
+            document.querySelector("#searchTables h4:nth-of-type(2)").textContent = `Devices that used ${promocode}`;
+            renderList("tableA", data.users);
+            renderList("tableB", data.devices);
+          } catch (e) {
+            box.textContent = "Error: " + e.message;
+          }
+        });
 </script>
     </script>
 </body>
