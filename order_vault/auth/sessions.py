@@ -1,5 +1,6 @@
 from flask import session, g
 from order_vault.models.user import User
+from order_vault.models.client_subscription import ClientSubscription
 from order_vault.settings.tenants import TENANT_DATABASES
 from neo4j import GraphDatabase
 
@@ -16,9 +17,13 @@ def load_tenant_from_session():
     if not tenant:
         return Exception("Unknown tenant configuration")
         
+    #get subscription type
+    subscription = ClientSubscription.query.get(user.client_id)
+        
     print("Tenant Found")
 
     g.user = user
+    g.subscription_type = subscription.type
     g.client_id = user.client_id
     g.client_email = user.email
     print(g.client_id)
