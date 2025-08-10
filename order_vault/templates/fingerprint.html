@@ -85,15 +85,6 @@
               </div>
             </div>    
                         
-            <!-- Top Devices Chart -->
-            <div class="grid grid-cols-1 gap-8 mt-12 place-items-center">
-                <div class="bg-[#1a1a1a] p-6 rounded-lg shadow w-full md:w-1/2">
-                    <h3 class="text-xl font-bold text-white mb-4 text-center">
-                        Top Devices by User Count
-                    </h3>
-                    <canvas id="deviceUsageChart"></canvas>
-                </div>
-            </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12">
                 <!-- Duplicate Rate Line Chart -->
@@ -108,6 +99,17 @@
                     <canvas id="duplicateUserChart"></canvas>
                 </div>
             </div>
+
+            <!-- Top Devices Chart -->
+            <div class="grid grid-cols-1 gap-8 mt-12 place-items-center">
+                <div class="bg-[#1a1a1a] p-6 rounded-lg shadow w-full md:w-1/2">
+                    <h3 class="text-xl font-bold text-white mb-4 text-center">
+                        Top Devices by User Count
+                    </h3>
+                    <canvas id="deviceUsageChart"></canvas>
+                </div>
+            </div>
+            
             <!-- Loader -->
             <div id="loading" class="text-center mt-10 hidden">
                 <p class="text-sm text-gray-400">Loading data...</p>
