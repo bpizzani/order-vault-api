@@ -70,20 +70,20 @@
             <!-- Results tables -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8" id="searchTables" style="display:none;">
               <div class="bg-[#1a1a1a] p-5 rounded-lg">
-                <h4 class="font-semibold mb-3">List A</h4>
+                <h4 id="titleA" class="font-semibold mb-3">List A</h4>
                 <table class="w-full text-sm">
                   <thead><tr class="text-gray-300"><th class="text-left py-2">Value</th></tr></thead>
                   <tbody id="tableA"></tbody>
                 </table>
               </div>
               <div class="bg-[#1a1a1a] p-5 rounded-lg">
-                <h4 class="font-semibold mb-3">List B</h4>
+                <h4 id="titleB" class="font-semibold mb-3">List B</h4>
                 <table class="w-full text-sm">
                   <thead><tr class="text-gray-300"><th class="text-left py-2">Value</th></tr></thead>
                   <tbody id="tableB"></tbody>
                 </table>
               </div>
-            </div>
+            </div>    
                         
             <!-- Top Devices Chart -->
             <div class="bg-[#1a1a1a] p-6 rounded-lg shadow">
@@ -112,254 +112,156 @@
     </div>
 
 <script>
-    document.addEventListener("DOMContentLoaded", () => {
-        document.getElementById("loading").classList.remove("hidden");
+  // --- tiny helpers ---
+  const $ = (id) => document.getElementById(id);
+  const setText = (id, text) => { const el = $(id); if (el) el.textContent = text; };
+  const show = (id) => { const el = $(id); if (el) el.style.display = "grid"; };
 
-        // Fetch device usage stats
-        fetch(`/api/fingerprint/device-usage`)
-            .then(res => res.json())
-            .then(data => {
-                if (data.error) {
-                    alert(data.error);
-                    return;
+  function renderList(elId, arr) {
+    const el = $(elId);
+    if (!el) return;
+    el.innerHTML = (arr && arr.length)
+      ? arr.map(v => `<tr><td class="py-1 border-b border-gray-800 break-all">${v}</td></tr>`).join("")
+      : `<tr><td class="py-2 text-gray-400">No data</td></tr>`;
+  }
+
+  async function runSearch(url, params) {
+    const qs = new URLSearchParams(params).toString();
+    const res = await fetch(`${url}?${qs}`);
+    const data = await res.json();
+    if (!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
+    return data;
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    // loader
+    const loader = $("loading");
+    if (loader) loader.classList.remove("hidden");
+
+    // ---- Stats & charts ----
+    fetch(`/api/fingerprint/device-usage`)
+      .then(res => res.json())
+      .then(data => {
+        if (data?.error) { alert(data.error); return; }
+        const dupRate = data.total_users ? (data.duplicate_users / data.total_users) * 100 : 0;
+
+        setText("totalDevices", data.total_devices ?? 0);
+        setText("totalUsers", data.total_users ?? 0);
+        setText("abusiveDevices", `${dupRate.toFixed(2)}%`);
+
+        const labels = (data.user_per_device ?? []).map(d => d.device_id);
+        const counts = (data.user_per_device ?? []).map(d => d.user_count);
+
+        const ctx = $("deviceUsageChart")?.getContext("2d");
+        if (ctx && labels.length) {
+          new Chart(ctx, {
+            type: 'bar',
+            data: { labels, datasets: [{ label: 'Users per Device', data: counts, backgroundColor: '#facc15', borderColor: '#eab308', borderWidth: 1 }]},
+            options: {
+              responsive: true,
+              plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => `${c.raw} users` } } },
+              scales: {
+                y: { beginAtZero: true, title: { display: true, text: 'User Count' } },
+                x: {
+                  ticks: { callback: (_, i) => (labels[i] ?? '').slice(0, 6) + '...' },
+                  title: { display: true, text: 'Device ID' }
                 }
-                const duplicateRate = (data.duplicate_users / data.total_users) * 100;
-                // Update counters
-                document.getElementById("totalDevices").innerText = data.total_devices;
-                document.getElementById("totalUsers").innerText = data.total_users;
-                document.getElementById("abusiveDevices").innerText = `${duplicateRate.toFixed(2)}%`;
-
-                // Chart for users per device
-                const labels = data.user_per_device.map(d => d.device_id);
-                const counts = data.user_per_device.map(d => d.user_count);
-
-                const ctx = document.getElementById("deviceUsageChart").getContext("2d");
-                new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels,
-                        datasets: [{
-                            label: 'Users per Device',
-                            data: counts,
-                            backgroundColor: '#facc15',
-                            borderColor: '#eab308',
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        plugins: {
-                            tooltip: {
-                                callbacks: {
-                                    label: (context) => `${context.raw} users`
-                                }
-                            },
-                            legend: { display: false }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                title: {
-                                    display: true,
-                                    text: 'User Count'
-                                }
-                            },
-                            x: {
-                                ticks: {
-                                    callback: function(value, index, ticks) {
-                                        return labels[index].slice(0, 6) + '...';  // Truncate device_id
-                                    }
-                                },
-                                title: {
-                                    display: true,
-                                    text: 'Device ID'
-                                }
-                            }
-                        }
-                    }
-                });
-            })
-            .catch(err => {
-                console.error("Error fetching device usage:", err);
-                alert("Failed to load data.");
-            })
-            .finally(() => {
-                document.getElementById("loading").classList.add("hidden");
-            });
-
-        // 🔥 NEW: Fetch duplicate rate by day
-        fetch("/api/fingerprint/duplicate-rate-daily")
-            .then(res => res.json())
-            .then(data => {
-                if (!Array.isArray(data)) {
-                    console.error("Unexpected response for duplicate rate:", data);
-                    return;
-                }
-
-                const labels = data.map(d => d.date);
-                const duplicateRate = data.map(d => d.duplicate_user_rate);
-                const duplicates = data.map(d => d.duplicate_users);
-                const totals = data.map(d => d.total_devices);
-
-                // Line chart: duplicate rate
-                const rateCtx = document.getElementById("duplicateRateChart").getContext("2d");
-                new Chart(rateCtx, {
-                    type: "line",
-                    data: {
-                        labels,
-                        datasets: [{
-                            label: "Duplicate Rate (%)",
-                            data: duplicateRate,
-                            borderColor: "#f87171",
-                            backgroundColor: "#f87171",
-                            tension: 0.3,
-                            fill: false
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                max: 100,
-                                title: {
-                                    display: true,
-                                    text: "Rate (%)"
-                                }
-                            },
-                            x: {
-                                title: {
-                                    display: true,
-                                    text: "Date"
-                                }
-                            }
-                        }
-                    }
-                });
-
-                // Bar chart: duplicate vs total
-                const countCtx = document.getElementById("duplicateUserChart").getContext("2d");
-                new Chart(countCtx, {
-                    type: "bar",
-                    data: {
-                        labels,
-                        datasets: [
-                            {
-                                label: "Duplicate Users",
-                                data: duplicates,
-                                backgroundColor: "#fb923c"
-                            },
-                            {
-                                label: "Total Devices",
-                                data: totals,
-                                backgroundColor: "#38bdf8"
-                            }
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                title: {
-                                    display: true,
-                                    text: "Devices"
-                                }
-                            },
-                            x: {
-                                title: {
-                                    display: true,
-                                    text: "Date"
-                                }
-                            }
-                        }
-                    }
-                });
-            })
-            .catch(err => {
-                console.error("Error fetching daily duplicate rate:", err);
-            });
-
-        // Search Bar 
-        function renderList(elId, arr) {
-          const el = document.getElementById(elId);
-          el.innerHTML = (arr && arr.length)
-            ? arr.map(v => `<tr><td class="py-1 border-b border-gray-800 break-all">${v}</td></tr>`).join("")
-            : `<tr><td class="py-2 text-gray-400">No data</td></tr>`;
+              }
+            }
+          });
         }
-        
-        async function runSearch(url, params) {
-          const qs = new URLSearchParams(params).toString();
-          const res = await fetch(`${url}?${qs}`);
-          const data = await res.json();
-          if (!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
-          return data;
+      })
+      .catch(err => { console.error("Error fetching device usage:", err); alert("Failed to load data."); })
+      .finally(() => { if (loader) loader.classList.add("hidden"); });
+
+    fetch("/api/fingerprint/duplicate-rate-daily")
+      .then(res => res.json())
+      .then(data => {
+        if (!Array.isArray(data)) return;
+
+        const labels = data.map(d => d.date);
+        const duplicateRate = data.map(d => d.duplicate_user_rate);
+        const duplicates = data.map(d => d.duplicate_users);
+        const totals = data.map(d => d.total_devices);
+
+        const rateCtx = $("duplicateRateChart")?.getContext("2d");
+        if (rateCtx && labels.length) {
+          new Chart(rateCtx, {
+            type: "line",
+            data: { labels, datasets: [{ label: "Duplicate Rate (%)", data: duplicateRate, borderColor: "#f87171", backgroundColor: "#f87171", tension: 0.3, fill: false }] },
+            options: { responsive: true, scales: { y: { beginAtZero: true, max: 100, title: { display: true, text: "Rate (%)" } }, x: { title: { display: true, text: "Date" } } } }
+          });
         }
-        
-        document.getElementById("btnUserId").addEventListener("click", async () => {
-          const user_id = document.getElementById("qUserId").value.trim();
-          if (!user_id) return;
-          const box = document.getElementById("resUserId");
-          box.textContent = "Searching...";
-          try {
-            const data = await runSearch("/api/fingerprint/search/by-user", { user_id });
-            box.innerHTML = `
-              <div class="text-xs text-gray-400 mb-2">device_count: <b>${data.device_count}</b>, promocode_count: <b>${data.promocode_count}</b></div>
-            `;
-            document.getElementById("searchTables").style.display = "grid";
-            document.querySelector("#searchTables h4:nth-of-type(1)").textContent = `Devices for user ${user_id}`;
-            document.querySelector("#searchTables h4:nth-of-type(2)").textContent = `Promocodes for user ${user_id}`;
-            renderList("tableA", data.devices);
-            renderList("tableB", data.promocodes);
-          } catch (e) {
-            box.textContent = "Error: " + e.message;
-          }
-        });
-        
-        document.getElementById("btnDeviceId").addEventListener("click", async () => {
-          const device_id = document.getElementById("qDeviceId").value.trim();
-          if (!device_id) return;
-          const box = document.getElementById("resDeviceId");
-          box.textContent = "Searching...";
-          try {
-            const data = await runSearch("/api/fingerprint/search/by-device", { device_id });
-            box.innerHTML = `
-              <div class="text-xs text-gray-400 mb-2">user_count: <b>${data.user_count}</b>, promocode_count: <b>${data.promocode_count}</b></div>
-            `;
-            document.getElementById("searchTables").style.display = "grid";
-            document.querySelector("#searchTables h4:nth-of-type(1)").textContent = `Users on device ${device_id.slice(0,8)}…`;
-            document.querySelector("#searchTables h4:nth-of-type(2)").textContent = `Promocodes used by device`;
-            renderList("tableA", data.users);
-            renderList("tableB", data.promocodes);
-          } catch (e) {
-            box.textContent = "Error: " + e.message;
-          }
-        });
-        
-        document.getElementById("btnPromo").addEventListener("click", async () => {
-          const promocode = document.getElementById("qPromo").value.trim();
-          if (!promocode) return;
-          const box = document.getElementById("resPromo");
-          box.textContent = "Searching...";
-          try {
-            const data = await runSearch("/api/fingerprint/search/by-promo", { promocode });
-            box.innerHTML = `
-              <div class="text-xs text-gray-400 mb-2">
-                unique_user_count: <b>${data.unique_user_count}</b>, unique_device_count: <b>${data.unique_device_count}</b>
-              </div>
-            `;
-            document.getElementById("searchTables").style.display = "grid";
-            document.querySelector("#searchTables h4:nth-of-type(1)").textContent = `Users who used ${promocode}`;
-            document.querySelector("#searchTables h4:nth-of-type(2)").textContent = `Devices that used ${promocode}`;
-            renderList("tableA", data.users);
-            renderList("tableB", data.devices);
-          } catch (e) {
-            box.textContent = "Error: " + e.message;
-          }
-        });
+
+        const countCtx = $("duplicateUserChart")?.getContext("2d");
+        if (countCtx && labels.length) {
+          new Chart(countCtx, {
+            type: "bar",
+            data: {
+              labels,
+              datasets: [
+                { label: "Duplicate Users", data: duplicates, backgroundColor: "#fb923c" },
+                { label: "Total Devices", data: totals, backgroundColor: "#38bdf8" }
+              ]
+            },
+            options: { responsive: true, scales: { y: { beginAtZero: true, title: { display: true, text: "Devices" } }, x: { title: { display: true, text: "Date" } } } }
+          });
+        }
+      })
+      .catch(err => console.error("Error fetching daily duplicate rate:", err));
+
+    // ---- Search handlers (now DOM is ready) ----
+    $("btnUserId")?.addEventListener("click", async () => {
+      const user_id = $("qUserId")?.value?.trim();
+      if (!user_id) return;
+      const box = $("resUserId"); if (box) box.textContent = "Searching...";
+      try {
+        const data = await runSearch("/api/fingerprint/search/by-user", { user_id });
+        if (box) box.innerHTML = `<div class="text-xs text-gray-400 mb-2">device_count: <b>${data.device_count}</b>, promocode_count: <b>${data.promocode_count}</b></div>`;
+        show("searchTables");
+        setText("titleA", `Devices for user ${user_id}`);
+        setText("titleB", `Promocodes for user ${user_id}`);
+        renderList("tableA", data.devices);
+        renderList("tableB", data.promocodes);
+      } catch (e) {
+        if (box) box.textContent = "Error: " + e.message;
+      }
     });
 
+    $("btnDeviceId")?.addEventListener("click", async () => {
+      const device_id = $("qDeviceId")?.value?.trim();
+      if (!device_id) return;
+      const box = $("resDeviceId"); if (box) box.textContent = "Searching...";
+      try {
+        const data = await runSearch("/api/fingerprint/search/by-device", { device_id });
+        if (box) box.innerHTML = `<div class="text-xs text-gray-400 mb-2">user_count: <b>${data.user_count}</b>, promocode_count: <b>${data.promocode_count}</b></div>`;
+        show("searchTables");
+        setText("titleA", `Users on device ${device_id.slice(0,8)}…`);
+        setText("titleB", `Promocodes used by device`);
+        renderList("tableA", data.users);
+        renderList("tableB", data.promocodes);
+      } catch (e) {
+        if (box) box.textContent = "Error: " + e.message;
+      }
+    });
 
+    $("btnPromo")?.addEventListener("click", async () => {
+      const promocode = $("qPromo")?.value?.trim();
+      if (!promocode) return;
+      const box = $("resPromo"); if (box) box.textContent = "Searching...";
+      try {
+        const data = await runSearch("/api/fingerprint/search/by-promo", { promocode });
+        if (box) box.innerHTML = `<div class="text-xs text-gray-400 mb-2">unique_user_count: <b>${data.unique_user_count}</b>, unique_device_count: <b>${data.unique_device_count}</b></div>`;
+        show("searchTables");
+        setText("titleA", `Users who used ${promocode}`);
+        setText("titleB", `Devices that used ${promocode}`);
+        renderList("tableA", data.users);
+        renderList("tableB", data.devices);
+      } catch (e) {
+        if (box) box.textContent = "Error: " + e.message;
+      }
+    });
+  });
 </script>
 </body>
 </html>
