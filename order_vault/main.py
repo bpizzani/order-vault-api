@@ -36,7 +36,8 @@ def before_request():
 @app.context_processor
 def inject_globals():
     return {"client_id": getattr(g, "client_id", None), 
-            "client_email": getattr(g, "client_email", None)}
+            "client_email": getattr(g, "client_email", None),
+            "subscription_type": getattr(g, "subscription_type", None)}
 
 # --- Initialize limiter
 limiter = Limiter(
