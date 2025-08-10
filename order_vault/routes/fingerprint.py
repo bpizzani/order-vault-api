@@ -337,7 +337,7 @@ def search_by_user():
     session = get_db_session_for_client(db_uri)
     try:
         q = text(f"""
-            SELECT DISTINCT
+            SELECT 
               {device_coalesce_sql()} AS device_id,
               COALESCE(promocode, '') AS promocode
             FROM fingerprint_events
@@ -374,7 +374,7 @@ def search_by_device():
     session = get_db_session_for_client(db_uri)
     try:
         q = text(f"""
-            SELECT DISTINCT
+            SELECT 
               CASE WHEN user_id = 'null' THEN local_storage_device ELSE user_id END AS user_id,
               COALESCE(promocode, '') AS promocode
             FROM fingerprint_events
