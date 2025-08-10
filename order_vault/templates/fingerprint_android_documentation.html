@@ -257,8 +257,8 @@ fun evaluateRisk(values: JSONObject, apiKey: String, clientId: String): Map&lt;S
     } catch (e: Exception) {
         mapOf("status" to "failed", "error" to "Request failed: ${'$'}{e.message}")
     }
-}</code></pre> -->
-  </section> 
+}</code></pre>
+  </section>   -->
 
   <section id="example">
     <h2>6) Minimal Activity example</h2>
@@ -289,7 +289,7 @@ fun evaluateRisk(values: JSONObject, apiKey: String, clientId: String): Map&lt;S
                 override fun onError(error: String) { /* log + retry later if needed */ }
             }
         )
-        <!-- 
+<!-- 
         findViewById<Button>(R.id.submitButton).setOnClickListener {
             val payload = buildCheckoutPayload(
                 deviceId = visitorId.orEmpty(),
@@ -345,8 +345,9 @@ fun evaluateRisk(values: JSONObject, apiKey: String, clientId: String): Map&lt;S
         )
         return JSONObject(map)
     }
-}</code></pre>
-  </section> -->
+}</code></pre> 
+                -->
+  </section>  
 
   <section id="best">
     <h2>7) Best practices</h2>
