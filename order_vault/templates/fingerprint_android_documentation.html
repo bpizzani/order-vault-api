@@ -138,7 +138,7 @@ RediimFingerprint.sendFingerprint(
     apiKey = "YOUR_API_KEY",      // replace
     clientId = "YOUR_CLIENT_ID",  // replace
     userId = currentUserIdOrNull, // optional but recommended
-    promocode = currentPromoOrNull,
+    promocode = currentPromoOrNull, // optional but recommended
     callback = object : RediimFingerprint.Callback {
         override fun onSuccess(visitorId: String, localSessionId: String) {
             cacheVisitorId(visitorId)
