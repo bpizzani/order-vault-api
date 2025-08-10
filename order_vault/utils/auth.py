@@ -41,7 +41,7 @@ def require_not_fingerprint_demo(f):
         sub_type = getattr(g, "subscription_type", None)
         if sub_type == "fingerprint_demo":
             # Choose your behavior: 403 or redirect somewhere permissible
-            return abort(403)  # or: return redirect(url_for("home.fingerprint_ui"))
+            return redirect(url_for("home.fingerprint_ui"))
         return f(*args, **kwargs)
     return wrapper
 
@@ -57,7 +57,7 @@ def require_subscription_in(*allowed_types):
         def wrapper(*args, **kwargs):
             sub_type = getattr(g, "subscription_type", None)
             if sub_type not in allowed_types:
-                return abort(403)
+                return redirect(url_for("home.fingerprint_ui"))
             return f(*args, **kwargs)
         return wrapper
     return decorator
