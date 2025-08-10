@@ -184,7 +184,7 @@ def device_usage():
         results = session.execute(text("""
             SELECT 
                 CASE 
-                    WHEN user_id = 'null' THEN local_storage_device 
+                    WHEN (user_id = 'null' or user_id is null or user_id = '') THEN local_storage_device 
                     ELSE user_id 
                 END AS user_id,
                 tm_visitor_id AS device_id 
@@ -378,7 +378,7 @@ def search_by_device():
     try:
         q = text(f"""
             SELECT 
-              CASE WHEN user_id = 'null' THEN local_storage_device ELSE user_id END AS user_id,
+              CASE WHEN (user_id = 'null' or user_id is null or user_id = '') THEN local_storage_device ELSE user_id END AS user_id,
               COALESCE(promocode, '') AS promocode
             FROM fingerprint_events
             WHERE client_id = :client_id
@@ -418,7 +418,7 @@ def search_by_promo():
     try:
         q = text(f"""
             SELECT DISTINCT
-              CASE WHEN user_id = 'null' THEN local_storage_device ELSE user_id END AS user_id,
+              CASE WHEN (user_id = 'null' or user_id is null or user_id = '') THEN local_storage_device ELSE user_id END AS user_id,
               {device_coalesce_sql()} AS device_id
             FROM fingerprint_events
             WHERE client_id = :client_id
