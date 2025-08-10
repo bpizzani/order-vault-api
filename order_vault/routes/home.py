@@ -11,31 +11,37 @@ home_bp = Blueprint("home", __name__, url_prefix="/")
 
 @home_bp.route("/main", methods=["GET"])
 @login_required
+@require_subscription_in("demo",None)
 def home():
     return render_template("home2.html")
 
 @home_bp.route("/test", methods=["GET"])
 @login_required
+@require_subscription_in("demo",None)
 def test():
     return render_template("test.html")
 
 @home_bp.route("/promotion_dashboard", methods=["GET"])
 @login_required
+@require_subscription_in("demo",None)
 def promotion_ui():
     return render_template("promotion_dashboard.html")
     
 @home_bp.route('/rules')
 @login_required
+@require_subscription_in("demo",None)
 def rules_ui():
     return render_template('rules.html')
 
 @home_bp.route("/island", methods=["GET"])
 @login_required
+@require_subscription_in("demo",None)
 def customer_ui():
     return render_template("island.html")
 
 @home_bp.route("/fingerprint", methods=["GET"])
 @login_required
+@require_subscription_in("demo","fingerprint_demo",None)
 def fingerprint_ui():
     return render_template("fingerprint.html")
 
