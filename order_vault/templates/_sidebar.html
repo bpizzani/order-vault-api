@@ -99,5 +99,15 @@
                 if (href === path) link.classList.add('active');
             } catch (_) {}
         });
+
+        // Documentation submenu toggle
+        const toggleBtn = document.getElementById('doc-toggle');
+        const submenu = document.getElementById('doc-submenu');
+        const arrow = document.getElementById('doc-arrow');
+
+        toggleBtn.addEventListener('click', () => {
+            submenu.classList.toggle('hidden');
+            arrow.textContent = submenu.classList.contains('hidden') ? '▶' : '▼';
+        });
     </script>
 </aside>
