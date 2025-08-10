@@ -14,4 +14,5 @@ class FingerprintEvents(db.Model):
     user_agent =  db.Column(db.String, nullable=True)
     webdriver = db.Column(db.String, nullable=True)
     platform = db.Column(db.String, nullable=True)
+    promocode = db.Column(db.String, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
