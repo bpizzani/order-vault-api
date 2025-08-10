@@ -23,19 +23,20 @@ def limit_fingerprint_events(max_events=300):
     def decorator(f):
         @wraps(f)
         def wrapped(*args, **kwargs):
-            db_session = get_db_session_for_client(g.db_uri)
-            client_id = g.client_id
+            client_id = getattr(g, "client_id", None)
+            if not client_id:
+                return jsonify({"error": "Missing client_id"}), 400
 
-            # Define time window
             start_time = datetime.utcnow() - timedelta(days=30)
 
-            # Count how many fingerprint events in last 30 days
-            count = db_session.query(FingerprintEvents).filter(
-                FingerprintEvents.client_id == client_id,
-                FingerprintEvents.created_at >= start_time
-            ).count()
-            db_session.close()
-
+            count = (
+                db.session.query(FingerprintEvents)
+                .filter(
+                    FingerprintEvents.client_id == client_id,
+                    FingerprintEvents.created_at >= start_time,
+                )
+                .count()
+            )
             if count >= max_events:
                 return jsonify({"error": "API quota exceeded for fingerprint events"}), 429
 
@@ -48,34 +49,33 @@ def limit_fingerprint_events_subscription():
     def decorator(f):
         @wraps(f)
         def wrapped(*args, **kwargs):
-            db_session = get_db_session_for_client(g.db_uri)
-            client_id = g.get("client_id")
-
+            client_id = getattr(g, "client_id", None)
             if not client_id:
-                db_session.close()
                 return jsonify({"error": "Missing client_id"}), 400
 
             now = datetime.utcnow()
 
-            # Fetch the active subscription
-            subscription = db_session.query(ClientSubscription).filter(
-                ClientSubscription.client_id == client_id,
-                ClientSubscription.subscription_start <= now,
-                ClientSubscription.subscription_end >= now
-            ).first()
-
+            subscription = (
+                db.session.query(ClientSubscription)
+                .filter(
+                    ClientSubscription.client_id == client_id,
+                    ClientSubscription.subscription_start <= now,
+                    ClientSubscription.subscription_end >= now,
+                )
+                .first()
+            )
             if not subscription:
-                db_session.close()
                 return jsonify({"error": "No active subscription found"}), 403
 
-            # Count fingerprint events during the subscription period
-            count = db_session.query(FingerprintEvents).filter(
-                FingerprintEvents.client_id == client_id,
-                FingerprintEvents.created_at >= subscription.subscription_start,
-                FingerprintEvents.created_at <= subscription.subscription_end
-            ).count()
-            
-            db_session.close()
+            count = (
+                db.session.query(FingerprintEvents)
+                .filter(
+                    FingerprintEvents.client_id == client_id,
+                    FingerprintEvents.created_at >= subscription.subscription_start,
+                    FingerprintEvents.created_at <= subscription.subscription_end,
+                )
+                .count()
+            )
             if count >= subscription.max_api_fingerprint_calls:
                 return jsonify({"error": "API quota exceeded"}), 429
 
