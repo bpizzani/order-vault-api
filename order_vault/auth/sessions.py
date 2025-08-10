@@ -18,7 +18,7 @@ def load_tenant_from_session():
         return Exception("Unknown tenant configuration")
         
     #get subscription type
-    subscription = ClientSubscription.query.get(user.client_id)
+    subscription = ClientSubscription.query.filter_by(client_id=user.client_id).first()
         
     print("Tenant Found")
 
