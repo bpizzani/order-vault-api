@@ -1,7 +1,6 @@
 from flask import session, g
 from order_vault.models.user import User
 from order_vault.models.client_subscription import ClientSubscription
-from order_vault.settings.tenants import TENANT_DATABASES
 from order_vault.models.tenant import Tenant
 from order_vault.utils.crypto import enc, dec
 from neo4j import GraphDatabase
@@ -15,7 +14,6 @@ def load_tenant_from_session():
     if not user:
         return
 
-    #tenant = TENANT_DATABASES.get(user.client_id)
     tenant = Tenant.query.filter_by(client_id=user.client_id).first()
     if not tenant:
         return Exception("Unknown tenant configuration")
