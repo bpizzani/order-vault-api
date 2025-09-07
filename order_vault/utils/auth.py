@@ -3,6 +3,8 @@ from flask import session, redirect, url_for, g
 from order_vault.models.user import User
 from order_vault.models.client_subscription import ClientSubscription
 from order_vault.settings.tenants import TENANT_DATABASES
+from order_vault.models.tenant import Tenant
+from order_vault.utils.crypto import enc, dec
 from neo4j import GraphDatabase
 
 def login_required(f):
@@ -16,19 +18,25 @@ def login_required(f):
         if not user:
             return redirect(url_for("auth.login"))
 
-        tenant = TENANT_DATABASES.get(user.client_id)
+        #tenant = TENANT_DATABASES.get(user.client_id)
+        tenant = Tenant.query.filter_by(client_id=user.client_id).first()
         if not tenant:
             return "Invalid tenant", 403
-            
+
+        pg_uri_dec = dec(tenant.pg_uri_enc)
+        neo4j_uri_dec = dec(tenant.neo4j_uri_enc)
+        neo4j_user_dec = dec(tenant.neo4j_user_enc)
+        neo4j_pass_dec = dec(tenant.neo4j_pass_enc)
+
         subscription = ClientSubscription.query.filter_by(client_id=user.client_id).first()
 
         g.user = user
         g.client_id = user.client_id
         g.subscription_type = subscription.type
-        g.db_uri = tenant["postgres_uri"]
+        g.db_uri = pg_uri_dec
         g.neo4j_driver = GraphDatabase.driver(
-            tenant["neo4j_uri"],
-            auth=(tenant["neo4j_user"], tenant["neo4j_password"])
+            neo4j_uri_dec,
+            auth=(neo4j_user_dec, neo4j_pass_dec)
         )
         return f(*args, **kwargs)
     return decorated_function
