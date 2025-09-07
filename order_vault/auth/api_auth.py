@@ -1,7 +1,6 @@
 from functools import wraps
 from flask import request, g, jsonify
 from order_vault.models.user import User
-from order_vault.settings.tenants import TENANT_DATABASES
 from order_vault.models.tenant import Tenant
 from order_vault.utils.crypto import enc, dec
 from neo4j import GraphDatabase
@@ -18,8 +17,6 @@ def require_api_key(func):
         if not user:
             return jsonify({"error": "Invalid API key"}), 401
 
-        
-        #tenant = TENANT_DATABASES.get(user.client_id)
         tenant = Tenant.query.filter_by(client_id=user.client_id).first()
         if not tenant:
             return jsonify({"error": "Unknown tenant"}), 401
@@ -58,7 +55,6 @@ def require_api_key_fingerprint(func):
         if not user:
             return jsonify({"error": "Invalid API key or client ID"}), 401
 
-        #tenant = TENANT_DATABASES.get(user.client_id)
         tenant = Tenant.query.filter_by(client_id=user.client_id).first()
         if not tenant:
             return jsonify({"error": "Unknown tenant"}), 401
