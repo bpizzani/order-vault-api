@@ -201,8 +201,8 @@ def get_tenant():
       client_id (required)
       include_secrets=true|false  (default false → secrets masked)
     """
-    #if not _require_admin():
-    #    return jsonify({"error": "Unauthorized"}), 403
+    if not _require_admin():
+        return jsonify({"error": "Unauthorized"}), 403
 
     client_id = (request.args.get("client_id") or "").strip()
     include_secrets = (request.args.get("include_secrets") == "true")
