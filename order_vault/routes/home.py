@@ -17,7 +17,7 @@ def home():
 
 @home_bp.route("/admin", methods=["GET"])
 @login_required
-@require_subscription_in("admin",None)
+#@require_subscription_in("admin",None)
 def test():
     return render_template("admin.html")
 
