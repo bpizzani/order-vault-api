@@ -140,8 +140,8 @@ RediimFingerprint.sendFingerprint(
     context = this,
     apiKey = "YOUR_API_KEY",      // replace
     clientId = "YOUR_CLIENT_ID",  // replace
-    userId = currentUserIdOrNull, // optional but recommended
     call_type = "LOGIN/CHECKOUT/BROWSING" 
+    userId = currentUserIdOrNull, // optional but recommended
     coupon = currentPromoOrNull, // optional but recommended - JSON. E.g:  {coupon: {promocode: promocode, promotion_id: promotion_id, type: type}}
     callback = object : RediimFingerprint.Callback {
         override fun onSuccess(vId: String, sessId: String) {
