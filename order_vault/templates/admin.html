@@ -198,7 +198,7 @@
       
         <form id="tenantForm">
           <label for="t_admin_key">Admin API Key (header)</label>
-          <input id="t_admin_key" type="password" placeholder="X-Admin-Key value" required />
+          <input id="t_admin_key" type="password" placeholder="X-API-KEY value"  />
       
           <label for="t_client_id">Client ID</label>
           <input id="t_client_id" type="text" placeholder="client_123" required />
@@ -369,7 +369,7 @@ async function doPost(url, body, statusEl, headers = {}) {
     // admin endpoints are usually at root or /admin; your card shows /admin
     const url = `${baseUrl}/admin/upsert-tenant`;
   
-    const headers = { "X-Admin-Key": document.getElementById("t_admin_key").value };
+    const headers = { "X-API-KEY": document.getElementById("t_admin_key").value };
     const body = {
       client_id: document.getElementById("t_client_id").value.trim(),
       postgres_uri: document.getElementById("t_pg_uri").value.trim(),
