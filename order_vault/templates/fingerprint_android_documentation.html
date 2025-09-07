@@ -142,7 +142,7 @@ RediimFingerprint.sendFingerprint(
     clientId = "YOUR_CLIENT_ID",  // replace
     call_type = "LOGIN/CHECKOUT/BROWSING" 
     userId = currentUserIdOrNull, // optional but recommended
-    coupon = currentPromoOrNull, // optional but recommended - JSON. E.g:  {coupon: {promocode: promocode, promotion_id: promotion_id, type: type}}
+    coupon = currentPromoOrNull, // optional but recommended - JSONObject E.g:  {coupon: {promocode: promocode, promotion_id: promotion_id, type: type}}
     callback = object : RediimFingerprint.Callback {
         override fun onSuccess(vId: String, sessId: String) {
             visitorId = vId
@@ -270,7 +270,7 @@ fun evaluateRisk(values: JSONObject, apiKey: String, clientId: String): Map&lt;S
     private var visitorId: String? = null
     private var localSessionId: String? = null
     private var userId: Int? = null
-    private var coupon: String? = null
+    private var coupon: JSONObject? = null
     private var callType: String? = null
       
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -286,7 +286,7 @@ fun evaluateRisk(values: JSONObject, apiKey: String, clientId: String): Map&lt;S
             clientId = "YOUR_CLIENT_ID",ç
             call_type = callType,
             userId = userId,
-            coupon = coupon, // optional but recommended - JSON. E.g:  {coupon: {promocode: promocode, promotion_id: promotion_id, type: type}}
+            coupon = coupon, // optional but recommended - JSONObject E.g:  {coupon: {promocode: promocode, promotion_id: promotion_id, type: type}}
             callback = object : RediimFingerprint.Callback {
                 override fun onSuccess(vId: String, sessId: String) {
                     visitorId = vId
