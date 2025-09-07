@@ -24,7 +24,6 @@ app.config["SESSION_COOKIE_DOMAIN"] = ".rediim.com"
 
 # ─── Shared PostgreSQL DB (Auth & User Table) ────
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("SQLALCHEMY_DATABASE_URI")
-print(os.environ.get("SQLALCHEMY_DATABASE_URI"))
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 # ─── Initialize Extensions ───────────────────────
