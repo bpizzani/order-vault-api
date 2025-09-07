@@ -46,8 +46,8 @@ def fingerprint_ui():
     return render_template("fingerprint.html")
 
 
-@home_bp.route("/update-subscription-limit", methods=["GET", "POST"])
-def update_subscription_limit():
+@home_bp.route("/update-subscription-limit-deprecated", methods=["GET", "POST"])
+def update_subscription_limit_deprecated():
     client_id = request.args.get("client_id")
     type = request.args.get("type")
     new_limit = request.args.get("max_api_calls")
@@ -83,6 +83,69 @@ def update_subscription_limit():
         db.session.commit()
 
         return jsonify({"message": f"✅ Updated max_api_calls to {new_limit} for client '{client_id}'"}), 200
+
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        return jsonify({"error": f"Database error: {str(e)}"}), 500
+
+@home_bp.route("/update-subscription-limit", methods=["GET", "POST"])
+def update_subscription_limit():
+    client_id = request.args.get("client_id")
+    type = request.args.get("type")
+    new_limit = request.args.get("max_api_calls")
+    new_limit_fingerprint = request.args.get("max_api_fingerprint_calls")
+    new_start_date = request.args.get("start_date")  # YYYY-MM-DD
+    new_end_date = request.args.get("end_date")      # YYYY-MM-DD
+
+    if not client_id or not new_limit:
+        return jsonify({"error": "Missing client_id or max_api_calls"}), 400
+
+    try:
+        new_limit = int(new_limit)
+        new_limit_fingerprint = int(new_limit_fingerprint)
+    except (ValueError, TypeError):
+        return jsonify({"error": "max_api_calls and max_api_fingerprint_calls must be integers"}), 400
+
+    try:
+        now = datetime.utcnow()
+
+        # Fetch the active subscription
+        subscription = ClientSubscription.query.filter(
+            ClientSubscription.client_id == client_id,
+            ClientSubscription.subscription_start <= now,
+            ClientSubscription.subscription_end >= now
+        ).first()
+
+        if not subscription:
+            return jsonify({"error": "No active subscription found for client"}), 404
+
+        # Update fields
+        subscription.max_api_calls = new_limit
+        subscription.max_api_fingerprint_calls = new_limit_fingerprint
+        if type:
+            subscription.type = type
+
+        if new_start_date:
+            try:
+                subscription.subscription_start = datetime.strptime(new_start_date, "%Y-%m-%d")
+            except ValueError:
+                return jsonify({"error": "Invalid start_date format. Use YYYY-MM-DD"}), 400
+
+        if new_end_date:
+            try:
+                subscription.subscription_end = datetime.strptime(new_end_date, "%Y-%m-%d")
+            except ValueError:
+                return jsonify({"error": "Invalid end_date format. Use YYYY-MM-DD"}), 400
+
+        db.session.commit()
+
+        return jsonify({
+            "message": (
+                f"✅ Updated subscription for client '{client_id}' "
+                f"→ max_api_calls={new_limit}, max_api_fingerprint_calls={new_limit_fingerprint}, "
+                f"start_date={subscription.subscription_start.date()}, end_date={subscription.subscription_end.date()}"
+            )
+        }), 200
 
     except SQLAlchemyError as e:
         db.session.rollback()
