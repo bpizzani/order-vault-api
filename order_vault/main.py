@@ -8,6 +8,8 @@ from order_vault.auth.sessions import load_tenant_from_session
 from order_vault import app
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from order_vault.models.tenant import Tenant
+from order_vault.utils.crypto import enc, dec
 
 # --- Define key function
 def get_client_id():
@@ -21,7 +23,9 @@ app.config["SESSION_COOKIE_DOMAIN"] = ".rediim.com"
 #app.config["SESSION_COOKIE_SECURE"] = True  # Only for HTTPS
 
 # ─── Shared PostgreSQL DB (Auth & User Table) ────
-app.config["SQLALCHEMY_DATABASE_URI"] = 'postgresql://u32cgla1pp9fm7:p6f656fa0f2edb9dda1653485f118f3b8379d957dce3469ef41d13f34d73e8cb1@c5flugvup2318r.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com:5432/dc0evnfhnut69e'
+tenant = Tenant.query.filter_by(client_id="admin_rediim").first()
+pg_uri_dec = dec(tenant.pg_uri_enc)
+app.config["SQLALCHEMY_DATABASE_URI"] = pg_uri_dec
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 # ─── Initialize Extensions ───────────────────────
