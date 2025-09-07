@@ -15,11 +15,11 @@ home_bp = Blueprint("home", __name__, url_prefix="/")
 def home():
     return render_template("home2.html")
 
-@home_bp.route("/test", methods=["GET"])
+@home_bp.route("/admin", methods=["GET"])
 @login_required
-@require_subscription_in("demo",None)
+@require_subscription_in("admin",None)
 def test():
-    return render_template("test.html")
+    return render_template("admin.html")
 
 @home_bp.route("/promotion_dashboard", methods=["GET"])
 @login_required
