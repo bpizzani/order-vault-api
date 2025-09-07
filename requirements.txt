@@ -14,3 +14,4 @@ flask-cors
 asyncpg
 Werkzeug>=2.0
 flask-limiter
+cryptography
