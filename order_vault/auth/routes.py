@@ -17,7 +17,7 @@ auth_bp = Blueprint("auth", __name__)
 # ----------------------------
 def _require_admin() -> bool:
     expected = current_app.config.get("ADMIN_API_KEY")
-    provided = request.headers.get("X-Admin-Key")
+    provided = request.headers.get("X-API-KEY")
     # Optional convenience: allow ?admin_key=... in dev, but header takes precedence
     if not provided:
         provided = request.args.get("admin_key") or (request.json or {}).get("admin_key") if request.is_json else None
