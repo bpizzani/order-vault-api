@@ -23,9 +23,7 @@ app.config["SESSION_COOKIE_DOMAIN"] = ".rediim.com"
 #app.config["SESSION_COOKIE_SECURE"] = True  # Only for HTTPS
 
 # ─── Shared PostgreSQL DB (Auth & User Table) ────
-#tenant = Tenant.query.filter_by(client_id="admin_rediim").first()
-#pg_uri_dec = dec(tenant.pg_uri_enc)
-app.config["SQLALCHEMY_DATABASE_URI"] = g.db_ur
+app.config["SQLALCHEMY_DATABASE_URI"] = current_app.config.get("SQLALCHEMY_DATABASE_URI")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 # ─── Initialize Extensions ───────────────────────
