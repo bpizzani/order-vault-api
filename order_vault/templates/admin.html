@@ -187,6 +187,49 @@
           </div>
         </form>
       </div>
+
+      <!-- Create / Update Tenant -->
+      <div class="card">
+        <h2>Create / Update Tenant</h2>
+        <div class="stack">
+          <span class="pill">POST /admin/upsert-tenant</span>
+          <span class="pill">JSON body</span>
+        </div>
+      
+        <form id="tenantForm">
+          <label for="t_admin_key">Admin API Key (header)</label>
+          <input id="t_admin_key" type="password" placeholder="X-Admin-Key value" required />
+      
+          <label for="t_client_id">Client ID</label>
+          <input id="t_client_id" type="text" placeholder="client_123" required />
+      
+          <label for="t_pg_uri">Postgres URI</label>
+          <input id="t_pg_uri" type="text" placeholder="postgresql://user:pass@host:5432/dbname" required />
+      
+          <label for="t_neo4j_uri">Neo4j URI</label>
+          <input id="t_neo4j_uri" type="text" placeholder="neo4j+s://<instance>.databases.neo4j.io" required />
+      
+          <div class="row">
+            <div>
+              <label for="t_neo4j_user">Neo4j User</label>
+              <input id="t_neo4j_user" type="text" placeholder="neo4j" required />
+            </div>
+            <div>
+              <label for="t_neo4j_pass">Neo4j Password</label>
+              <input id="t_neo4j_pass" type="password" placeholder="********" required />
+            </div>
+          </div>
+      
+          <button class="btn" type="submit">Create / Update Tenant</button>
+          <div id="tenantStatus" class="status"></div>
+          <div class="sep"></div>
+          <div class="muted">
+            201/200 → <code>{"message": "✅ Tenant created/updated", "client_id": "..."}</code> • 4xx/5xx → <code>{"error": "..."}</code>
+          </div>
+        </form>
+      </div>
+
+      
     </div>
 
     <p class="small" style="margin-top:18px">
@@ -291,6 +334,54 @@
     
       doGet(url, byId("updateStatus"));
     });
+
+async function doPost(url, body, statusEl, headers = {}) {
+  statusEl.className = "status loading";
+  statusEl.textContent = "Sending request…";
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...headers },
+      credentials: "include",
+      body: JSON.stringify(body),
+    });
+    const text = await res.text();
+    let payload;
+    try { payload = JSON.parse(text); } catch { payload = { raw: text }; }
+    if (!res.ok) {
+      statusEl.className = "status err";
+      statusEl.textContent = JSON.stringify(payload, null, 2);
+    } else {
+      statusEl.className = "status ok";
+      statusEl.textContent = JSON.stringify(payload, null, 2);
+    }
+  } catch (e) {
+    statusEl.className = "status err";
+    statusEl.textContent = String(e);
+  }
+}
+
+  // Create / Update Tenant (POST JSON)
+  document.getElementById("tenantForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const base = document.getElementById("baseUrl").value.trim();
+    const baseUrl = (base || "").replace(/\/+$/, "");
+    // admin endpoints are usually at root or /admin; your card shows /admin
+    const url = `${baseUrl}/admin/upsert-tenant`;
+  
+    const headers = { "X-Admin-Key": document.getElementById("t_admin_key").value };
+    const body = {
+      client_id: document.getElementById("t_client_id").value.trim(),
+      postgres_uri: document.getElementById("t_pg_uri").value.trim(),
+      neo4j_uri: document.getElementById("t_neo4j_uri").value.trim(),
+      neo4j_user: document.getElementById("t_neo4j_user").value.trim(),
+      neo4j_password: document.getElementById("t_neo4j_pass").value,
+    };
+  
+    doPost(url, body, document.getElementById("tenantStatus"), headers);
+  });
+
+    
   </script>
 </body>
 </html>
