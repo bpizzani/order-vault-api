@@ -105,9 +105,9 @@ def save_fingerprint_event(db_session, client_id, user_identifier_client, data, 
         user_agent=str(data.get("userAgent"))[0:50],
         webdriver=data.get("webdriver"),
         platform=data.get("platform", data.get("apiLevel")),
-        promocode=data.get("coupon").get("promocode"),
-        coupon=data.get("coupon"),
-        call_type=data.get("call_type"),
+        promocode=data.get("coupon",None).get("promocode",None),
+        coupon=data.get("coupon",None),
+        call_type=data.get("call_type",None),
     )
     db_session.add(entry)
     db_session.commit()
