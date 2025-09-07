@@ -157,7 +157,7 @@
   window.addEventListener('load', async () =&gt; {
     const userId = getUserId(); // optional but recommended
     const promocode = getPromoCode(); // optional but recommended
-    onst { visitorId, localSessionId } = await runInHouseFingerprint(REDIIM_API_KEY, REDIIM_CLIENT_ID, userId, promocode);
+    const { visitorId, localSessionId } = await runInHouseFingerprint(REDIIM_API_KEY, REDIIM_CLIENT_ID, userId, promocode);
   });
 &lt;/script&gt;
 </code></pre>
