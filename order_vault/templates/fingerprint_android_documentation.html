@@ -289,7 +289,7 @@ fun evaluateRisk(values: JSONObject, apiKey: String, clientId: String): Map&lt;S
             clientId = "YOUR_CLIENT_ID",ç
             call_type = callType,
             userId = userId,
-            coupon = coupon, // optional but recommended - JSONObject E.g:  {coupon: {promocode: promocode, promotion_id: promotion_id, type: type}}
+            coupon = couponObj, // optional but recommended - JSONObject E.g:  {coupon: {promocode: promocode, promotion_id: promotion_id, type: type}}
             callback = object : RediimFingerprint.Callback {
                 override fun onSuccess(vId: String, sessId: String) {
                     visitorId = vId
