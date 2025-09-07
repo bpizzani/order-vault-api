@@ -23,7 +23,7 @@ app.config["SESSION_COOKIE_DOMAIN"] = ".rediim.com"
 #app.config["SESSION_COOKIE_SECURE"] = True  # Only for HTTPS
 
 # ─── Shared PostgreSQL DB (Auth & User Table) ────
-app.config["SQLALCHEMY_DATABASE_URI"] = current_app.config.get("SQLALCHEMY_DATABASE_URI")
+app.config["SQLALCHEMY_DATABASE_URI"] = current_app.config.get("SQLALCHEMY_DATABASE_URI",os.environ.get("SQLALCHEMY_DATABASE_URI"))
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 # ─── Initialize Extensions ───────────────────────
