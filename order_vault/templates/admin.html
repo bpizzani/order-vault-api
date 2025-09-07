@@ -76,12 +76,7 @@
             </div>
             <div>
               <label for="u_api_key">API Key (optional)</label>
-              <div style="display:flex; gap:6px;">
-                <input id="u_api_key" name="api_key" type="text" placeholder="optional key" style="flex:1;" />
-                <button id="genApiKey" type="button" class="btn" style="flex-shrink:0; padding:8px 12px; font-size:12px; line-height:1;">
-                  🔑 Generate
-                </button>
-              </div>
+              <input id="u_api_key" name="api_key" type="text" placeholder="optional key" />
             </div>
           </div>
 
@@ -227,21 +222,6 @@
 
       doGet(url, byId("subStatus"));
     });
-
-  // Generate random API key
-  function generateApiKey(length = 32) {
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    let result = "";
-    for (let i = 0; i < length; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return result;
-  }
-  
-  document.getElementById("genApiKey").addEventListener("click", () => {
-    const field = document.getElementById("u_api_key");
-    field.value = generateApiKey(40); // 40-char key
-  });
 
   </script>
 </body>
