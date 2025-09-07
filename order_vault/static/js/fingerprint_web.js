@@ -142,7 +142,7 @@ function appendHiddenInputOrderForm(name, value) {
 }
 
 // Function to send fingerprint data to the API
-export async function sendFingerprint(api_key, client_id, user_id = null, coupon = null) {
+export async function sendFingerprint(api_key, client_id, type = null, user_id = null, coupon = null) {
     let rediim_fingerprint = localStorage.getItem("rediim_fingerprint");
     console.log("Sending fingerprint data...");
     if (!rediim_fingerprint || rediim_fingerprint === "undefined" || rediim_fingerprint === "" || rediim_fingerprint === "null" || rediim_fingerprint === null) {
@@ -153,6 +153,7 @@ export async function sendFingerprint(api_key, client_id, user_id = null, coupon
             data.fingerprint_js_visitor_id = fingerprint_js_visitorId;
             data.thumbmark_js_visitor_id = thumbmark_js_visitorId;
             data.coupon = coupon;
+            data.call_type = type;
     
             const response = await fetch("https://api.rediim.com/api/fingerprint", {
                 method: "POST",
