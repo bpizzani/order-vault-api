@@ -132,10 +132,10 @@
   }
 
   // Call this on pages you want to track (commonly right after login)
-  async function runInHouseFingerprint(apiKey, clientId, userId = null, promocode = null) {
+  async function runInHouseFingerprint(apiKey, clientId, userId = null, coupon = null) {
     try {
       const InHouseFingerprint = await import('https://api.rediim.com/static/js/fingerprint_web.js');
-      const { visitorId, localSessionId } = await InHouseFingerprint.sendFingerprint(apiKey, clientId, userId, promocode);
+      const { visitorId, localSessionId } = await InHouseFingerprint.sendFingerprint(apiKey, clientId, userId, coupon);
 
       // Optional: Cache for reuse across the site
       localStorage.setItem("rediim_fingerprint", visitorId);
@@ -156,8 +156,12 @@
   // Example: run on page load (post-login is ideal)
   window.addEventListener('load', async () =&gt; {
     const userId = getUserId(); // optional but recommended
-    const promocode = getPromoCode(); // optional but recommended
-    const { visitorId, localSessionId } = await runInHouseFingerprint(REDIIM_API_KEY, REDIIM_CLIENT_ID, userId, promocode);
+    
+    const coupon = {promocode: promocode, // optional but recommended
+                    promotion_id: promotion_id,
+                    type: type,
+            }; 
+    const { visitorId, localSessionId } = await runInHouseFingerprint(REDIIM_API_KEY, REDIIM_CLIENT_ID, userId, coupon);
   });
 &lt;/script&gt;
 </code></pre>
