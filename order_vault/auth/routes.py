@@ -5,7 +5,30 @@ from order_vault.main import db
 from werkzeug.security import check_password_hash, generate_password_hash
 from datetime import datetime
 
+# 🔽 NEW imports for the admin tenant API
+from sqlalchemy.exc import SQLAlchemyError
+from order_vault.models.tenant import Tenant
+from order_vault.utils.crypto import enc, dec
+
 auth_bp = Blueprint("auth", __name__)
+
+# ----------------------------
+# Helpers (admin key + masking)
+# ----------------------------
+def _require_admin() -> bool:
+    expected = current_app.config.get("ADMIN_API_KEY")
+    provided = request.headers.get("X-Admin-Key")
+    # Optional convenience: allow ?admin_key=... in dev, but header takes precedence
+    if not provided:
+        provided = request.args.get("admin_key") or (request.json or {}).get("admin_key") if request.is_json else None
+    return bool(expected) and provided == expected
+
+def _mask(s: str, keep: int = 4) -> str:
+    try:
+        return (s or "")[:keep] + "•••" if s and len(s) > keep else "•••"
+    except Exception:
+        return "•••"
+
 
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
@@ -108,29 +131,114 @@ def create_subscription_via_url():
     return jsonify({"message": f"✅ Created subscription for {client_id}"}), 201
 
 
-#deprecated
-@auth_bp.route("/register", methods=["POST"])
-def register():
-    data = request.json
 
-    required_fields = ["email", "password", "client_id"]
-    if not all(field in data for field in required_fields):
-        return jsonify({"error": "Missing fields"}), 400
+# --------------------------------------------------
+# NEW: Admin Tenant APIs (secured via X-Admin-Key)
+# --------------------------------------------------
 
-    email = data["email"].strip().lower()
-    password = data["password"]
-    client_id = data["client_id"].strip()
+@auth_bp.route("/admin/upsert-tenant", methods=["POST"])
+def upsert_tenant():
+    """
+    Create or update a tenant with encrypted secrets.
+    Requires header: X-Admin-Key = <ADMIN_API_KEY>
+    Body (JSON):
+      {
+        "client_id": "client_a",
+        "postgres_uri": "postgresql://...",
+        "neo4j_uri": "neo4j+s://f34af....neo4j.io",
+        "neo4j_user": "neo4j",
+        "neo4j_password": "super-secret"
+      }
+    """
+    if not _require_admin():
+        return jsonify({"error": "Unauthorized"}), 403
 
-    if User.query.filter_by(email=email).first():
-        return jsonify({"error": "User already exists"}), 400
+    if not request.is_json:
+        return jsonify({"error": "Expected application/json body"}), 400
+
+    data = request.get_json(silent=True) or {}
+    client_id = (data.get("client_id") or "").strip()
+    pg_uri = (data.get("postgres_uri") or "").strip()
+    neo4j_uri = (data.get("neo4j_uri") or "").strip()
+    neo4j_user = (data.get("neo4j_user") or "").strip()
+    neo4j_pass = (data.get("neo4j_password") or "").strip()
+
+    if not client_id or not pg_uri or not neo4j_uri or not neo4j_user or not neo4j_pass:
+        return jsonify({"error": "Missing required fields"}), 400
 
     try:
-        hashed_pw = generate_password_hash(password)
-        user = User(email=email, password_hash=hashed_pw, client_id=client_id)
-        db.session.add(user)
+        t = Tenant.query.filter_by(client_id=client_id).first()
+        created = False
+        if not t:
+            t = Tenant(client_id=client_id)
+            created = True
+
+        t.pg_uri_enc = enc(pg_uri)
+        t.neo4j_uri_enc = enc(neo4j_uri)
+        t.neo4j_user_enc = enc(neo4j_user)
+        t.neo4j_pass_enc = enc(neo4j_pass)
+
+        db.session.add(t)
         db.session.commit()
-        return jsonify({"message": f"User {email} created for client {client_id}"}), 201
+
+        return jsonify({
+            "message": "✅ Tenant created" if created else "✅ Tenant updated",
+            "client_id": client_id
+        }), 201 if created else 200
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        return jsonify({"error": f"Database error: {str(e)}"}), 500
     except Exception as e:
-        return jsonify({"error": "Could not create user", "details": str(e)}), 500
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
 
+@auth_bp.route("/admin/tenant", methods=["GET"])
+def get_tenant():
+    """
+    Fetch a tenant's configuration.
+    Requires header: X-Admin-Key = <ADMIN_API_KEY>
+    Query params:
+      client_id (required)
+      include_secrets=true|false  (default false → secrets masked)
+    """
+    if not _require_admin():
+        return jsonify({"error": "Unauthorized"}), 403
 
+    client_id = (request.args.get("client_id") or "").strip()
+    include_secrets = (request.args.get("include_secrets") == "true")
+
+    if not client_id:
+        return jsonify({"error": "Missing client_id"}), 400
+
+    try:
+        t = Tenant.query.filter_by(client_id=client_id).first()
+        if not t:
+            return jsonify({"error": "Tenant not found"}), 404
+
+        pg = dec(t.pg_uri_enc)
+        nuri = dec(t.neo4j_uri_enc)
+        nuser = dec(t.neo4j_user_enc)
+        npass = dec(t.neo4j_pass_enc)
+
+        if include_secrets:
+            payload = {
+                "client_id": client_id,
+                "postgres_uri": pg,
+                "neo4j_uri": nuri,
+                "neo4j_user": nuser,
+                "neo4j_password": npass,
+            }
+        else:
+            payload = {
+                "client_id": client_id,
+                "postgres_uri": _mask(pg),
+                "neo4j_uri": _mask(nuri),
+                "neo4j_user": _mask(nuser),
+                "neo4j_password": "•••",
+            }
+
+        return jsonify(payload), 200
+    except SQLAlchemyError as e:
+        return jsonify({"error": f"Database error: {str(e)}"}), 500
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
