@@ -105,7 +105,7 @@ def save_fingerprint_event(db_session, client_id, user_identifier_client, data, 
         user_agent=str(data.get("userAgent"))[0:50],
         webdriver=data.get("webdriver"),
         platform=data.get("platform", data.get("apiLevel")),
-        promocode=(data.get("coupon") or {}).get("promocode")),
+        promocode=(data.get("coupon") or {}).get("promocode"),
         coupon=data.get("coupon", None),
         call_type=data.get("call_type",None),
     )
@@ -145,7 +145,7 @@ def fingerprint():
     print(f"User Agent: {data.get('userAgent') }")
     print(f"webdriver: {data.get('webdriver') }")
 
-    print(f"Promocode: {(data.get("coupon") or {}).get("promocode"))}")
+    print(f"Promocode: {(data.get("coupon") or {}).get("promocode")}")
 
     print(f"Call Type: {data.get('call_type',None)}")
     
