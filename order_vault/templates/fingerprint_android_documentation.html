@@ -278,6 +278,10 @@ fun evaluateRisk(values: JSONObject, apiKey: String, clientId: String): Map&lt;S
 
         userId = (0..1000).random()
         callType = "Checkout"
+        val promoCode = (0..1000).random()
+        val promotionId = (0..1000).random()
+        val promoType = "TEST"
+      
         val couponObj = JSONObject().apply {
             put("promocode", promoCode)
             put("promotion_id", promotionId)
