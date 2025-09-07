@@ -270,7 +270,6 @@ fun evaluateRisk(values: JSONObject, apiKey: String, clientId: String): Map&lt;S
     private var visitorId: String? = null
     private var localSessionId: String? = null
     private var userId: Int? = null
-    private var coupon: JSONObject? = null
     private var callType: String? = null
       
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -281,8 +280,8 @@ fun evaluateRisk(values: JSONObject, apiKey: String, clientId: String): Map&lt;S
         callType = "Checkout"
         val couponObj = JSONObject().apply {
             put("promocode", promoCode)
-            put("promotion_id", promoCode)
-            put("type", promoCode)
+            put("promotion_id", promotionId)
+            put("type", promoType)
         }
         RediimFingerprint.sendFingerprint(
             context = this,
