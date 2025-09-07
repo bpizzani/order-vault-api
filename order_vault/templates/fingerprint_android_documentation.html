@@ -143,9 +143,9 @@ RediimFingerprint.sendFingerprint(
     userId = currentUserIdOrNull, // optional but recommended
     promocode = currentPromoOrNull, // optional but recommended
     callback = object : RediimFingerprint.Callback {
-        override fun onSuccess(visitorId: String, localSessionId: String) {
-            cacheVisitorId(visitorId)
-            cacheLocalSessionId(localSessionId)
+        override fun onSuccess(vId: String, sessId: String) {
+            visitorId = vId
+            localSessionId = sessId
         }
         override fun onError(error: String) {
             // Don't block UX; log and optionally retry later
