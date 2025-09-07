@@ -146,7 +146,7 @@ def fingerprint():
     print(f"webdriver: {data.get('webdriver') }")
 
     if data.get("coupon") != None:    
-        print(f"Promocode: {(data.get("coupon").get("promocode")}")
+        print(f"Promocode: {data.get("coupon").get("promocode")}")
 
     print(f"Call Type: {data.get('call_type',None)}")
     
