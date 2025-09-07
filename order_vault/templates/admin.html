@@ -44,12 +44,12 @@
       <div style="flex:1">
         <label for="baseUrl">API Base URL</label>
         <input id="baseUrl" type="url" placeholder="https://console.rediim.com" />
-        <div class="small">Requests will be sent to <code>{baseUrl}/auth/create-user</code> and <code>{baseUrl}/auth/create-subscription</code> (adjust the prefix below if needed).</div>
+        <div class="small">Requests will be sent to <code>{baseUrl}/auth/create-user</code>, <code>{baseUrl}/auth/create-subscription</code> and <code>{baseUrl}/update-subscription-limit</code> (adjust the prefix below if needed).</div>
       </div>
       <div>
         <label for="prefix">Route Prefix</label>
         <input id="prefix" type="text" value="/" />
-        <div class="small">Change if your blueprint is mounted elsewhere.</div>
+        <div class="small">Change if your blueprints are mounted elsewhere.</div>
       </div>
     </div>
 
@@ -76,14 +76,19 @@
             </div>
             <div>
               <label for="u_api_key">API Key (optional)</label>
-              <input id="u_api_key" name="api_key" type="text" placeholder="optional key" />
+              <div style="display:flex; gap:6px;">
+                <input id="u_api_key" name="api_key" type="text" placeholder="optional key" style="flex:1;" />
+                <button id="genApiKey" type="button" class="btn" style="flex-shrink:0; padding:8px 12px; font-size:12px; line-height:1;">
+                  🔑 Generate
+                </button>
+              </div>
             </div>
           </div>
 
           <button class="btn" type="submit">Create User</button>
           <div id="userStatus" class="status"></div>
           <div class="sep"></div>
-          <div class="muted">Backend contract: returns <code>201</code> on success with <code>{"message": "✅ Created user ..."}</code> or <code>400</code> with <code>{"error": "..."}.</code></div>
+          <div class="muted">201 → <code>{"message": "✅ Created user ..."}</code> • 400 → <code>{"error": "..."}</code></div>
         </form>
       </div>
 
@@ -132,13 +137,54 @@
           <button class="btn" type="submit">Create Subscription</button>
           <div id="subStatus" class="status"></div>
           <div class="sep"></div>
-          <div class="muted">Backend contract: returns <code>201</code> on success with <code>{"message": "✅ Created subscription ..."}</code> or <code>400</code>/<code>403</code> with <code>{"error": "..."}.</code></div>
+          <div class="muted">201 → <code>{"message": "✅ Created subscription ..."}</code> • 400/403 → <code>{"error": "..."}</code></div>
+        </form>
+      </div>
+
+      <!-- Update Subscription Limits -->
+      <div class="card">
+        <h2>Update Subscription Limits</h2>
+        <div class="stack">
+          <span class="pill">GET /update-subscription-limit</span>
+          <span class="pill">Query params</span>
+        </div>
+
+        <form id="updateForm">
+          <label for="u2_client_id">Client ID</label>
+          <input id="u2_client_id" name="client_id" type="text" placeholder="client_123" required />
+
+          <div class="row">
+            <div>
+              <label for="u2_type">Type (optional)</label>
+              <select id="u2_type" name="type">
+                <option value="">(leave unchanged)</option>
+                <option value="full">full</option>
+                <option value="admin">admin</option>
+                <option value="demo">demo</option>
+                <option value="fingerprint_demo">fingerprint_demo</option>
+              </select>
+            </div>
+            <div>
+              <label for="u2_max_calls">New Max API Calls</label>
+              <input id="u2_max_calls" name="max_api_calls" type="number" min="1" placeholder="e.g. 20000" required />
+            </div>
+          </div>
+
+          <label for="u2_max_fp">New Max Fingerprint API Calls</label>
+          <input id="u2_max_fp" name="max_api_fingerprint_calls" type="number" min="0" placeholder="e.g. 8000" required />
+
+          <button class="btn" type="submit">Update Subscription</button>
+          <div id="updateStatus" class="status"></div>
+          <div class="sep"></div>
+          <div class="muted">
+            200 → <code>{"message": "✅ Updated max_api_calls ..."}</code> • 404 → <code>{"error": "No active subscription ..."}</code> • 400/500 → <code>{"error": "..."}</code>
+          </div>
         </form>
       </div>
     </div>
 
     <p class="small" style="margin-top:18px">
-      Heads-up: Using <strong>GET</strong> for actions that mutate data exposes sensitive params (like passwords) in URLs and logs. Consider switching these endpoints to <code>POST</code> with a JSON body and CSRF protection in production.
+      Heads-up: Using <strong>GET</strong> for actions that mutate data exposes sensitive params in URLs and logs. Consider switching to <code>POST</code> with JSON + CSRF in production.
     </p>
   </div>
 
@@ -176,8 +222,19 @@
       }
     }
 
-    // Defaults (you can hardcode your base URL here if you like)
+    // Defaults
     byId("baseUrl").value = location.origin;
+
+    // 🔑 Generate random API key
+    function generateApiKey(length = 40) {
+      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+      let out = "";
+      for (let i = 0; i < length; i++) out += chars.charAt(Math.floor(Math.random() * chars.length));
+      return out;
+    }
+    byId("genApiKey").addEventListener("click", () => {
+      byId("u_api_key").value = generateApiKey(40);
+    });
 
     // Create User
     byId("userForm").addEventListener("submit", (e) => {
@@ -187,7 +244,7 @@
 
       const url = buildUrl(base, prefix, "/create-user", {
         email: byId("u_email").value.trim(),
-        password: byId("u_password").value, // warning: will appear in URL
+        password: byId("u_password").value, // appears in URL
         client_id: byId("u_client_id").value.trim(),
         api_key: byId("u_api_key").value.trim(),
       });
@@ -201,7 +258,6 @@
       const base = byId("baseUrl").value.trim();
       const prefix = byId("prefix").value.trim() || "/auth";
 
-      // quick client-side validation
       const start = byId("s_start_date").value;
       const end = byId("s_end_date").value;
       if (start && end && new Date(end) < new Date(start)) {
@@ -223,6 +279,24 @@
       doGet(url, byId("subStatus"));
     });
 
+    // Update Subscription Limits
+    byId("updateForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const base = byId("baseUrl").value.trim();
+
+      // NOTE: Your update endpoint is on home_bp, so often it's mounted at root.
+      // If you mount it under a prefix, change this accordingly.
+      const prefix = byId("prefix").value.trim() || "/";
+
+      const url = buildUrl(base, prefix, "/update-subscription-limit", {
+        client_id: byId("u2_client_id").value.trim(),
+        type: byId("u2_type").value,
+        max_api_calls: byId("u2_max_calls").value,
+        max_api_fingerprint_calls: byId("u2_max_fp").value,
+      });
+
+      doGet(url, byId("updateStatus"));
+    });
   </script>
 </body>
 </html>
