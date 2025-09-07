@@ -1,5 +1,5 @@
 # models/tenant.py
-from order_vault.main import db
+from order_vault.models.db import db
 
 class Tenant(db.Model):
     __tablename__ = "tenants"
