@@ -45,6 +45,12 @@
         </div>
         <a href="https://rediim.com" class="sidebar-link" target="_blank">🌐 Web</a>
         <a href="/logout" class="sidebar-link">🚪 Logout</a>
+
+        {# Admin-only link #}
+        {% if subscription_type and subscription_type|lower == "admin" %}
+            <a href="{{ url_for('home.admin_ui') }}" class="sidebar-link">⚙️ Admin Panel</a>
+        {% endif %}
+        
     </nav>
 
     <style>
