@@ -278,8 +278,12 @@ fun evaluateRisk(values: JSONObject, apiKey: String, clientId: String): Map&lt;S
         setContentView(R.layout.activity_main)
 
         userId = (0..1000).random()
-        promoCode = null // or your own promo logic
-
+        callType = "Checkout"
+        val couponObj = JSONObject().apply {
+            put("promocode", promoCode)
+            put("promotion_id", promoCode)
+            put("type", promoCode)
+        }
         RediimFingerprint.sendFingerprint(
             context = this,
             apiKey = "YOUR_API_KEY",
