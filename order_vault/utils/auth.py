@@ -2,7 +2,6 @@ from functools import wraps
 from flask import session, redirect, url_for, g
 from order_vault.models.user import User
 from order_vault.models.client_subscription import ClientSubscription
-from order_vault.settings.tenants import TENANT_DATABASES
 from order_vault.models.tenant import Tenant
 from order_vault.utils.crypto import enc, dec
 from neo4j import GraphDatabase
@@ -18,7 +17,6 @@ def login_required(f):
         if not user:
             return redirect(url_for("auth.login"))
 
-        #tenant = TENANT_DATABASES.get(user.client_id)
         tenant = Tenant.query.filter_by(client_id=user.client_id).first()
         if not tenant:
             return "Invalid tenant", 403
