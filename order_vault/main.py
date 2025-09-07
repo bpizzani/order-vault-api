@@ -22,6 +22,11 @@ app.config["SESSION_COOKIE_DOMAIN"] = ".rediim.com"
 #app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 #app.config["SESSION_COOKIE_SECURE"] = True  # Only for HTTPS
 
+# ─── Shared PostgreSQL DB (Auth & User Table) ────
+#tenant = Tenant.query.filter_by(client_id="admin_rediim").first()
+#pg_uri_dec = dec(tenant.pg_uri_enc)
+app.config["SQLALCHEMY_DATABASE_URI"] = g.db_ur
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 # ─── Initialize Extensions ───────────────────────
 db.init_app(app)
@@ -32,12 +37,6 @@ CORS(app, supports_credentials=True)
 @app.before_request
 def before_request():
     load_tenant_from_session()
-
-# ─── Shared PostgreSQL DB (Auth & User Table) ────
-#tenant = Tenant.query.filter_by(client_id="admin_rediim").first()
-#pg_uri_dec = dec(tenant.pg_uri_enc)
-app.config["SQLALCHEMY_DATABASE_URI"] = g.db_ur
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 @app.context_processor
 def inject_globals():
