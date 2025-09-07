@@ -144,7 +144,8 @@ def fingerprint():
     print(f"webdriver: {data.get('webdriver') }")
 
     print(f"Promocode: {data.get('coupon').get('promocode') }")
-
+    print(f"Call Type: {data.get('call_type')}")
+    
     cookie_session = data.get("sessionId")
     print(f"cookie_session detected: {cookie_session}")
     
