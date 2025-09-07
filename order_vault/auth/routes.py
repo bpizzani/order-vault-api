@@ -4,6 +4,7 @@ from order_vault.models.client_subscription import ClientSubscription
 from order_vault.main import db
 from werkzeug.security import check_password_hash, generate_password_hash
 from datetime import datetime
+from order_vault.utils.auth import login_required
 
 # 🔽 NEW imports for the admin tenant API
 from sqlalchemy.exc import SQLAlchemyError
@@ -70,6 +71,7 @@ def logout():
     return render_template("logout.html"), 200
 
 @auth_bp.route("/create-user", methods=["GET"])
+@login_required
 def create_user_via_url():
     email = request.args.get("email")
     password = request.args.get("password")
@@ -97,6 +99,7 @@ def create_user_via_url():
 
 
 @auth_bp.route("/create-subscription", methods=["GET"])
+@login_required
 def create_subscription_via_url():
     client_id = request.args.get("client_id")
     type = request.args.get("type")
@@ -137,6 +140,7 @@ def create_subscription_via_url():
 # --------------------------------------------------
 
 @auth_bp.route("/admin/upsert-tenant", methods=["POST"])
+@login_required
 def upsert_tenant():
     """
     Create or update a tenant with encrypted secrets.
@@ -193,6 +197,7 @@ def upsert_tenant():
         return jsonify({"error": str(e)}), 500
 
 @auth_bp.route("/admin/tenant", methods=["GET"])
+@login_required
 def get_tenant():
     """
     Fetch a tenant's configuration.
