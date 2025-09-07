@@ -142,9 +142,9 @@
       localStorage.setItem("local_session_id", localSessionId);
 
       // Optional: expose globally if you like
-      window.REDIIM = { visitorId, localSessionId, userId };
+      window.REDIIM = { visitorId, localSessionId };
 
-      console.log("[Rediim] Fingerprint ready", { visitorId, localSessionId, userId });
+      console.log("[Rediim] Fingerprint ready", { visitorId, localSessionId });
       return { visitorId, localSessionId };
     } catch (error) {
       console.error("[Rediim] Error getting fingerprint:", error);
@@ -157,7 +157,7 @@
   window.addEventListener('load', async () =&gt; {
     const userId = getUserId(); // optional but recommended
     const promocode = getPromoCode(); // optional but recommended
-    await runInHouseFingerprint(REDIIM_API_KEY, REDIIM_CLIENT_ID, userId, promocode);
+    onst { visitorId, localSessionId } = await runInHouseFingerprint(REDIIM_API_KEY, REDIIM_CLIENT_ID, userId, promocode);
   });
 &lt;/script&gt;
 </code></pre>
