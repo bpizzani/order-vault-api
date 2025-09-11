@@ -23,7 +23,7 @@ CLIENT_JWT_SECRETS = {
 
 PUBLISHABLE_KEYS = {  # scoped to fingerprint-only
     "client_c": {"key": "abcde", "origins": ["https://order-vault-client-webapp-13ee822f0ba9.herokuapp.com"]},
-    "client_1": {"key": "abcde", "origins": ["https://order-vault-client-webapp-13ee822f0ba9.herokuapp.com"]},
+    "client_1": {"key": "trial_abc", "origins": ["https://order-vault-client-webapp-13ee822f0ba9.herokuapp.com"]},
 
 }
 
