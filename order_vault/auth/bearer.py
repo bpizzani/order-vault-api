@@ -1,6 +1,6 @@
 # pip install pyjwt flask-cors
 from functools import wraps
-from flask import request, g, jsonify, abort
+from flask import request, g, jsonify, abort, current_app
 from flask_cors import CORS
 import jwt, time
 from order_vault.models.tenant import Tenant
@@ -8,7 +8,7 @@ from order_vault.utils.crypto import enc, dec
 from neo4j import GraphDatabase
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-
+ 
 # Tighten these to known origins in prod
 #CORS(app, resources={r"/api/*": { #"origins": ["https://merchant.example.com"],
 #                                 "allow_headers": ["Content-Type","Authorization","X-CLIENT-ID","X-API-KEY"],
@@ -109,7 +109,7 @@ def require_auth(scope: str = ""):
     return deco
 
 
-limiter = Limiter(get_remote_address, app=app, default_limits=["60/minute"])
+limiter = Limiter(get_remote_address, app=current_app, default_limits=["60/minute"])
 
 def require_publishable_key(fn):
     @wraps(fn)
