@@ -62,11 +62,19 @@ def _verify_publishable_key_or_401():
     print("API!")
     publishable_key = request.headers.get("X-PUBLISHABLE-KEY")
     client_id_key = request.headers.get("X-CLIENT-ID")
+    origin = request.headers.get("Origin")
+ 
     if not api_key or not client_id_key:
         abort(401, description="missing_publishable_key_or_client_id")
+  
     user = User.query.filter_by(publishable_key=publishable_key, client_id=client_id_key).first()
     if not user:
         abort(401, description="invalid_publishable_key_or_client_id")
+
+    #publishable_origins = user.publishable_origins
+    #if origin not in publishable_origins:
+    #    return jsonify({"error":"origin_not_allowed"}), 403
+     
     g.user = user
     _set_tenant_context(user.client_id)
     g.auth_type = "publishable"
