@@ -8,4 +8,6 @@ class User(db.Model):
     password_hash = db.Column(db.String, nullable=False)
     client_id = db.Column(db.String, nullable=False)
     api_key = db.Column(db.String(128), unique=False, nullable=True)
-
+    pk_key = db.Column(db.String(128), unique=False, nullable=True)
+    pk_origin = db.Column(db.JSON, nullable=True)
+    jwt_secrets = db.Column(db.String(128), unique=False, nullable=True)
