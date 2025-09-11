@@ -159,7 +159,7 @@ def create_or_update_user():
 
     email_lc = email.lower()
     user = User.query.filter_by(email=email_lc).first()
-
+    print(pk_origins_raw)
     # Parse pk_origins into a list (or None)
     pk_origins_list = _parse_pk_origins(pk_origins_raw) if pk_origins_raw else None
 
