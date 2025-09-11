@@ -64,7 +64,7 @@ def _verify_publishable_key_or_401():
     publishable_key = request.headers.get("X-PUBLISHABLE-KEY")
     client_id_key = request.headers.get("X-CLIENT-ID")
     origin = request.headers.get("Origin")
- 
+    print(origin)
     if not publishable_key or not client_id_key:
         abort(401, description="missing_publishable_key_or_client_id")
   
