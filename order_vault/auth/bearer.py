@@ -116,7 +116,7 @@ def require_publishable_key(fn):
     def wrapper(*args, **kwargs):
         pk = request.headers.get("X-PUBLISHABLE-KEY")
         cid = request.headers.get("X-CLIENT-ID")
-        print("pk")
+        print(pk)
         if not pk or not cid:
             return jsonify({"error":"missing_publishable_or_client_id"}), 401
         conf = PUBLISHABLE_KEYS.get(cid)
