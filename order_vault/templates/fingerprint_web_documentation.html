@@ -162,7 +162,7 @@
                     type: type,
             }; 
     const call_type = "Login";
-    const { visitorId, localSessionId } = await runInHouseFingerprint(REDIIM_PK_KEY, REDIIM_CLIENT_ID, call_type, userId, coupon);
+    const { visitorId, localSessionId } = await runInHouseFingerprint(pkKey=REDIIM_PK_KEY, clientId=REDIIM_CLIENT_ID, call_type=call_type, userId=userId, coupon=coupon);
   });
 &lt;/script&gt;
 </code></pre>
