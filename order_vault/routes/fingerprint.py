@@ -117,7 +117,6 @@ def save_fingerprint_event(db_session, client_id, user_identifier_client, data, 
 @fingerprint_bp.route("", methods=["GET","POST","OPTIONS"])
 #@require_api_key_fingerprint
 @require_auth(scope="fingerprint")
-#@require_publishable_key
 @limiter.limit("200 per day")
 @limiter.limit("100 per hour")
 @limiter.limit("15 per minute")
