@@ -30,6 +30,40 @@ def _mask(s: str, keep: int = 4) -> str:
     except Exception:
         return "•••"
 
+def _parse_pk_origins(raw):
+    """
+    Accepts:
+      - JSON array string: '["https://a.com","https://b.com"]'
+      - Comma-separated string: 'https://a.com, https://b.com'
+    Returns: list[str]
+    """
+    if not raw:
+        return None
+    raw = raw.strip()
+    try:
+        val = json.loads(raw)
+        if isinstance(val, list) and all(isinstance(x, str) for x in val):
+            return [o.strip() for o in val if o and o.strip()]
+    except Exception:
+        pass
+    # fallback: comma-separated
+    return [o.strip() for o in raw.split(",") if o.strip()]
+
+def _maybe(value):
+    """Treat empty strings as None."""
+    if value is None:
+        return None
+    v = str(value).strip()
+    return v if v else None
+
+def _ensure_api_key(existing):
+    """Generate an API key if none provided and none exists."""
+    return existing or f"rk_{secrets.token_hex(24)}"
+
+def _ensure_pk_key(existing):
+    """Generate a publishable key if none provided and none exists."""
+    return existing or f"pk_{secrets.token_hex(16)}"
+
 
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
@@ -70,7 +104,7 @@ def logout():
     session.clear()
     return render_template("logout.html"), 200
 
-@auth_bp.route("/create-user", methods=["GET"])
+@auth_bp.route("/create-user-old", methods=["GET"])
 @login_required
 def create_user_via_url():
     email = request.args.get("email")
@@ -97,6 +131,98 @@ def create_user_via_url():
 
     return jsonify({"message": f"✅ Created user {email} for {client_id}"}), 201
 
+
+@auth_bp.route("/create-user", methods=["GET", "POST"])
+def create_or_update_user():
+    # Support both GET query params and POST JSON
+    if request.method == "POST":
+        data = request.get_json(silent=True) or {}
+        email      = _maybe(data.get("email"))
+        password   = data.get("password")  # keep raw for hashing
+        client_id  = _maybe(data.get("client_id"))
+        api_key    = _maybe(data.get("api_key"))
+        pk_key     = _maybe(data.get("pk_key"))
+        pk_origins_raw = _maybe(data.get("pk_origins"))
+        jwt_secrets = _maybe(data.get("jwt_secrets"))
+    else:
+        email      = _maybe(request.args.get("email"))
+        password   = request.args.get("password")
+        client_id  = _maybe(request.args.get("client_id"))
+        api_key    = _maybe(request.args.get("api_key"))
+        pk_key     = _maybe(request.args.get("pk_key"))
+        pk_origins_raw = _maybe(request.args.get("pk_origins"))
+        jwt_secrets = _maybe(request.args.get("jwt_secrets"))
+
+    if not email or not client_id:
+        return jsonify({"error": "Missing parameters: email and client_id are required"}), 400
+
+    email_lc = email.lower()
+    user = User.query.filter_by(email=email_lc).first()
+
+    # Parse pk_origins into a list (or None)
+    pk_origins_list = _parse_pk_origins(pk_origins_raw) if pk_origins_raw else None
+
+    if user is None:
+        # CREATE
+        hashed_pw = generate_password_hash(password) if password else generate_password_hash(secrets.token_hex(8))
+        user = User(
+            email=email_lc,
+            password_hash=hashed_pw,
+            client_id=client_id,
+            api_key=api_key or _ensure_api_key(None),
+            pk_key=pk_key or _ensure_pk_key(None),
+            jwt_secrets=jwt_secrets
+        )
+        if pk_origins_list is not None:
+            # JSON column
+            try:
+                user.pk_origins = pk_origins_list
+            except Exception:
+                # If your column is named pk_origin (singular), use that:
+                user.pk_origin = pk_origins_list
+        db.session.add(user)
+        db.session.commit()
+        return jsonify({
+            "message": f"✅ Created user {email_lc} for {client_id}",
+            "user": {
+                "email": user.email,
+                "client_id": user.client_id,
+                "api_key": user.api_key,
+                "pk_key": user.pk_key,
+                "pk_origins": getattr(user, "pk_origins", None) or getattr(user, "pk_origin", None),
+                "jwt_secrets": user.jwt_secrets
+            }
+        }), 201
+    else:
+        # UPDATE (only overwrite fields if provided)
+        if password:
+            user.password_hash = generate_password_hash(password)
+        if client_id:
+            user.client_id = client_id
+        if api_key is not None:
+            user.api_key = api_key or _ensure_api_key(user.api_key)
+        if pk_key is not None:
+            user.pk_key = pk_key or _ensure_pk_key(user.pk_key)
+        if jwt_secrets is not None:
+            user.jwt_secrets = jwt_secrets
+        if pk_origins_list is not None:
+            try:
+                user.pk_origins = pk_origins_list
+            except Exception:
+                user.pk_origin = pk_origins_list
+
+        db.session.commit()
+        return jsonify({
+            "message": f"✏️ Updated user {email_lc}",
+            "user": {
+                "email": user.email,
+                "client_id": user.client_id,
+                "api_key": user.api_key,
+                "pk_key": user.pk_key,
+                "pk_origins": getattr(user, "pk_origins", None) or getattr(user, "pk_origin", None),
+                "jwt_secrets": user.jwt_secrets
+            }
+        }), 200
 
 @auth_bp.route("/create-subscription", methods=["GET"])
 @login_required
