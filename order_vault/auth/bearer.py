@@ -68,7 +68,7 @@ def _verify_publishable_key_or_401():
     if not publishable_key or not client_id_key:
         abort(401, description="missing_publishable_key_or_client_id")
   
-    user = User.query.filter_by(api_key=publishable_key, client_id=client_id_key).first()
+    user = User.query.filter_by(pk_key=publishable_key, client_id=client_id_key).first()
     if not user:
         abort(401, description="invalid_publishable_key_or_client_id")
 
