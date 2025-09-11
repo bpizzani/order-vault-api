@@ -204,9 +204,6 @@ def create_or_update_user():
         if jwt_secrets is not None:
             user.jwt_secrets = jwt_secrets
         if pk_origins_list is not None:
-            try:
-                user.pk_origins = pk_origins_list
-            except Exception:
                 user.pk_origin = pk_origins_list
 
         db.session.commit()
