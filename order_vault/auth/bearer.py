@@ -126,8 +126,11 @@ def require_auth(scope: str = ""):
             if request.method == "OPTIONS":
                 return "", 200
             auth = request.headers.get("Authorization", "")
+            publishKey = request.headers.get("X-PUBLISHABLE-KEY", "")
             if auth.startswith("Bearer "):
                 _verify_bearer_or_401(scope)
+            elif (publishKey != None) or (publishKey != ""):
+                _verify_publishable_key_or_401()
             else:
                 _verify_api_key_or_401()
             return fn(*args, **kwargs)
