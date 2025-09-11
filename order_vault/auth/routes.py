@@ -215,7 +215,7 @@ def create_or_update_user():
                 "client_id": user.client_id,
                 "api_key": user.api_key,
                 "pk_key": user.pk_key,
-                "pk_origins": getattr(user, "pk_origins", None) or getattr(user, "pk_origin", None),
+                "pk_origins": getattr(user, "pk_origin", None),
                 "jwt_secrets": user.jwt_secrets
             }
         }), 200
