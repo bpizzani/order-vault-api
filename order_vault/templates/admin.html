@@ -77,7 +77,18 @@
             <div>
               <label for="u_api_key">API Key (optional)</label>
               <input id="u_api_key" name="api_key" type="text" placeholder="optional key" />
+
+              <label for="u_pk_key">Publishable Key (optional)</label>
+              <input id="u_pk_key" name="pk_key" type="text" placeholder="pk_live_xxx" />
+              
+              <label for="u_pk_origins">Publishable Origins (JSON array or CSV)</label>
+              <input id="u_pk_origins" name="pk_origins" type="text" placeholder='["https://app.com","https://rediim.com"] or https://app.com, https://rediim.com' />
+              
+              <label for="u_jwt_secrets">JWT Secret / Material (optional)</label>
+              <input id="u_jwt_secrets" name="jwt_secrets" type="text" placeholder="only if using HS256 per-client" />
+                            
             </div>
+            
           </div>
 
           <button class="btn" type="submit">Create User</button>
@@ -243,12 +254,25 @@
     function buildUrl(base, prefix, path, params) {
       const baseUrl = (base || "").replace(/\/+$/, "");
       const pre = (prefix || "").startsWith("/") ? prefix : `/${prefix || ""}`;
-      const url = new URL(`${baseUrl}${pre}${path}`);
-      Object.entries(params).forEach(([k, v]) => {
-        if (v !== undefined && v !== null && String(v).length) url.searchParams.set(k, v);
+      //const url = new URL(`${baseUrl}${pre}${path}`);
+      //Object.entries(params).forEach(([k, v]) => {
+      //  if (v !== undefined && v !== null && String(v).length) url.searchParams.set(k, v);
+      //});
+
+      const url = buildUrl(base, prefix, "/create-user", {
+        email: byId("u_email").value.trim(),
+        password: byId("u_password").value,
+        client_id: byId("u_client_id").value.trim(),
+        api_key: byId("u_api_key").value.trim(),
+        pk_key: byId("u_pk_key").value.trim(),
+        pk_origins: byId("u_pk_origins").value.trim(), // JSON array or CSV
+        jwt_secrets: byId("u_jwt_secrets").value.trim(),
       });
       return url.toString();
     }
+
+
+
 
     async function doGet(url, statusEl) {
       statusEl.className = "status loading";
