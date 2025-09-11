@@ -170,7 +170,7 @@ export async function sendFingerprint(api_key, client_id, type = null, user_id =
                 method: "POST",
                 credentials: "include",
                 headers: { "Content-Type": "application/json",
-                         #"Authorization": `Bearer ${accessToken}`,
+                          //"Authorization": `Bearer ${accessToken}`,
                          "X-PUBLISHABLE-KEY": api_key,
                           "X-API-KEY": api_key,
                          "X-CLIENT-ID": client_id,
