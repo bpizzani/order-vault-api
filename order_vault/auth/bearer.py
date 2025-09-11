@@ -8,7 +8,7 @@ from order_vault.utils.crypto import enc, dec
 
 # Tighten these to known origins in prod
 CORS(app, resources={r"/api/*": { #"origins": ["https://merchant.example.com"],
-                                 "allow_headers": ["Content-Type","Authorization","X-CLIENT-ID"],
+                                 "allow_headers": ["Content-Type","Authorization","X-CLIENT-ID","X-API-KEY"],
                                  "methods": ["POST","OPTIONS"]}})
 
 # --- Use your real storage instead of hard-coded dicts ---
