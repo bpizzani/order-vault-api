@@ -61,6 +61,7 @@ def _verify_bearer_or_401(scope_required: str = ""):
     if not auth.startswith("Bearer "):
         abort(401, description="missing_bearer")
     token = auth.split(" ", 1)[1]
+    print(token)
 
     try:
         # Peek to decide which client secret to use
@@ -101,6 +102,7 @@ def require_auth(scope: str = ""):
                 return "", 200
             auth = request.headers.get("Authorization", "")
             if auth.startswith("Bearer "):
+                 print("BEARER!")
                 _verify_bearer_or_401(scope)
             else:
                 _verify_api_key_or_401()
