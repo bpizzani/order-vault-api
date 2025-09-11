@@ -5,6 +5,7 @@ from flask_cors import CORS
 import jwt, time
 from order_vault.models.tenant import Tenant
 from order_vault.utils.crypto import enc, dec
+from neo4j import GraphDatabase
 
 # Tighten these to known origins in prod
 #CORS(app, resources={r"/api/*": { #"origins": ["https://merchant.example.com"],
