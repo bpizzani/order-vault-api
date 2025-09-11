@@ -57,6 +57,20 @@ def _verify_api_key_or_401():
     _set_tenant_context(user.client_id)
     g.auth_type = "api_key"
 
+
+def _verify_publishable_key_or_401():
+    print("API!")
+    publishable_key = request.headers.get("X-PUBLISHABLE-KEY")
+    client_id_key = request.headers.get("X-CLIENT-ID")
+    if not api_key or not client_id_key:
+        abort(401, description="missing_publishable_key_or_client_id")
+    user = User.query.filter_by(publishable_key=publishable_key, client_id=client_id_key).first()
+    if not user:
+        abort(401, description="invalid_publishable_key_or_client_id")
+    g.user = user
+    _set_tenant_context(user.client_id)
+    g.auth_type = "publishable"
+
 def _verify_bearer_or_401(scope_required: str = ""):
     print("BEARER!")
     print(request.headers.get("Origin"))
