@@ -73,10 +73,7 @@ def _verify_publishable_key_or_401():
         abort(401, description="invalid_publishable_key_or_client_id")
 
     publishable_origins = user.pk_origin
-    print(publishable_origins)
-    print(origin not in publishable_origins)
     if origin not in publishable_origins:
-        print(origin not in publishable_origins)
         return jsonify({"error":"origin_not_allowed"}), 403
      
     g.user = user
