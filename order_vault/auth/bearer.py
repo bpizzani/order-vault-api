@@ -59,6 +59,7 @@ def _verify_api_key_or_401():
 
 def _verify_bearer_or_401(scope_required: str = ""):
     print("BEARER!")
+    print(request.headers.get("Origin"))
     auth = request.headers.get("Authorization", "")
     if not auth.startswith("Bearer "):
         abort(401, description="missing_bearer")
