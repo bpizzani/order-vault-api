@@ -81,7 +81,7 @@ def save_evaluation_event(db_session, client_id, user_id, checkout_id, order_id,
     
 @evaluate_bp.route("/evaluate", methods=["POST"])
 #@require_api_key
-@require_auth
+@require_auth()
 def evaluate():
     data = request.get_json(force=True)
     
