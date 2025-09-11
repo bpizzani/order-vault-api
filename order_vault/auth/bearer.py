@@ -45,6 +45,7 @@ def _set_tenant_context(client_id):
     )
 
 def _verify_api_key_or_401():
+    print("API!")
     api_key = request.headers.get("X-API-KEY")
     client_id_key = request.headers.get("X-CLIENT-ID")
     if not api_key or not client_id_key:
@@ -57,6 +58,7 @@ def _verify_api_key_or_401():
     g.auth_type = "api_key"
 
 def _verify_bearer_or_401(scope_required: str = ""):
+    print("BEARER!")
     auth = request.headers.get("Authorization", "")
     if not auth.startswith("Bearer "):
         abort(401, description="missing_bearer")
@@ -102,7 +104,6 @@ def require_auth(scope: str = ""):
                 return "", 200
             auth = request.headers.get("Authorization", "")
             if auth.startswith("Bearer "):
-                 print("BEARER!")
                 _verify_bearer_or_401(scope)
             else:
                 _verify_api_key_or_401()
@@ -118,7 +119,7 @@ def require_publishable_key(fn):
     def wrapper(*args, **kwargs):
         pk = request.headers.get("X-PUBLISHABLE-KEY")
         cid = request.headers.get("X-CLIENT-ID")
-        print(pk)
+        
         if not pk or not cid:
             return jsonify({"error":"missing_publishable_or_client_id"}), 401
         conf = PUBLISHABLE_KEYS.get(cid)
