@@ -59,7 +59,7 @@ def _verify_api_key_or_401():
 
 
 def _verify_publishable_key_or_401():
-    print("API!")
+    print("PUBLISHING!")
     publishable_key = request.headers.get("X-PUBLISHABLE-KEY")
     client_id_key = request.headers.get("X-CLIENT-ID")
     origin = request.headers.get("Origin")
