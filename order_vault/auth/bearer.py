@@ -72,9 +72,9 @@ def _verify_publishable_key_or_401():
     if not user:
         abort(401, description="invalid_publishable_key_or_client_id")
 
-    #publishable_origins = user.publishable_origins
-    #if origin not in publishable_origins:
-    #    return jsonify({"error":"origin_not_allowed"}), 403
+    publishable_origins = user.pk_origin
+    if origin not in publishable_origins:
+        return jsonify({"error":"origin_not_allowed"}), 403
      
     g.user = user
     _set_tenant_context(user.client_id)
