@@ -7,7 +7,7 @@ from order_vault.models.tenant import Tenant
 from order_vault.utils.crypto import enc, dec
 
 # Tighten these to known origins in prod
-CORS(app, resources={r"/api/*": {"origins": ["https://merchant.example.com"],
+CORS(app, resources={r"/api/*": { #"origins": ["https://merchant.example.com"],
                                  "allow_headers": ["Content-Type","Authorization","X-CLIENT-ID"],
                                  "methods": ["POST","OPTIONS"]}})
 
