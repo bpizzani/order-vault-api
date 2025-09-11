@@ -141,7 +141,7 @@ function appendHiddenInputOrderForm(name, value) {
   form.appendChild(input);
 }
 
-export async function getAccessToken() {
+export async function getAccessToken() { // Client side API
   const res = await fetch("/rediim/token", {
     method: "POST",
     credentials: "include"
@@ -171,6 +171,7 @@ export async function sendFingerprint(api_key, client_id, type = null, user_id =
                 credentials: "include",
                 headers: { "Content-Type": "application/json",
                          "Authorization": `Bearer ${accessToken}`,
+                          "X-PUBLISHABLE-KEY": publishableKey,
                          "X-API-KEY": api_key,
                          "X-CLIENT-ID": client_id,
                          "user_identifier_client": user_id},
