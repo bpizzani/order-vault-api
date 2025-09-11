@@ -139,27 +139,4 @@ def require_auth(scope: str = ""):
     return deco
 
 
-limiter = Limiter(get_remote_address, app=current_app, default_limits=["60/minute"])
 
-def require_publishable_key(fn):
-    @wraps(fn)
-    def wrapper(*args, **kwargs):
-        pk = request.headers.get("X-PUBLISHABLE-KEY")
-        cid = request.headers.get("X-CLIENT-ID")
-        
-        if not pk or not cid:
-            return jsonify({"error":"missing_publishable_or_client_id"}), 401
-        conf = PUBLISHABLE_KEYS.get(cid)
-        if not conf or conf["key"] != pk:
-            return jsonify({"error":"invalid_publishable_key"}), 401
-
-        # (Optional) enforce origin
-        #origin = request.headers.get("Origin")
-        #if conf.get("origins") and origin not in conf["origins"]:
-        #    return jsonify({"error":"origin_not_allowed"}), 403
-
-        # (Optional) verify captcha token in body here
-
-        # scope: only allow this decorator on fingerprint endpoints
-        return fn(*args, **kwargs)
-    return limiter.limit("30/minute")(wrapper)  # tighter per-endpoint limit
