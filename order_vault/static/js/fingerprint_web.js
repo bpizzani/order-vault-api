@@ -141,6 +141,16 @@ function appendHiddenInputOrderForm(name, value) {
   form.appendChild(input);
 }
 
+export async function getAccessToken() {
+  const res = await fetch("/rediim/token", {
+    method: "POST",
+    credentials: "include"
+  });
+  if (!res.ok) throw new Error("Failed to get access token");
+  const { access_token } = await res.json();
+  return access_token;
+}
+
 // Function to send fingerprint data to the API
 export async function sendFingerprint(api_key, client_id, type = null, user_id = null, coupon = null) {
     let rediim_fingerprint = localStorage.getItem("rediim_fingerprint");
@@ -154,11 +164,13 @@ export async function sendFingerprint(api_key, client_id, type = null, user_id =
             data.thumbmark_js_visitor_id = thumbmark_js_visitorId;
             data.coupon = coupon;
             data.call_type = type;
-    
+                
+            const accessToken = await getAccessToken();
             const response = await fetch("https://api.rediim.com/api/fingerprint", {
                 method: "POST",
                 credentials: "include",
                 headers: { "Content-Type": "application/json",
+                         "Authorization": `Bearer ${accessToken}`,
                          "X-API-KEY": api_key,
                          "X-CLIENT-ID": client_id,
                          "user_identifier_client": user_id},
