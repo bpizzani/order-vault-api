@@ -254,19 +254,9 @@
     function buildUrl(base, prefix, path, params) {
       const baseUrl = (base || "").replace(/\/+$/, "");
       const pre = (prefix || "").startsWith("/") ? prefix : `/${prefix || ""}`;
-      //const url = new URL(`${baseUrl}${pre}${path}`);
-      //Object.entries(params).forEach(([k, v]) => {
-      //  if (v !== undefined && v !== null && String(v).length) url.searchParams.set(k, v);
-      //});
-
-      const url = buildUrl(base, prefix, "/create-user", {
-        email: byId("u_email").value.trim(),
-        password: byId("u_password").value,
-        client_id: byId("u_client_id").value.trim(),
-        api_key: byId("u_api_key").value.trim(),
-        pk_key: byId("u_pk_key").value.trim(),
-        pk_origins: byId("u_pk_origins").value.trim(), // JSON array or CSV
-        jwt_secrets: byId("u_jwt_secrets").value.trim(),
+      const url = new URL(`${baseUrl}${pre}${path}`);
+      Object.entries(params).forEach(([k, v]) => {
+        if (v !== undefined && v !== null && String(v).length) url.searchParams.set(k, v);
       });
       return url.toString();
     }
@@ -306,11 +296,13 @@
 
       const url = buildUrl(base, prefix, "/create-user", {
         email: byId("u_email").value.trim(),
-        password: byId("u_password").value, // appears in URL
+        password: byId("u_password").value,
         client_id: byId("u_client_id").value.trim(),
         api_key: byId("u_api_key").value.trim(),
+        pk_key: byId("u_pk_key").value.trim(),
+        pk_origins: byId("u_pk_origins").value.trim(), // JSON array or CSV
+        jwt_secrets: byId("u_jwt_secrets").value.trim(),
       });
-
       doGet(url, byId("userStatus"));
     });
 
