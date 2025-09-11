@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify, current_app, g
 import hashlib
 from order_vault.auth.api_auth import require_api_key_fingerprint
+from order_vault.auth.bearer import require_auth
 from order_vault.models.fingerprint import FingerprintEvents
 from order_vault.main import db
 from order_vault.utils.db_session import get_db_session_for_client  # helper we'll define
@@ -114,7 +115,8 @@ def save_fingerprint_event(db_session, client_id, user_identifier_client, data, 
     print("Fingerprint Event Saved")
     
 @fingerprint_bp.route("", methods=["GET","POST","OPTIONS"])
-@require_api_key_fingerprint
+#@require_api_key_fingerprint
+@require_auth(scope="fingerprint")
 @limiter.limit("200 per day")
 @limiter.limit("100 per hour")
 @limiter.limit("15 per minute")
