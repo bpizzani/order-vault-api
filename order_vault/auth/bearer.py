@@ -87,16 +87,17 @@ def _verify_bearer_or_401(scope_required: str = ""):
     if not auth.startswith("Bearer "):
         abort(401, description="missing_bearer")
     token = auth.split(" ", 1)[1]
-    print(token)
 
     try:
         # Peek to decide which client secret to use
         unverified = jwt.decode(token, options={"verify_signature": False})
         cid = unverified.get("cid")
-        secret = CLIENT_JWT_SECRETS.get(cid)
-        if not cid or not secret:
+     
+        user = User.query.filter_by(client_id=cid).first()
+        if not user:
             abort(401, description="unknown_client_for_token")
-
+         
+        secret = user.jwt_secrets
         claims = jwt.decode(
             token,
             secret,
