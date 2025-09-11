@@ -14,7 +14,8 @@ CORS(app, resources={r"/api/*": {"origins": ["https://merchant.example.com"],
 # --- Use your real storage instead of hard-coded dicts ---
 # Option A: HS256 shared secret per client (simple)
 CLIENT_JWT_SECRETS = {
-    "client_c": "shared-signing-secret-from-onboarding"
+    "client_c": "shared-signing-secret-from-onboarding",
+    "client_1": "shared-signing-secret-from-onboarding"
 }
 
 def _set_tenant_context(client_id):
