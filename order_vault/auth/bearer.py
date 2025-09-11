@@ -123,9 +123,9 @@ def require_publishable_key(fn):
             return jsonify({"error":"invalid_publishable_key"}), 401
 
         # (Optional) enforce origin
-        origin = request.headers.get("Origin")
-        if conf.get("origins") and origin not in conf["origins"]:
-            return jsonify({"error":"origin_not_allowed"}), 403
+        #origin = request.headers.get("Origin")
+        #if conf.get("origins") and origin not in conf["origins"]:
+        #    return jsonify({"error":"origin_not_allowed"}), 403
 
         # (Optional) verify captcha token in body here
 
