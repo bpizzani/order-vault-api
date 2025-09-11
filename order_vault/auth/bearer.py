@@ -6,6 +6,8 @@ import jwt, time
 from order_vault.models.tenant import Tenant
 from order_vault.utils.crypto import enc, dec
 from neo4j import GraphDatabase
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 # Tighten these to known origins in prod
 #CORS(app, resources={r"/api/*": { #"origins": ["https://merchant.example.com"],
@@ -17,6 +19,10 @@ from neo4j import GraphDatabase
 CLIENT_JWT_SECRETS = {
     "client_c": "shared-signing-secret-from-onboarding",
     "client_1": "shared-signing-secret-from-onboarding"
+}
+
+PUBLISHABLE_KEYS = {  # scoped to fingerprint-only
+    "client_c": {"key": "shared-signing-secret-from-onboarding", "origins": ["https://order-vault-client-webapp-13ee822f0ba9.herokuapp.com"]},
 }
 
 def _set_tenant_context(client_id):
@@ -99,3 +105,28 @@ def require_auth(scope: str = ""):
             return fn(*args, **kwargs)
         return wrapper
     return deco
+
+
+limiter = Limiter(get_remote_address, app=app, default_limits=["60/minute"])
+
+def require_publishable_key(fn):
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        pk = request.headers.get("X-PUBLISHABLE-KEY")
+        cid = request.headers.get("X-CLIENT-ID")
+        if not pk or not cid:
+            return jsonify({"error":"missing_publishable_or_client_id"}), 401
+        conf = PUBLISHABLE_KEYS.get(cid)
+        if not conf or conf["key"] != pk:
+            return jsonify({"error":"invalid_publishable_key"}), 401
+
+        # (Optional) enforce origin
+        origin = request.headers.get("Origin")
+        if conf.get("origins") and origin not in conf["origins"]:
+            return jsonify({"error":"origin_not_allowed"}), 403
+
+        # (Optional) verify captcha token in body here
+
+        # scope: only allow this decorator on fingerprint endpoints
+        return fn(*args, **kwargs)
+    return limiter.limit("30/minute")(wrapper)  # tighter per-endpoint limit
