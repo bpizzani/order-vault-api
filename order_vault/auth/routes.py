@@ -133,6 +133,7 @@ def create_user_via_url():
 
 
 @auth_bp.route("/create-user", methods=["GET", "POST"])
+@login_required
 def create_or_update_user():
     # Support both GET query params and POST JSON
     if request.method == "POST":
