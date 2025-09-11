@@ -142,13 +142,23 @@ function appendHiddenInputOrderForm(name, value) {
 }
 
 export async function getAccessToken() { // Client side API
-  const res = await fetch("/rediim/token", {
-    method: "POST",
-    credentials: "include"
-  });
-  if (!res.ok) throw new Error("Failed to get access token");
-  const { access_token } = await res.json();
-  return access_token;
+  try {
+    const res = await fetch("/rediim/token", {
+      method: "POST",
+      credentials: "include"
+    });
+
+    if (!res.ok) {
+      console.warn("Failed to get access token:", res.status, res.statusText);
+      return null; // return null instead of throwing
+    }
+
+    const data = await res.json();
+    return data.access_token || null;
+  } catch (err) {
+    console.error("Error fetching access token:", err);
+    return null;
+  }
 }
 
 // Function to send fingerprint data to the API
