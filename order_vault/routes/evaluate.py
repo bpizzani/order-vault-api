@@ -4,6 +4,7 @@ from order_vault.models.client_subscription import ClientSubscription
 from order_vault.models.evaluation import Evaluation
 from order_vault.services.neo4j_service import evaluate_attributes
 from order_vault.auth.api_auth import require_api_key   
+from order_vault.auth.bearer import require_auth
 from order_vault.utils.db_session import get_db_session_for_client 
 from threading import Thread
 
@@ -79,7 +80,8 @@ def save_evaluation_event(db_session, client_id, user_id, checkout_id, order_id,
     print("Risk Evaluation Event Saved")
     
 @evaluate_bp.route("/evaluate", methods=["POST"])
-@require_api_key
+#@require_api_key
+@require_auth
 def evaluate():
     data = request.get_json(force=True)
     
