@@ -9,24 +9,6 @@ from order_vault.utils.crypto import enc, dec
 from neo4j import GraphDatabase
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
- 
-# Tighten these to known origins in prod
-#CORS(app, resources={r"/api/*": { #"origins": ["https://merchant.example.com"],
-#                                 "allow_headers": ["Content-Type","Authorization","X-CLIENT-ID","X-API-KEY"],
-#                                 "methods": ["POST","OPTIONS"]}})
-
-# --- Use your real storage instead of hard-coded dicts ---
-# Option A: HS256 shared secret per client (simple)
-CLIENT_JWT_SECRETS = {
-    "client_c": "shared-signing-secret-from-onboarding",
-    "client_1": "shared-signing-secret-from-onboarding"
-}
-
-PUBLISHABLE_KEYS = {  # scoped to fingerprint-only
-    "client_c": {"key": "abcde", "origins": ["https://order-vault-client-webapp-13ee822f0ba9.herokuapp.com"]},
-    "client_1": {"key": "trial_abc", "origins": ["https://order-vault-client-webapp-13ee822f0ba9.herokuapp.com"]},
-
-}
 
 def _set_tenant_context(client_id):
     tenant = Tenant.query.filter_by(client_id=client_id).first()
