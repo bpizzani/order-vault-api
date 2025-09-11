@@ -175,12 +175,7 @@ def create_or_update_user():
             jwt_secrets=jwt_secrets
         )
         if pk_origins_list is not None:
-            # JSON column
-            try:
-                user.pk_origins = pk_origins_list
-            except Exception:
-                # If your column is named pk_origin (singular), use that:
-                user.pk_origin = pk_origins_list
+            user.pk_origin = pk_origins_list
         db.session.add(user)
         db.session.commit()
         return jsonify({
