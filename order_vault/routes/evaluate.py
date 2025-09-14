@@ -51,17 +51,17 @@ def limit_risk_evlauation_events_subscription():
     return decorator
  
  
-def async_save_evaluation_event(db_uri, client_id,  user_id, checkout_id, order_id, session_id, promo, values, risk_decision):
+def async_save_evaluation_event(db_uri, client_id, call_type, user_id, checkout_id, order_id, session_id, promo, values, risk_decision):
     # Create a new DB session in the background thread
     session = get_db_session_for_client(db_uri)
     try:
-        save_evaluation_event(session, client_id, user_id, checkout_id, order_id, session_id, promo, values, risk_decision)
+        save_evaluation_event(session, client_id, call_type, user_id, checkout_id, order_id, session_id, promo, values, risk_decision)
     except Exception as e:
         print("Error in async DB save:", e)
     finally:
         session.close()
         
-def save_evaluation_event(db_session, client_id, user_id, checkout_id, order_id, session_id, promo, values, risk_decision):
+def save_evaluation_event(db_session, client_id, call_type, user_id, checkout_id, order_id, session_id, promo, values, risk_decision):
     entry = Evaluation(
         client_id = client_id,
         user_id = user_id,
@@ -74,6 +74,7 @@ def save_evaluation_event(db_session, client_id, user_id, checkout_id, order_id,
         local_storage_device = values["local_session_id"],
         risk_decision = risk_decision["overall_abusive"],
         risk_features = str(risk_decision["evaluation_results"]),
+        call_type = call_type
     )
     db_session.add(entry)
     db_session.commit()
@@ -140,7 +141,7 @@ def evaluate():
 
     Thread(
         target=async_save_evaluation_event,
-        args=(g.db_uri, g.client_id, user_id, checkout_id, order_id, session_id, promo, values, risk_decision),
+        args=(g.db_uri, g.client_id, user_id, call_type, checkout_id, order_id, session_id, promo, values, risk_decision),
         daemon=True
     ).start()
 
