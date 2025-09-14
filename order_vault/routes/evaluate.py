@@ -92,7 +92,11 @@ def evaluate():
     types = data.get("attribute_types", ["device_id"])
     coupon = data.get("coupon")
     print(f"Evaluate: {coupon}")
-    promo = coupon.get("promotion_id")
+    if coupon != None:    
+        promo = coupon.get("promotion_id")
+    else:
+        promo = None
+
     values = {t: data.get(t) for t in accepted_types if data.get(t)}
     
     print(values["device_id"])
