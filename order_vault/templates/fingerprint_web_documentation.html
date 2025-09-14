@@ -117,10 +117,6 @@
         <h2>1) Install: dynamic import</h2>
         <p>No bundler or NPM required. Dynamically import our script and call a single function.</p>
 <pre><code class="language-javascript">&lt;script&gt;
-  // Store safely (env injected or server templated)
-  const REDIIM_PK_KEY = "trial_abc";     // &lt;-- replace
-  const REDIIM_CLIENT_ID = "client_1";    // &lt;-- replace
-
 // Optional: Generate an Access token
 async function getAccessTokenClient() { // Client side API
   try {
@@ -176,9 +172,12 @@ async function getAccessTokenClient() { // Client side API
 
   // Example: run on page load (post-login is ideal)
   window.addEventListener('load', async () =&gt; {
-
+    
+   // Store safely (env injected or server templated)
     const REDIIM_PK_KEY = "pk_key";   // replace
     const REDIIM_CLIENT_ID = "client_id";  // replace
+    
+    // Or generate an Access Token from your backened
     const accessToken = await getAccessTokenClient();
     
     const userId = getUserId(); // optional but recommended
