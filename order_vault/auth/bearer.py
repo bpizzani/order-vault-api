@@ -117,11 +117,13 @@ def require_auth(scope: str = ""):
                 try:
                     _verify_publishable_key_or_401()
                 except:
+                    print("PUBLISHABLE FAILED")
                     _verify_bearer_or_401(scope)
             elif (api_key != "") and (auth != ""):
                 try:
                     _verify_bearer_or_401(scope)
                 except:
+                    print("BEARER FAILED")
                     _verify_api_key_or_401()
             elif auth.startswith("Bearer "):
                 _verify_bearer_or_401(scope)
