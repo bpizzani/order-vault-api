@@ -10,7 +10,7 @@ orders_bp = Blueprint("orders", __name__)
 
 @orders_bp.route("/finalize-order", methods=["POST"])
 #@require_api_key
-@require_auth
+@require_auth()
 def finalize_order():
     order_data = request.get_json(force=True)
     order_data["created_at"] = datetime.utcnow().isoformat()
