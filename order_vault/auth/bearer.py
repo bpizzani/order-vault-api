@@ -111,7 +111,19 @@ def require_auth(scope: str = ""):
                 return "", 200
             auth = request.headers.get("Authorization", "")
             publishKey = request.headers.get("X-PUBLISHABLE-KEY", "")
-            if auth.startswith("Bearer "):
+            api_key = request.headers.get("X-API-KEY", "")
+            
+            if (publishKey != "") and (auth != ""):
+                try:
+                    _verify_publishable_key_or_401()
+                except:
+                    _verify_bearer_or_401(scope)
+            elif (api_key != "") and (auth != ""):
+                try:
+                    _verify_bearer_or_401(scope)
+                except:
+                    _verify_api_key_or_401()
+            elif auth.startswith("Bearer "):
                 _verify_bearer_or_401(scope)
             elif (publishKey != None) and (publishKey != ""):
                  _verify_publishable_key_or_401()
