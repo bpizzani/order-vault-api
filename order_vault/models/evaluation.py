@@ -15,4 +15,5 @@ class Evaluation(db.Model):
     local_storage_device = db.Column(db.String, nullable=True)
     risk_decision = db.Column(db.String, nullable=True)
     risk_features = db.Column(db.String, nullable=True)
+    call_type = db.Column(db.String, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
