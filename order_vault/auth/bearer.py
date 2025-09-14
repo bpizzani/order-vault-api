@@ -66,6 +66,8 @@ def _verify_bearer_or_401(scope_required: str = ""):
     print("BEARER!")
     print(request.headers.get("Origin"))
     auth = request.headers.get("Authorization", "")
+    x_client_id = request.headers.get("X-CLIENT-ID", "")
+    
     if not auth.startswith("Bearer "):
         abort(401, description="missing_bearer")
     token = auth.split(" ", 1)[1]
@@ -78,6 +80,9 @@ def _verify_bearer_or_401(scope_required: str = ""):
         user = User.query.filter_by(client_id=cid).first()
         if not user:
             abort(401, description="unknown_client_for_token")
+            
+        if x_client_id != cid:
+            abort(404, description="client_id_not_matching_with_client_found")
          
         secret = user.jwt_secrets
         claims = jwt.decode(
