@@ -38,8 +38,8 @@ def save_order_in_neo4j(session, order_data):
     G.add_node(order_node,
                type='order',
                created_at=order_data.get('created_at'),
-               promocode=order_data.get('coupon').get("promocode"),
-               promotion_id=order_data.get('coupon').get("promotion_id"),
+               promocode= (order_data.get("coupon") or {}).get("promocode"), #order_data.get('coupon').get("promocode"),
+               promotion_id= (order_data.get("coupon") or {}).get("promotion_id"), # order_data.get('coupon').get("promotion_id"),
                call_type=order_data.get('call_type')
               )
 
