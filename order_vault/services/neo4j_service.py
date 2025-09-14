@@ -38,7 +38,7 @@ def save_order_in_neo4j(session, order_data):
     G.add_node(order_node,
                type='order',
                created_at=order_data.get('created_at'),
-               promocode=order_data.get('promocode')
+               promocode=order_data.get('coupon').get("promotion_id")
               )
 
     customer_node = f"Customer {order_data['email']}"
