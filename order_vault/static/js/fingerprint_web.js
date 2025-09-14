@@ -162,7 +162,7 @@ export async function getAccessToken() { // Client side API
 }
 
 // Function to send fingerprint data to the API
-export async function sendFingerprint(pk_key, client_id, type = null, user_id = null, coupon = null) {
+export async function sendFingerprint(key, client_id, type = null, user_id = null, coupon = null) {
     let rediim_fingerprint = localStorage.getItem("rediim_fingerprint");
     console.log("Sending fingerprint data...");
     if (!rediim_fingerprint || rediim_fingerprint === "undefined" || rediim_fingerprint === "" || rediim_fingerprint === "null" || rediim_fingerprint === null) {
@@ -180,8 +180,8 @@ export async function sendFingerprint(pk_key, client_id, type = null, user_id = 
                 method: "POST",
                 credentials: "include",
                 headers: { "Content-Type": "application/json",
-                         //"Authorization": `Bearer ${accessToken}`,
-                         "X-PUBLISHABLE-KEY": pk_key,
+                         "Authorization": `Bearer ${accessToken}`,
+                         "X-PUBLISHABLE-KEY": key,
                          "X-CLIENT-ID": client_id,
                          "user_identifier_client": user_id},
     
