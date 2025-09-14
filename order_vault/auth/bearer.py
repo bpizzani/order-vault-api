@@ -113,13 +113,13 @@ def require_auth(scope: str = ""):
             publishKey = request.headers.get("X-PUBLISHABLE-KEY", "")
             api_key = request.headers.get("X-API-KEY", "")
             
-            if (publishKey != "") and (auth != ""):
+            if (publishKey != "") and (auth != "") and (publishKey != None) and (auth != None):
                 try:
                     _verify_publishable_key_or_401()
                 except:
                     print("PUBLISHABLE FAILED")
                     _verify_bearer_or_401(scope)
-            elif (api_key != "") and (auth != ""):
+            elif (api_key != "") and (auth != "") and (auth != None) and (api_key != None):
                 try:
                     _verify_bearer_or_401(scope)
                 except:
