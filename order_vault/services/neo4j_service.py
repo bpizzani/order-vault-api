@@ -38,7 +38,8 @@ def save_order_in_neo4j(session, order_data):
     G.add_node(order_node,
                type='order',
                created_at=order_data.get('created_at'),
-               promocode=order_data.get('coupon').get("promotion_id")
+               promocode=order_data.get('coupon').get("promotion_id"),
+               call_type=order_data.get('call_type')
               )
 
     customer_node = f"Customer {order_data['email']}"
@@ -79,15 +80,18 @@ def create_graph(tx, G):
             order_id   = node_id.split(" ", 1)[1]
             created_at = node_data.get('created_at')
             promocode = node_data.get('promocode')
+            call_type = node_data.get('call_type')
             tx.run(
                 """
                 MERGE (o:Order {id:$order_id})
                 SET o.created_at = $created_at,
                     o.promocode = $promocode
+                    o.call_type = $call_type
                 """,
                 order_id=order_id,
                 created_at=created_at,
-                promocode=promocode
+                promocode=promocode,
+                call_type=call_type,
             )
 
         else:
