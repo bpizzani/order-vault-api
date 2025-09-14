@@ -84,11 +84,12 @@ def save_evaluation_event(db_session, client_id, user_id, checkout_id, order_id,
 @require_auth()
 def evaluate():
     data = request.get_json(force=True)
-    
+
     accepted_types = ['card_details', 'email', 'device_id', 'phone', 'local_session_id']
     
     types = data.get("attribute_types", ["device_id"])
-    promo = data.get("promocode")
+    coupon = data.get("coupon")
+    promo = coupon.get("promotion_id")
     values = {t: data.get(t) for t in accepted_types if data.get(t)}
     
     print(values["device_id"])
