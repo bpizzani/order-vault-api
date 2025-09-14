@@ -85,7 +85,7 @@ def save_evaluation_event(db_session, client_id, user_id, checkout_id, order_id,
 def evaluate():
     data = request.get_json(force=True)
     call_type = data.get("call_type") 
-    
+    print(call_type)
     accepted_types = ['card_details', 'email', 'device_id', 'phone', 'local_session_id']
     
     types = data.get("attribute_types", ["device_id"])
