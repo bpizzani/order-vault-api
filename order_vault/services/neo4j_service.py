@@ -86,12 +86,12 @@ def create_graph(tx, G):
                 MERGE (o:Order {id:$order_id})
                 SET o.created_at = $created_at,
                     o.promocode = $promocode,
-                    o.call_type = $call_type,
+                    o.call_type = $call_type
                 """,
                 order_id=order_id,
                 created_at=created_at,
                 promocode=promocode,
-                call_type=call_type,
+                call_type=call_type
             )
 
         else:
