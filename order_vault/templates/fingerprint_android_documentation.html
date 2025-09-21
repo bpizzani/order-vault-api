@@ -310,6 +310,28 @@ fun evaluateRisk(values: JSONObject, apiKey: String, clientId: String): Map&lt;S
                 override fun onError(error: String) { /* log + retry later if needed */ }
             }
         )
+
+      suspend fun fetchAccessToken(tokenEndpoint: String): String? {
+        return withContext(Dispatchers.IO) {
+            try {
+                val req = Request.Builder()
+                    .url(tokenEndpoint) // e.g. https://merchant-backend.com/rediim/token
+                    .post("{}".toRequestBody("application/json".toMediaTypeOrNull()))
+                    .build()
+
+                OkHttpClient().newCall(req).execute().use { res ->
+                    if (!res.isSuccessful) return@withContext null
+                    val body = res.body?.string() ?: return@withContext null
+                    val json = JSONObject(body)
+                    json.optString("access_token").takeIf { it.isNotBlank() }
+                }
+            } catch (e: Exception) {
+                Log.e("Auth", "Token fetch failed", e)
+                null
+            }
+        }
+    }
+      
 <!-- 
         findViewById<Button>(R.id.submitButton).setOnClickListener {
             val payload = buildCheckoutPayload(
@@ -369,26 +391,6 @@ fun evaluateRisk(values: JSONObject, apiKey: String, clientId: String): Map&lt;S
         return JSONObject(map)
     }
 
-      suspend fun fetchAccessToken(tokenEndpoint: String): String? {
-        return withContext(Dispatchers.IO) {
-            try {
-                val req = Request.Builder()
-                    .url(tokenEndpoint) // e.g. https://merchant-backend.com/rediim/token
-                    .post("{}".toRequestBody("application/json".toMediaTypeOrNull()))
-                    .build()
-
-                OkHttpClient().newCall(req).execute().use { res ->
-                    if (!res.isSuccessful) return@withContext null
-                    val body = res.body?.string() ?: return@withContext null
-                    val json = JSONObject(body)
-                    json.optString("access_token").takeIf { it.isNotBlank() }
-                }
-            } catch (e: Exception) {
-                Log.e("Auth", "Token fetch failed", e)
-                null
-            }
-        }
-    }
 }</code></pre> 
                 -->
   </section>  
