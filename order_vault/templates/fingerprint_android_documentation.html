@@ -278,10 +278,11 @@ fun evaluateRisk(values: JSONObject, apiKey: String, clientId: String): Map&lt;S
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-
+        // Option 1: Publishable Key stored in App Build
         val publishableKey = BuildConfig.REDIIM_PUBLISHABLE_KEY
         val clientId = BuildConfig.REDIIM_CLIENT_ID
 
+        // Option 2: Get Access Token Client API (Requires Backened Development)
         val accessToken: String? = fetchAccessToken(tokenEndpoint)  
       
         userId = (0..1000).random()
