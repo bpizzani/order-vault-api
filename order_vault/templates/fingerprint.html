@@ -109,6 +109,16 @@
                     <canvas id="deviceUsageChart"></canvas>
                 </div>
             </div>
+
+            <!-- Abusive Promocodes Chart -->
+            <div class="grid grid-cols-1 gap-8 mt-12 place-items-center">
+              <div class="bg-[#1a1a1a] p-6 rounded-lg shadow w-full md:w-1/2">
+                <h3 class="text-xl font-bold text-white mb-4 text-center">
+                  Abusive rate by promocode (daily, top 5)
+                </h3>
+                <canvas id="promoAbuseChart"></canvas>
+              </div>
+            </div>
             
             <!-- Loader -->
             <div id="loading" class="text-center mt-10 hidden">
@@ -215,6 +225,97 @@
         }
       })
       .catch(err => console.error("Error fetching daily duplicate rate:", err));
+
+
+
+  // Fetch daily aggregation by promocode (endpoint from previous step)
+  fetch("/api/fingerprint/abusive-promocodes-daily")
+    .then(res => res.json())
+    .then(rows => {
+      if (!Array.isArray(rows) || rows.length === 0) return;
+
+      // 1) Collect unique sorted dates
+      const dateSet = new Set(rows.map(r => r.date));
+      const labels = Array.from(dateSet).sort(); // "YYYY-MM-DD"
+
+      // 2) Group by promocode, and compute totals to pick top N by usage
+      const byCode = new Map(); // code -> { perDate: Map(date -> row), totalUses: number }
+      for (const r of rows) {
+        const code = r.promocode ?? "(unknown)";
+        if (!byCode.has(code)) byCode.set(code, { perDate: new Map(), totalUses: 0 });
+        byCode.get(code).perDate.set(r.date, r);
+        byCode.get(code).totalUses += (r.total_uses || 0);
+      }
+
+      // Pick top 5 codes by total uses
+      const TOP_N = 5;
+      const topCodes = Array.from(byCode.entries())
+        .sort((a, b) => b[1].totalUses - a[1].totalUses)
+        .slice(0, TOP_N)
+        .map(([code]) => code);
+
+      // 3) Build datasets for abusive rate lines (percent)
+      const palette = [
+        "#60a5fa", "#f472b6", "#f59e0b", "#34d399", "#a78bfa",
+        "#fb7185", "#22d3ee", "#f97316", "#4ade80", "#e879f9"
+      ];
+
+      const datasets = topCodes.map((code, i) => {
+        const rec = byCode.get(code);
+        const data = labels.map(d => {
+          const row = rec.perDate.get(d);
+          return row ? (row.abusive_use_rate ?? 0) : null; // line gaps when missing
+        });
+        return {
+          label: code,
+          data,
+          borderColor: palette[i % palette.length],
+          backgroundColor: palette[i % palette.length],
+          tension: 0.3,
+          fill: false,
+          spanGaps: true,
+        };
+      });
+
+      const ctx = $("promoAbuseChart")?.getContext("2d");
+      if (!ctx) return;
+
+      // 4) Render line chart
+      new Chart(ctx, {
+        type: "line",
+        data: { labels, datasets },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: "bottom", labels: { color: "#e5e7eb" } },
+            tooltip: {
+              callbacks: {
+                label: (item) => `${item.dataset.label}: ${item.formattedValue}%`
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 100,
+              title: { display: true, text: "Abusive use rate (%)", color: "#e5e7eb" },
+              ticks: { color: "#e5e7eb" },
+              grid: { color: "rgba(255,255,255,0.08)" }
+            },
+            x: {
+              title: { display: true, text: "Date", color: "#e5e7eb" },
+              ticks: { color: "#e5e7eb" },
+              grid: { color: "rgba(255,255,255,0.08)" }
+            }
+          }
+        }
+      });
+    })
+    .catch(err => console.error("Error fetching abusive-promocodes-daily:", err));
+
+
+
+      
 
     // ---- Search handlers (now DOM is ready) ----
     $("btnUserId")?.addEventListener("click", async () => {
