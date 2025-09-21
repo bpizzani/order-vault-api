@@ -104,6 +104,7 @@ def _verify_bearer_or_401(scope_required: str = ""):
     except jwt.ExpiredSignatureError:
         abort(407, description="token_expired")
     except jwt.InvalidTokenError:
+        print("[AUTH] InvalidTokenError:", repr(e))
         abort(408, description="invalid_token")
 
 def require_auth(scope: str = ""):
