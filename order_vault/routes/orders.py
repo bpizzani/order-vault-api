@@ -3,8 +3,7 @@ from flask import Blueprint, request, jsonify, current_app, g
 import threading
 from order_vault.services.neo4j_service import trigger_process_and_update
 from order_vault.main import app   # import your Flask app
-from order_vault.auth.api_auth import require_api_key 
-from order_vault.auth.bearer import require_auth
+from order_vault.auth.api_auth import require_auth
 
 orders_bp = Blueprint("orders", __name__)
 
