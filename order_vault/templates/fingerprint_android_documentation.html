@@ -138,7 +138,7 @@ dependencies {
 
 RediimFingerprint.sendFingerprint(
     context = this,
-    apiKey = "YOUR_API_KEY",      // replace
+    key = "YOUR_KEY",      // replace
     clientId = "YOUR_CLIENT_ID",  // replace
     call_type = "LOGIN/CHECKOUT/BROWSING" 
     userId = currentUserIdOrNull, // optional but recommended
@@ -272,10 +272,18 @@ fun evaluateRisk(values: JSONObject, apiKey: String, clientId: String): Map&lt;S
     private var userId: Int? = null
     private var callType: String? = null
       
+    private val tokenEndpoint = "/rediim/token"
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+
+        val publishableKey = BuildConfig.REDIIM_PUBLISHABLE_KEY
+        val clientId = BuildConfig.REDIIM_CLIENT_ID
+
+        val accessToken: String? = fetchAccessToken(tokenEndpoint)  
+      
         userId = (0..1000).random()
         callType = "Checkout"
         val promoCode = (0..1000).random()
@@ -289,8 +297,8 @@ fun evaluateRisk(values: JSONObject, apiKey: String, clientId: String): Map&lt;S
         }
         RediimFingerprint.sendFingerprint(
             context = this,
-            apiKey = "YOUR_API_KEY",
-            clientId = "YOUR_CLIENT_ID",ç
+            key = "YOUR_KEY", // publishableKey or accessToken
+            clientId = clientId,
             call_type = callType,
             userId = userId,
             coupon = couponObj, // optional but recommended - JSONObject E.g:  {coupon: {promocode: promocode, promotion_id: promotion_id, type: type}}
