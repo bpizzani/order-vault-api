@@ -190,6 +190,177 @@ async function getAccessTokenClient() { // Client side API
   });
 &lt;/script&gt;
 </code></pre>
+
+<pre><code class="language-javascript">&lt;script&gt;
+Node.js (Express)
+import express from "express";
+import jwt from "jsonwebtoken";
+
+const app = express();
+const CLIENT_ID = process.env.CLIENT_ID;
+const SHARED_SECRET = process.env.SHARED_SECRET;
+
+app.post("/rediim/token", (req, res) => {
+  const now = Math.floor(Date.now() / 1000);
+  const payload = {
+    cid: CLIENT_ID,
+    scope: ["fingerprint"],
+    aud: "rediim-api",
+    iat: now,
+    exp: now + 15 * 60,
+  };
+  const token = jwt.sign(payload, SHARED_SECRET, { algorithm: "HS256" });
+  res.json({ access_token: token });
+});
+
+app.listen(3000);
+
+Go (net/http)
+package main
+
+import (
+	"encoding/json"
+	"net/http"
+	"os"
+	"time"
+
+	"github.com/golang-jwt/jwt/v5"
+)
+
+var clientID = os.Getenv("CLIENT_ID")
+var shared = []byte(os.Getenv("SHARED_SECRET"))
+
+func rediimToken(w http.ResponseWriter, r *http.Request) {
+	now := time.Now()
+	claims := jwt.MapClaims{
+		"cid":   clientID,
+		"scope": []string{"fingerprint"},
+		"aud":   "rediim-api",
+		"iat":   now.Unix(),
+		"exp":   now.Add(15 * time.Minute).Unix(),
+	}
+	t := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	signed, _ := t.SignedString(shared)
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"access_token": signed})
+}
+
+func main() {
+	http.HandleFunc("/rediim/token", rediimToken)
+	http.ListenAndServe(":3000", nil)
+}
+
+Java (Spring Boot)
+@RestController
+public class TokenController {
+  @Value("${CLIENT_ID}") String clientId;
+  @Value("${SHARED_SECRET}") String shared;
+
+  @PostMapping("/rediim/token")
+  public Map<String, String> token() {
+    long now = System.currentTimeMillis() / 1000;
+    String jwt = io.jsonwebtoken.Jwts.builder()
+      .claim("cid", clientId)
+      .claim("scope", List.of("fingerprint"))
+      .audience().add("rediim-api").and()
+      .issuedAt(new java.util.Date(now * 1000))
+      .expiration(new java.util.Date((now + 15*60) * 1000))
+      .signWith(io.jsonwebtoken.security.Keys.hmacShaKeyFor(shared.getBytes()),
+                io.jsonwebtoken.SignatureAlgorithm.HS256)
+      .compact();
+    return Map.of("access_token", jwt);
+  }
+}
+
+C# (ASP.NET Core Minimal API)
+using System.IdentityModel.Tokens.Jwt;
+using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
+
+var builder = WebApplication.CreateBuilder(args);
+var app = builder.Build();
+
+var clientId = Environment.GetEnvironmentVariable("CLIENT_ID");
+var secret = Environment.GetEnvironmentVariable("SHARED_SECRET");
+var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(secret));
+
+app.MapPost("/rediim/token", () => {
+    var now = DateTimeOffset.UtcNow;
+    var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+    var claims = new List<Claim> {
+        new("cid", clientId),
+        new("aud", "rediim-api"),
+        // scope array: put as JSON string or multiple "scope" claims; here JSON:
+        new("scope", "[\"fingerprint\"]")
+    };
+    var token = new JwtSecurityToken(
+        claims: claims,
+        notBefore: now.UtcDateTime,
+        expires: now.AddMinutes(15).UtcDateTime,
+        signingCredentials: creds
+    );
+    var jwt = new JwtSecurityTokenHandler().WriteToken(token);
+    return Results.Json(new { access_token = jwt });
+});
+
+app.Run();
+
+Ruby (Sinatra)
+require "sinatra"
+require "jwt"
+require "json"
+
+CLIENT_ID = ENV["CLIENT_ID"]
+SHARED_SECRET = ENV["SHARED_SECRET"]
+
+post "/rediim/token" do
+  now = Time.now.to_i
+  payload = {
+    cid: CLIENT_ID,
+    scope: ["fingerprint"],
+    aud: "rediim-api",
+    iat: now,
+    exp: now + 15*60
+  }
+  token = JWT.encode(payload, SHARED_SECRET, "HS256")
+  content_type :json
+  { access_token: token }.to_json
+end
+
+PHP (plain; using firebase/php-jwt)
+<?php
+use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
+
+$CLIENT_ID = getenv('CLIENT_ID');
+$SHARED_SECRET = getenv('SHARED_SECRET');
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_SERVER['REQUEST_URI'] === '/rediim/token') {
+  $now = time();
+  $payload = [
+    'cid' => $CLIENT_ID,
+    'scope' => ['fingerprint'],
+    'aud' => 'rediim-api',
+    'iat' => $now,
+    'exp' => $now + 15*60
+  ];
+  $jwt = JWT::encode($payload, $SHARED_SECRET, 'HS256');
+  header('Content-Type: application/json');
+  echo json_encode(['access_token' => $jwt]);
+}
+
+
+// Python
+        @app.post("/rediim/token")
+def rediim_token():
+    now = int(time.time())
+    payload = {"cid": CLIENT_ID, "scope": ["fingerprint"], "aud": "rediim-api", "iat": now, "exp": now + 15*60}
+    token = jwt.encode(payload, SHARED_SECRET, algorithm="HS256")
+    return jsonify({"access_token": token})
+        
+&lt;/script&gt;
+</code></pre>
         <div class="callout">
           <strong>Tip:</strong> You can also call <code>runInHouseFingerprint</code> immediately after a successful login redirect or a checkout submission.
         </div>
