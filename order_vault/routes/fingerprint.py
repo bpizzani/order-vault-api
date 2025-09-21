@@ -19,7 +19,7 @@ fingerprint_bp = Blueprint(
 )
 
 
-def limit_fingerprint_events(max_events=300):
+def limit_fingerprint_events_deprecated(max_events=300):
     def decorator(f):
         @wraps(f)
         def wrapped(*args, **kwargs):
