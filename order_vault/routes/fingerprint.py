@@ -1,7 +1,6 @@
 from flask import Blueprint, request, jsonify, current_app, g
 import hashlib
-from order_vault.auth.api_auth import require_api_key_fingerprint
-from order_vault.auth.bearer import require_auth
+from order_vault.auth.api_auth import require_auth
 from order_vault.models.fingerprint import FingerprintEvents
 from order_vault.main import db
 from order_vault.utils.db_session import get_db_session_for_client  # helper we'll define
