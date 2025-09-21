@@ -193,9 +193,8 @@ async function getAccessTokenClient() { // Client side API
 
 <p>Option 1: Publishable Key (PK)</p>
 <pre><code class="language-javascript">&lt;script&gt;
-1) Hardcode (fastest)
-
-Good for quick demos or small sites.
+//1) Hardcode (fastest)
+//Good for quick demos or small sites.
 
 <script type="module">
   const REDIIM_PK_KEY = "pk_live_123";     // publishable (OK to expose)
@@ -210,9 +209,8 @@ Good for quick demos or small sites.
   });
 </script>
 
-2) Build-time env (React/Vite/Next, etc.)
-
-Let your client set env vars in hosting (Netlify, Vercel, Cloudflare Pages) and the bundler inlines them at build time.
+// 2) Build-time env (React/Vite/Next, etc.)
+//Set env vars in hosting (Netlify, Vercel, Cloudflare Pages) and the bundler inlines them at build time.
 
 Vite/React
 
@@ -231,9 +229,8 @@ NEXT_PUBLIC_REDIIM_CLIENT_ID=client_abc
 const REDIIM_PK_KEY = process.env.NEXT_PUBLIC_REDIIM_PK_KEY;
 const REDIIM_CLIENT_ID = process.env.NEXT_PUBLIC_REDIIM_CLIENT_ID;
 
-3) Meta tag injection (no bundler needed)
-
-Great for CMS/static HTML where the key is templated at deploy time.
+// 3) Meta tag injection (no bundler needed)
+//Great for CMS/static HTML where the key is templated at deploy time.
 
 <meta name="rediim:pk" content="pk_live_123">
 <meta name="rediim:client_id" content="client_abc">
@@ -248,9 +245,8 @@ Great for CMS/static HTML where the key is templated at deploy time.
   });
 </script>
 
-4) Static config file (CDN-hosted JSON)
-
-Host a JSON next to your app. No server code—just a static file.
+// 4) Static config file (CDN-hosted JSON)
+// Host a JSON next to your app. No server code—just a static file.
 
 /public/rediim.config.json
 {
@@ -276,7 +272,7 @@ window.addEventListener('load', async () => {
 		  
  <p>Option 2: Get Access Token Client API</p>
 <pre><code class="language-javascript">&lt;script&gt;
-Node.js (Express)
+// Node.js (Express)
 import express from "express";
 import jwt from "jsonwebtoken";
 
@@ -299,7 +295,9 @@ app.post("/rediim/token", (req, res) => {
 
 app.listen(3000);
 
-Go (net/http)
+
+	
+// Go (net/http)
 package main
 
 import (
@@ -335,7 +333,9 @@ func main() {
 	http.ListenAndServe(":3000", nil)
 }
 
-Java (Spring Boot)
+
+	
+// Java (Spring Boot)
 @RestController
 public class TokenController {
   @Value("${CLIENT_ID}") String clientId;
@@ -357,7 +357,9 @@ public class TokenController {
   }
 }
 
-C# (ASP.NET Core Minimal API)
+
+	  
+// C# (ASP.NET Core Minimal API)
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
@@ -390,7 +392,9 @@ app.MapPost("/rediim/token", () => {
 
 app.Run();
 
-Ruby (Sinatra)
+
+		
+// Ruby (Sinatra)
 require "sinatra"
 require "jwt"
 require "json"
@@ -412,7 +416,9 @@ post "/rediim/token" do
   { access_token: token }.to_json
 end
 
-PHP (plain; using firebase/php-jwt)
+
+		
+// PHP (plain; using firebase/php-jwt)
 <?php
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
@@ -435,8 +441,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_SERVER['REQUEST_URI'] === '/redii
 }
 
 
+		
 // Python
-        @app.post("/rediim/token")
+@app.post("/rediim/token")
 def rediim_token():
     now = int(time.time())
     payload = {"cid": CLIENT_ID, "scope": ["fingerprint"], "aud": "rediim-api", "iat": now, "exp": now + 15*60}
