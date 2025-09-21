@@ -233,11 +233,12 @@
     .then(res => res.json())
     .then(rows => {
       if (!Array.isArray(rows) || rows.length === 0) return;
-
+ 
       // 1) Collect unique sorted dates
       const dateSet = new Set(rows.map(r => r.date));
-      const labels = Array.from(dateSet).sort(); // "YYYY-MM-DD"
-
+      //const labels = Array.from(dateSet).sort(); // "YYYY-MM-DD"
+      const labels = rows.map(d => d.date);
+        
       // 2) Group by promocode, and compute totals to pick top N by usage
       const byCode = new Map(); // code -> { perDate: Map(date -> row), totalUses: number }
       for (const r of rows) {
