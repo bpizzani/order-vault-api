@@ -3,8 +3,7 @@ from order_vault.models.rule import Rule
 from order_vault.models.client_subscription import ClientSubscription
 from order_vault.models.evaluation import Evaluation
 from order_vault.services.neo4j_service import evaluate_attributes
-from order_vault.auth.api_auth import require_api_key   
-from order_vault.auth.bearer import require_auth
+from order_vault.auth.api_auth import require_auth
 from order_vault.utils.db_session import get_db_session_for_client 
 from threading import Thread
 
