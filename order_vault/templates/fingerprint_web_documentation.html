@@ -173,11 +173,11 @@ async function getAccessTokenClient() { // Client side API
   // Example: run on page load (post-login is ideal)
   window.addEventListener('load', async () =&gt; {
     
-   // Store safely Publishable Key (env injected or server templated)
+   // Option 1: Store safely Publishable Key (env injected or server templated)
     const REDIIM_PK_KEY = "pk_key";   // replace
     const REDIIM_CLIENT_ID = "client_id";  // replace
     
-    // Or generate an Access Token from your backened
+    // Option 2: Or generate an Access Token from your backened
     const accessToken = await getAccessTokenClient();
     
     const userId = getUserId(); // optional but recommended
