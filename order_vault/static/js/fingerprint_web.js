@@ -175,7 +175,6 @@ export async function sendFingerprint(key, client_id, type = null, user_id = nul
             data.coupon = coupon;
             data.call_type = type;
                 
-            const accessToken = await getAccessToken();
             const response = await fetch("https://api.rediim.com/api/fingerprint", {
                 method: "POST",
                 credentials: "include",
