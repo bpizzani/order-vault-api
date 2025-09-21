@@ -79,7 +79,7 @@ def _verify_bearer_or_401(scope_required: str = ""):
      
         user = User.query.filter_by(client_id=cid).first()
         if not user:
-            abort(401, description="unknown_client_for_token")
+            abort(402, description="unknown_client_for_token")
             
         if x_client_id != cid:
             abort(404, description="client_id_not_matching_with_client_found")
@@ -92,19 +92,19 @@ def _verify_bearer_or_401(scope_required: str = ""):
             audience="rediim-api"
         )
         if "exp" in claims and claims["exp"] < time.time():
-            abort(401, description="token_expired")
+            abort(405, description="token_expired")
 
         scopes = claims.get("scope", [])
         if scope_required and scope_required not in scopes:
-            abort(403, description="insufficient_scope")
+            abort(406, description="insufficient_scope")
 
         _set_tenant_context(cid)
         g.token_claims = claims
         g.auth_type = "bearer"
     except jwt.ExpiredSignatureError:
-        abort(401, description="token_expired")
+        abort(407, description="token_expired")
     except jwt.InvalidTokenError:
-        abort(401, description="invalid_token")
+        abort(408, description="invalid_token")
 
 def require_auth(scope: str = ""):
     """Accept Bearer (preferred for browsers) OR API key (servers)."""
