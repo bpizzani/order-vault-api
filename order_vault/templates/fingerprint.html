@@ -187,7 +187,7 @@
 
         const labels = data.map(d => d.date);
         const duplicateRate = data.map(d => d.duplicate_user_rate);
-        const duplicates = data.map(d => d.duplicate_users);
+        const duplicates = data.map(d => d.total_users);
         const totals = data.map(d => d.total_devices);
 
         const rateCtx = $("duplicateRateChart")?.getContext("2d");
