@@ -173,7 +173,7 @@ async function getAccessTokenClient() { // Client side API
   // Example: run on page load (post-login is ideal)
   window.addEventListener('load', async () =&gt; {
     
-   // Store safely (env injected or server templated)
+   // Store safely Publishable Key (env injected or server templated)
     const REDIIM_PK_KEY = "pk_key";   // replace
     const REDIIM_CLIENT_ID = "client_id";  // replace
     
@@ -473,6 +473,8 @@ await fetch("/api/my-checkout", {
         
       const userId = getUserId();  // use your real user id after login
       const promocode = getPromoCode(); // optional but recommended
+
+	// Use REDIIM_PK_KEY or accessToken
       await runInHouseFingerprint(accessToken, REDIIM_CLIENT_ID, userId, promocode);
 
       // Example use:
