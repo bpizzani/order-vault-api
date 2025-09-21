@@ -190,8 +190,91 @@ async function getAccessTokenClient() { // Client side API
   });
 &lt;/script&gt;
 </code></pre>
+
+<p>Option 1: Publishable Key (PK)</p>
+<pre><code class="language-javascript">&lt;script&gt;
+1) Hardcode (fastest)
+
+Good for quick demos or small sites.
+
+<script type="module">
+  const REDIIM_PK_KEY = "pk_live_123";     // publishable (OK to expose)
+  const REDIIM_CLIENT_ID = "client_abc";   // public id
+
+  window.addEventListener("load", async () => {
+    const userId = getUserId();  // optional
+    const coupon = { promocode, promotion_id, type }; // optional
+    const call_type = "Login";
+    const { visitorId, localSessionId } =
+      await runInHouseFingerprint(REDIIM_PK_KEY, REDIIM_CLIENT_ID, call_type, userId, coupon);
+  });
+</script>
+
+2) Build-time env (React/Vite/Next, etc.)
+
+Let your client set env vars in hosting (Netlify, Vercel, Cloudflare Pages) and the bundler inlines them at build time.
+
+Vite/React
+
+VITE_REDIIM_PK_KEY=pk_live_123
+VITE_REDIIM_CLIENT_ID=client_abc
+
+const REDIIM_PK_KEY = import.meta.env.VITE_REDIIM_PK_KEY;
+const REDIIM_CLIENT_ID = import.meta.env.VITE_REDIIM_CLIENT_ID;
+
+
+Next.js
+
+NEXT_PUBLIC_REDIIM_PK_KEY=pk_live_123
+NEXT_PUBLIC_REDIIM_CLIENT_ID=client_abc
+
+const REDIIM_PK_KEY = process.env.NEXT_PUBLIC_REDIIM_PK_KEY;
+const REDIIM_CLIENT_ID = process.env.NEXT_PUBLIC_REDIIM_CLIENT_ID;
+
+3) Meta tag injection (no bundler needed)
+
+Great for CMS/static HTML where the key is templated at deploy time.
+
+<meta name="rediim:pk" content="pk_live_123">
+<meta name="rediim:client_id" content="client_abc">
+
+<script type="module">
+  const REDIIM_PK_KEY = document.querySelector('meta[name="rediim:pk"]').content;
+  const REDIIM_CLIENT_ID = document.querySelector('meta[name="rediim:client_id"]').content;
+
+  window.addEventListener("load", async () => {
+    const { visitorId, localSessionId } =
+      await runInHouseFingerprint(REDIIM_PK_KEY, REDIIM_CLIENT_ID, "Login");
+  });
+</script>
+
+4) Static config file (CDN-hosted JSON)
+
+Host a JSON next to your app. No server code—just a static file.
+
+/public/rediim.config.json
+{
+  "pk": "pk_live_123",
+  "client_id": "client_abc"
+}
+
+async function getRediimConfig() {
+  const res = await fetch('/rediim.config.json', { cache: 'no-store' });
+  if (!res.ok) throw new Error('config load failed');
+  return res.json();
+}
+
+window.addEventListener('load', async () => {
+  const { pk, client_id } = await getRediimConfig();
+  const { visitorId, localSessionId } =
+    await runInHouseFingerprint(pk, client_id, "Login");
+});
+        
+&lt;/script&gt;
+</code></pre>
 		  
- <p>Get Access Token Client API Example</p>
+		  
+ <p>Option 2: Get Access Token Client API</p>
 <pre><code class="language-javascript">&lt;script&gt;
 Node.js (Express)
 import express from "express";
