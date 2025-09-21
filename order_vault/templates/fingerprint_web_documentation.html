@@ -235,7 +235,7 @@ const REDIIM_CLIENT_ID = process.env.NEXT_PUBLIC_REDIIM_CLIENT_ID;
 <meta name="rediim:pk" content="pk_live_123">
 <meta name="rediim:client_id" content="client_abc">
 
-<script type="module">
+
   const REDIIM_PK_KEY = document.querySelector('meta[name="rediim:pk"]').content;
   const REDIIM_CLIENT_ID = document.querySelector('meta[name="rediim:client_id"]').content;
 
@@ -243,7 +243,7 @@ const REDIIM_CLIENT_ID = process.env.NEXT_PUBLIC_REDIIM_CLIENT_ID;
     const { visitorId, localSessionId } =
       await runInHouseFingerprint(REDIIM_PK_KEY, REDIIM_CLIENT_ID, "Login");
   });
-</script>
+
 
 // 4) Static config file (CDN-hosted JSON)
 // Host a JSON next to your app. No server code—just a static file.
