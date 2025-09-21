@@ -3,7 +3,7 @@ from werkzeug.security import check_password_hash
 from order_vault.utils.auth import login_required, require_subscription_in
 from order_vault.main import db
 from sqlalchemy import text
-from order_vault.auth.api_auth import require_api_key_fingerprint
+from order_vault.auth.api_auth import require_auth
 from order_vault.models.client_subscription import ClientSubscription
 from datetime import datetime
 
@@ -152,12 +152,12 @@ def no_listing():
     return "Access denied", 403
 
 @home_bp.route("/sdk-loader")
-@require_api_key_fingerprint
+@require_auth(scope="fingerprint")
 def serve_fingerprint_js():
     return send_from_directory("static/js", "fingerprint_es.js")
 
 @home_bp.route("/sdk-loader")
-@require_api_key_fingerprint
+@require_auth(scope="fingerprint")
 def serve_fingerprint_min_js():
     return send_from_directory("static/js", "fingerprint_es.min.js")
 
