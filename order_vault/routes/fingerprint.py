@@ -319,7 +319,93 @@ def daily_duplicate_rate():
     finally:
         session.close()
 
- 
+
+@fingerprint_bp.route("/abusive-promocodes-daily", methods=["GET"])
+@login_required
+def abusive_promocodes_daily_by_code():
+    db_uri = g.db_uri
+    client_id = g.client_id
+    if not db_uri:
+        return jsonify({"error": "Missing db_uri"}), 400
+
+    session = get_db_session_for_client(db_uri)
+
+    try:
+        q = text("""
+            WITH base AS (
+                SELECT
+                    date_trunc('day', created_at)                       AS p_date,
+                    -- normalize device id (choose best-available)
+                    CASE
+                        WHEN tm_visitor_id IS NULL OR tm_visitor_id = 'null' THEN
+                            CASE
+                                WHEN js_visitor_id IS NULL OR js_visitor_id = 'null' THEN visitor_id
+                                ELSE js_visitor_id
+                            END
+                        ELSE tm_visitor_id
+                    END                                                 AS device_id,
+                    lower(trim(promocode))                              AS code
+                FROM fingerprint_events
+                WHERE client_id = :client_id
+                  AND promocode IS NOT NULL
+                  AND promocode <> ''
+                  AND lower(trim(promocode)) <> 'null'
+            ),
+            by_device AS (  -- counts per (day, code, device)
+                SELECT
+                    p_date,
+                    code,
+                    device_id,
+                    COUNT(*) AS uses
+                FROM base
+                GROUP BY p_date, code, device_id
+            ),
+            by_code AS (     -- roll up per (day, code)
+                SELECT
+                    p_date,
+                    code,
+                    SUM(uses)                                            AS total_uses,
+                    COUNT(DISTINCT device_id)                             AS unique_devices,
+                    COUNT(*) FILTER (WHERE uses > 1)                      AS abusive_devices,
+                    COALESCE(SUM(uses) FILTER (WHERE uses > 1), 0)        AS abusive_uses
+                FROM by_device
+                GROUP BY p_date, code
+            )
+            SELECT
+                p_date,
+                code,
+                total_uses,
+                unique_devices,
+                abusive_devices,
+                abusive_uses,
+                ROUND(100.0 * abusive_devices / NULLIF(unique_devices, 0), 2) AS abusive_device_rate,
+                ROUND(100.0 * abusive_uses   / NULLIF(total_uses, 0),    2)   AS abusive_use_rate
+            FROM by_code
+            ORDER BY p_date, code;
+        """)
+
+        rows = session.execute(q, {"client_id": client_id}).fetchall()
+
+        result = []
+        for r in rows:
+            result.append({
+                "date": r.p_date.strftime("%Y-%m-%d"),
+                "promocode": r.code,
+                "total_uses": int(r.total_uses or 0),
+                "unique_devices": int(r.unique_devices or 0),
+                "abusive_devices": int(r.abusive_devices or 0),
+                "abusive_uses": int(r.abusive_uses or 0),
+                "abusive_device_rate": float(r.abusive_device_rate or 0),
+                "abusive_use_rate": float(r.abusive_use_rate or 0),
+            })
+
+        return jsonify(result)
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        session.close()
+
 
 def device_coalesce_sql():
     # Prefer tm_visitor_id, then js_visitor_id, then visitor_id
