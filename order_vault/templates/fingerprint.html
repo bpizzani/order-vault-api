@@ -231,7 +231,8 @@
           });
         }
       })
-      .catch(err => console.error("Error fetching daily duplicate rate:", err));
+      .catch(err => console.error("Error fetching daily duplicate rate:", err))
+      .finally(() => { if (loader) loader.classList.add("hidden"); });;
 
     // Abusive promocodes daily
     fetch(`/api/fingerprint/abusive-promocodes-daily${qs}`)
@@ -317,7 +318,8 @@
         }
       });
     })
-    .catch(err => console.error("Error fetching abusive-promocodes-daily:", err));
+    .catch(err => console.error("Error fetching abusive-promocodes-daily:", err))
+    .finally(() => { if (loader) loader.classList.add("hidden"); });
   }
     
   function renderList(elId, arr) {
