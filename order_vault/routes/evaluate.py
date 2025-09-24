@@ -6,6 +6,7 @@ from order_vault.services.neo4j_service import evaluate_attributes
 from order_vault.auth.api_auth import require_auth
 from order_vault.utils.db_session import get_db_session_for_client 
 from threading import Thread
+from order_vault.main import save_queue
 
 evaluate_bp = Blueprint("evaluate", __name__, url_prefix="/api")
 
@@ -142,12 +143,13 @@ def evaluate():
 
     risk_decision = {"evaluation_results": final, "overall_abusive": overall}
     # Fire off background thread to save
+    save_queue.put( (async_save_evaluation_event, (g.db_uri, g.client_id, call_type, user_id, checkout_id, order_id, session_id, promo, values, risk_decision)) )
 
-    Thread(
-        target=async_save_evaluation_event,
-        args=(g.db_uri, g.client_id, call_type, user_id, checkout_id, order_id, session_id, promo, values, risk_decision),
-        daemon=True
-    ).start()
+    #Thread(
+    #    target=async_save_evaluation_event,
+    #   args=(g.db_uri, g.client_id, call_type, user_id, checkout_id, order_id, session_id, promo, values, risk_decision),
+    #    daemon=True
+    #).start()
 
     return jsonify({"evaluation_results": final, "overall_abusive": overall}), 200
 
