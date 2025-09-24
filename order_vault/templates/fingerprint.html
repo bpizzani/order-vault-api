@@ -340,7 +340,6 @@
     const loader = $("loading");
     if (loader) loader.classList.remove("hidden");
       
-
     const today = new Date();
     const start = new Date(today); start.setDate(today.getDate() - 20);
     $("startDate").value = start.toISOString().slice(0,10);
@@ -354,9 +353,12 @@
       if (start) params.set("start", start); else params.delete("start");
       if (end)   params.set("end", end);     else params.delete("end");
       location.search = params.toString();   // full reload with new dates
+      const qs = buildQs();
     });
 
     const qs = buildQs();
+
+      
     // ---- Stats & charts ----
     fetch(`/api/fingerprint/device-usage${qs}`)
       .then(res => res.json())
