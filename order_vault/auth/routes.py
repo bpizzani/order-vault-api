@@ -219,6 +219,25 @@ def create_or_update_user():
             }
         }), 200
 
+
+@auth_bp.route("/me/credentials", methods=["GET"])
+@login_required
+def get_my_credentials():
+    # Use your session to identify the currently logged-in user
+    user_id = session.get("user_id")
+    user = User.query.filter_by(id=user_id).first()
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    return jsonify({
+        "email": user.email,
+        "client_id": user.client_id,
+        "api_key": user.api_key,     # server-side secret: only return to the owner
+        "pk_key": user.pk_key,       # publishable key (safe for browsers)
+        "jwt": user.jwt_secrets      # fresh short-lived token
+    }), 200
+    
+
 @auth_bp.route("/create-subscription", methods=["GET"])
 @login_required
 def create_subscription_via_url():
