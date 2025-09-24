@@ -1,6 +1,8 @@
-from datetime import datetime, timedelta
 
-def parse_iso_dt(s: str | None):
+from typing import Optional
+from datetime import datetime
+
+def parse_iso_dt(s: Optional[str]) -> Optional[datetime]:
     if not s: return None
     s = s.strip()
     # Accept 'YYYY-MM-DD' or full ISO
