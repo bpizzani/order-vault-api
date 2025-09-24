@@ -146,7 +146,17 @@
   const $ = (id) => document.getElementById(id);
   const setText = (id, text) => { const el = $(id); if (el) el.textContent = text; };
   const show = (id) => { const el = $(id); if (el) el.style.display = "grid"; };
-
+    
+  function buildQs() {
+    const start = $("startDate")?.value?.trim();
+    const end = $("endDate")?.value?.trim();
+    const p = new URLSearchParams();
+    if (start) p.set("start", start);
+    if (end)   p.set("end", end);
+    const qs = p.toString();
+    return qs ? `?${qs}` : "";
+  }
+    
   function renderList(elId, arr) {
     const el = $(elId);
     if (!el) return;
@@ -167,9 +177,17 @@
     // loader
     const loader = $("loading");
     if (loader) loader.classList.remove("hidden");
+      
 
+    const today = new Date();
+    const start = new Date(today); start.setDate(today.getDate() - 7);
+    $("startDate").value = start.toISOString().slice(0,10);
+    $("endDate").value = today.toISOString().slice(0,10);
+
+    const qs = buildQs();
+      
     // ---- Stats & charts ----
-    fetch(`/api/fingerprint/device-usage`)
+    fetch(`/api/fingerprint/device-usage${qs}`)
       .then(res => res.json())
       .then(data => {
         if (data?.error) { alert(data.error); return; }
@@ -204,7 +222,7 @@
       .catch(err => { console.error("Error fetching device usage:", err); alert("Failed to load data."); })
       .finally(() => { if (loader) loader.classList.add("hidden"); });
 
-    fetch("/api/fingerprint/duplicate-rate-daily")
+    fetch("/api/fingerprint/duplicate-rate-daily${qs}")
       .then(res => res.json())
       .then(data => {
         if (!Array.isArray(data)) return;
@@ -243,7 +261,7 @@
 
 
   // Fetch daily aggregation by promocode (endpoint from previous step)
-  fetch("/api/fingerprint/abusive-promocodes-daily")
+  fetch("/api/fingerprint/abusive-promocodes-daily${qs}")
     .then(res => res.json())
     .then(rows => {
       if (!Array.isArray(rows) || rows.length === 0) return;
