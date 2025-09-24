@@ -45,7 +45,11 @@ def customer_ui():
 def fingerprint_ui():
     return render_template("fingerprint.html")
 
-
+@auth_bp.route("/credentials", methods=["GET"])
+@login_required
+def credentials_page():
+    return render_template("credentials.html")
+    
 @home_bp.route("/update-subscription-limit", methods=["GET", "POST"])
 def update_subscription_limit():
     client_id = request.args.get("client_id")
