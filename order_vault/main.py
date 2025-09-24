@@ -10,10 +10,22 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from order_vault.models.tenant import Tenant
 from order_vault.utils.crypto import enc, dec
+from queue import Queue
+from threading import Thread
 
 # --- Define key function
 def get_client_id():
     return getattr(g, "client_id", get_remote_address())  # fallback to IP
+
+save_queue = Queue(maxsize=1000)
+
+def save_worker():
+    while True:
+        fn, args = save_queue.get()
+        try: fn(*args)
+        finally: save_queue.task_done()
+
+Thread(target=save_worker, daemon=True).start()
 
 
 # ─── Flask App Setup ─────────────────────────────
