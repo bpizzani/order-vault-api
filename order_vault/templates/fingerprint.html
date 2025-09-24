@@ -222,7 +222,7 @@
       .catch(err => { console.error("Error fetching device usage:", err); alert("Failed to load data."); })
       .finally(() => { if (loader) loader.classList.add("hidden"); });
 
-    fetch("/api/fingerprint/duplicate-rate-daily${qs}")
+    fetch(`/api/fingerprint/duplicate-rate-daily${qs}`) 
       .then(res => res.json())
       .then(data => {
         if (!Array.isArray(data)) return;
@@ -261,7 +261,7 @@
 
 
   // Fetch daily aggregation by promocode (endpoint from previous step)
-  fetch("/api/fingerprint/abusive-promocodes-daily${qs}")
+  fetch(`/api/fingerprint/abusive-promocodes-daily${qs}`)
     .then(res => res.json())
     .then(rows => {
       if (!Array.isArray(rows) || rows.length === 0) return;
