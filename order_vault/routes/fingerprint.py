@@ -13,11 +13,11 @@ from order_vault.models.fingerprint import FingerprintEvents  # adjust import if
 from order_vault.utils.auth import login_required
 from sqlalchemy import text
 from collections import defaultdict
+from order_vault.main import save_queue
 
 fingerprint_bp = Blueprint(
     "fingerprint", __name__, url_prefix="/api/fingerprint"
 )
-
 
 def limit_fingerprint_events_deprecated(max_events=300):
     def decorator(f):
@@ -166,12 +166,15 @@ def fingerprint():
     print(f"inhouse fignerprint: {vid}")
 
     print(str({"visitorId": vid}))
+    
     # Fire off background thread to save
-    Thread(
-        target=async_save_fingerprint_event,
-        args=(g.db_uri, g.client_id, user_identifier_client, data, vid),
-        daemon=True
-    ).start()
+    save_queue.put( (async_save_fingerprint_event, (g.db_uri, g.client_id, user_identifier_client, data, vid)) )
+
+    #Thread(
+    #    target=async_save_fingerprint_event,
+    #    args=(g.db_uri, g.client_id, user_identifier_client, data, vid),
+    #    daemon=True
+    #).start()
 
     return jsonify({"visitorId": vid}), 200
     
