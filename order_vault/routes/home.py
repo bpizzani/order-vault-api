@@ -47,6 +47,7 @@ def fingerprint_ui():
 
 @home_bp.route("/credentials", methods=["GET"])
 @login_required
+@require_subscription_in("demo","fingerprint_demo","admin")
 def credentials_page():
     return render_template("credentials.html")
     
