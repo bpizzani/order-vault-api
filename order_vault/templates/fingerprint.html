@@ -243,90 +243,70 @@ function ctxFresh(id) {
       .catch(console.error);
 
     // Abusive promocodes daily
-    fetch(`/api/fingerprint/abusive-promocodes-daily${qs}`)
-      .then(res => res.json())
-    .then(rows => {
-      if (!Array.isArray(rows) || rows.length === 0) return;
- 
-      // 1) Collect unique sorted dates
-      const dateSet = new Set(rows.map(r => r.date));
-      //const labels = Array.from(dateSet).sort(); // "YYYY-MM-DD"
-      const labels = rows.map(d => d.date);
-        
-      // 2) Group by promocode, and compute totals to pick top N by usage
-      const byCode = new Map(); // code -> { perDate: Map(date -> row), totalUses: number }
-      for (const r of rows) {
-        const code = r.promocode ?? "(unknown)";
-        if (!byCode.has(code)) byCode.set(code, { perDate: new Map(), totalUses: 0 });
-        byCode.get(code).perDate.set(r.date, r);
-        byCode.get(code).totalUses += (r.total_uses || 0);
-      }
+fetch(`/api/fingerprint/abusive-promocodes-daily${qs}`)
+  .then(res => res.json())
+  .then(rows => {
+    if (!Array.isArray(rows) || rows.length === 0) return;
 
-      // Pick top 5 codes by total uses
-      const TOP_N = 5;
-      const topCodes = Array.from(byCode.entries())
-        .sort((a, b) => b[1].totalUses - a[1].totalUses)
-        .slice(0, TOP_N)
-        .map(([code]) => code);
+    // 1) Unique, sorted date labels
+    const labels = Array.from(new Set(rows.map(r => r.date))).sort(); // "YYYY-MM-DD"
 
-      // 3) Build datasets for abusive rate lines (percent)
-      const palette = [
-        "#60a5fa", "#f472b6", "#f59e0b", "#34d399", "#a78bfa",
-        "#fb7185", "#22d3ee", "#f97316", "#4ade80", "#e879f9"
-      ];
+    // 2) Group by promocode
+    const byCode = new Map(); // code -> { perDate: Map(date -> row), totalUses: number }
+    for (const r of rows) {
+      const code = r.promocode ?? "(unknown)";
+      if (!byCode.has(code)) byCode.set(code, { perDate: new Map(), totalUses: 0 });
+      const rec = byCode.get(code);
+      rec.perDate.set(r.date, r);
+      rec.totalUses += (r.total_uses || 0);
+    }
 
-      const datasets = topCodes.map((code, i) => {
-        const rec = byCode.get(code);
-        const data = labels.map(d => {
-          const row = rec.perDate.get(d);
-          return row ? (row.abusive_use_rate ?? 0) : null; // line gaps when missing
-        });
-        return {
-          label: code,
-          data,
-          borderColor: palette[i % palette.length],
-          backgroundColor: palette[i % palette.length],
-          tension: 0.3,
-          fill: false,
-          spanGaps: true,
-        };
+    // Top 5 by total usage
+    const TOP_N = 5;
+    const topCodes = Array.from(byCode.entries())
+      .sort((a, b) => b[1].totalUses - a[1].totalUses)
+      .slice(0, TOP_N)
+      .map(([code]) => code);
+
+    const palette = ["#60a5fa","#f472b6","#f59e0b","#34d399","#a78bfa","#fb7185","#22d3ee","#f97316","#4ade80","#e879f9"];
+
+    const datasets = topCodes.map((code, i) => {
+      const rec = byCode.get(code);
+      const data = labels.map(d => {
+        const row = rec.perDate.get(d);
+        return row ? (row.abusive_use_rate ?? 0) : null;
       });
+      return {
+        label: code,
+        data,
+        borderColor: palette[i % palette.length],
+        backgroundColor: palette[i % palette.length],
+        tension: 0.3,
+        fill: false,
+        spanGaps: true,
+      };
+    });
 
-      const ctx = ctxFresh("promoAbuseChart"); //$("promoAbuseChart")?.getContext("2d");
-      if (!ctx) return;
+    const ctx = ctxFresh("promoAbuseChart");
+    if (!ctx) return;
 
-      // 4) Render line chart
-      new Chart(ctx, {
-        type: "line",
-        data: { labels, datasets },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: { position: "bottom", labels: { color: "#e5e7eb" } },
-            tooltip: {
-              callbacks: {
-                label: (item) => `${item.dataset.label}: ${item.formattedValue}%`
-              }
-            }
-          },
-          scales: {
-            y: {
-              beginAtZero: true,
-              max: 100,
-              title: { display: true, text: "Abusive use rate (%)", color: "#e5e7eb" },
-              ticks: { color: "#e5e7eb" },
-              grid: { color: "rgba(255,255,255,0.08)" }
-            },
-            x: {
-              title: { display: true, text: "Date", color: "#e5e7eb" },
-              ticks: { color: "#e5e7eb" },
-              grid: { color: "rgba(255,255,255,0.08)" }
-            }
-          }
+    new Chart(ctx, {
+      type: "line",
+      data: { labels, datasets },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: "bottom", labels: { color: "#e5e7eb" } },
+          tooltip: { callbacks: { label: (it) => `${it.dataset.label}: ${it.formattedValue}%` } }
+        },
+        scales: {
+          y: { beginAtZero: true, max: 100, title: { display: true, text: "Abusive use rate (%)", color: "#e5e7eb" } },
+          x: { title: { display: true, text: "Date", color: "#e5e7eb" } }
         }
-      });
-    })
-    .catch(console.error);
+      }
+    });
+  })
+  .catch(console.error);
   }
     
   function renderList(elId, arr) {
