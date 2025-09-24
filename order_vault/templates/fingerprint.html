@@ -193,7 +193,8 @@
           });
         }
       })
-      .catch(err => { console.error("Error fetching device usage:", err); alert("Failed to load data."); });
+      .catch(err => { console.error("Error fetching device usage:", err); alert("Failed to load data."); })
+      .finally(() => { if (loader) loader.classList.add("hidden"); });
 
     // Duplicate rate daily
     fetch(`/api/fingerprint/duplicate-rate-daily${qs}`)
