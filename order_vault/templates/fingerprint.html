@@ -342,7 +342,7 @@
       
 
     const today = new Date();
-    const start = new Date(today); start.setDate(today.getDate() - 7);
+    const start = new Date(today); start.setDate(today.getDate() - 3);
     $("startDate").value = start.toISOString().slice(0,10);
     $("endDate").value = today.toISOString().slice(0,10);
 
