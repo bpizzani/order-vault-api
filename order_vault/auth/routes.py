@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, session, current_app, redirect, url_for, render_template
+from flask import Blueprint, request, jsonify, session, current_app, redirect, url_for, render_template, g
 from order_vault.models.user import User
 from order_vault.models.client_subscription import ClientSubscription
 from order_vault.main import db
