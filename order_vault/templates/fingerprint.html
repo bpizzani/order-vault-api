@@ -225,7 +225,7 @@ function ctxFresh(id) {
           });
         }
 
-        const countCtx = $("duplicateUserChart")?.getContext("2d");
+        const countCtx =  ctxFresh("duplicateUserChart"); //$("duplicateUserChart")?.getContext("2d");
         if (countCtx && labels.length) {
           new Chart(countCtx, {
             type: "bar",
