@@ -14,6 +14,7 @@ from order_vault.utils.auth import login_required
 from sqlalchemy import text
 from collections import defaultdict
 from order_vault.main import save_queue
+from order_vault.utils.dates import normalize_range
 
 fingerprint_bp = Blueprint(
     "fingerprint", __name__, url_prefix="/api/fingerprint"
