@@ -348,8 +348,12 @@
 
 
     $("applyRange")?.addEventListener("click", () => {
-      // optionally clear existing charts before redraw if you recreate them
-      loadAll();
+      const start = $("startDate")?.value?.trim();
+      const end   = $("endDate")?.value?.trim();
+      const params = new URLSearchParams(location.search);
+      if (start) params.set("start", start); else params.delete("start");
+      if (end)   params.set("end", end);     else params.delete("end");
+      location.search = params.toString();   // full reload with new dates
     });
 
     const qs = buildQs();
