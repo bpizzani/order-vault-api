@@ -157,8 +157,19 @@
     return qs ? `?${qs}` : "";
   }
 
-  async function loadAll(qs = "") {
-
+function ctxFresh(id) {
+  const old = document.getElementById(id);
+  if (!old) return null;
+  const parent = old.parentNode;
+  const fresh = document.createElement("canvas");
+  fresh.id = id;
+  parent.replaceChild(fresh, old);
+  return fresh.getContext("2d");
+}
+    
+  async function loadAll() {
+    const qs = buildQs();
+      
     // Device usage
     fetch(`/api/fingerprint/device-usage${qs}`)
       .then(res => res.json())
@@ -173,7 +184,7 @@
         const labels = (data.user_per_device ?? []).map(d => d.device_id);
         const counts = (data.user_per_device ?? []).map(d => d.user_count);
 
-        const ctx = $("deviceUsageChart")?.getContext("2d");
+        const ctx = ctxFresh("deviceUsageChart"); //$("deviceUsageChart")?.getContext("2d");
         if (ctx && labels.length) {
           new Chart(ctx, {
             type: 'bar',
@@ -205,7 +216,7 @@
         const duplicates = data.map(d => d.total_users);
         const totals = data.map(d => d.total_devices);
 
-        const rateCtx = $("duplicateRateChart")?.getContext("2d");
+        const rateCtx = ctxFresh("duplicateRateChart"); //$("duplicateRateChart")?.getContext("2d");
         if (rateCtx && labels.length) {
           new Chart(rateCtx, {
             type: "line",
@@ -281,7 +292,7 @@
         };
       });
 
-      const ctx = $("promoAbuseChart")?.getContext("2d");
+      const ctx = ctxFresh("promoAbuseChart"); //$("promoAbuseChart")?.getContext("2d");
       if (!ctx) return;
 
       // 4) Render line chart
@@ -344,19 +355,15 @@
     $("startDate").value = start.toISOString().slice(0,10);
     $("endDate").value = today.toISOString().slice(0,10);
 
-
     $("applyRange")?.addEventListener("click", () => {
-      const start = $("startDate")?.value?.trim();
-      const end   = $("endDate")?.value?.trim();
-      const params = new URLSearchParams(location.search);
-      if (start) params.set("start", start); else params.delete("start");
-      if (end)   params.set("end", end);     else params.delete("end");
-      location.search = params.toString();   // full reload with new dates
+        // optionally clear existing charts before redraw if you recreate them 
+        loadAll();
     });
 
-    const qs = buildQs();
-    loadAll(qs);
-      
+    loadAll();
+
+  
+
       
     // ---- Search handlers (now DOM is ready) ----
     $("btnUserId")?.addEventListener("click", async () => {
