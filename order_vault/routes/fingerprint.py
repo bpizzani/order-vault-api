@@ -186,7 +186,10 @@ def device_usage():
     client_id = g.client_id
     if not db_uri:
         return jsonify({"error": "Missing db_uri"}), 400
-
+        
+    # NEW: parse range
+    start, end = normalize_range(request.args.get("start"), request.args.get("end"))
+    
     session = get_db_session_for_client(db_uri)
     
     try:
@@ -201,7 +204,13 @@ def device_usage():
             WHERE client_id = :client_id
               AND user_id IS NOT NULL 
               AND tm_visitor_id IS NOT NULL
-        """), {"client_id": client_id}).fetchall()
+              AND (:start IS NULL OR created_at >= :start)
+              AND (:end   IS NULL OR created_at <  :end)
+        """), {
+            "client_id": client_id,
+            "start": start,
+            "end": end,
+        }).fetchall()
 
         device_users = defaultdict(set)
         all_users = set()
@@ -242,6 +251,8 @@ def daily_duplicate_rate():
     client_id = g.client_id
     if not db_uri:
         return jsonify({"error": "Missing db_uri"}), 400
+        
+    start, end = normalize_range(request.args.get("start"), request.args.get("end"))
 
     session = get_db_session_for_client(db_uri)
 
@@ -262,6 +273,8 @@ def daily_duplicate_rate():
                     FROM fingerprint_events
                     WHERE client_id = :client_id
                     AND user_id IS NOT NULL
+                    AND (:start IS NULL OR created_at >= :start)
+                    AND (:end   IS NULL OR created_at <  :end)
                 ),
                 users_per_device AS (
                     SELECT 
@@ -303,7 +316,7 @@ def daily_duplicate_rate():
                 ORDER BY p_date;
         """)
 
-        rows = session.execute(query, {"client_id": client_id}).fetchall()
+        rows = session.execute(query, {"client_id": client_id, "start": start, "end": end}).fetchall()
 
         result = []
         for row in rows:
@@ -330,6 +343,8 @@ def abusive_promocodes_daily_by_code():
     client_id = g.client_id
     if not db_uri:
         return jsonify({"error": "Missing db_uri"}), 400
+        
+    start, end = normalize_range(request.args.get("start"), request.args.get("end"))
 
     session = get_db_session_for_client(db_uri)
 
@@ -353,6 +368,8 @@ def abusive_promocodes_daily_by_code():
                   AND promocode IS NOT NULL
                   AND promocode <> ''
                   AND lower(trim(promocode)) <> 'null'
+                  AND (:start IS NULL OR created_at >= :start)
+                  AND (:end   IS NULL OR created_at <  :end)
             ),
             by_device AS (  -- counts per (day, code, device)
                 SELECT
@@ -387,7 +404,7 @@ def abusive_promocodes_daily_by_code():
             ORDER BY p_date, code;
         """)
 
-        rows = session.execute(q, {"client_id": client_id}).fetchall()
+        rows = session.execute(q, {"client_id": client_id, "start": start, "end": end}).fetchall()
 
         result = []
         for r in rows:
