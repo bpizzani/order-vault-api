@@ -1,18 +1,52 @@
 from flask import Blueprint, request, jsonify, current_app, g, session
 from order_vault.utils.auth import login_required
 import traceback
+from datetime import datetime, timedelta
 
 promocode_bp = Blueprint("promocode", __name__, url_prefix="/api/promocode")
+
+def get_date_range_from_request(req):
+    """
+    Returns (start_iso, end_iso) where both are ISO strings that Neo4j `datetime()` can parse.
+    Defaults to last 15 days until now.
+    """
+    end_s = req.args.get("end_date", "").strip()
+    start_s = req.args.get("start_date", "").strip()
+
+    # If client passes YYYY-MM-DD, expand to midnight and end-of-day
+    def to_iso_ceil(dstr):
+        # '2025-10-12' -> '2025-10-12T23:59:59Z'
+        return f"{dstr}T23:59:59Z"
+
+    def to_iso_floor(dstr):
+        # '2025-10-01' -> '2025-10-01T00:00:00Z'
+        return f"{dstr}T00:00:00Z"
+
+    if start_s and end_s:
+        start_iso = to_iso_floor(start_s)
+        end_iso = to_iso_ceil(end_s)
+    else:
+        # default last 15 days window
+        end = datetime.utcnow()
+        start = end - timedelta(days=15)
+        start_iso = start.strftime("%Y-%m-%dT%H:%M:%SZ")
+        end_iso = end.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    return start_iso, end_iso
+
 
 @promocode_bp.route("/usage", methods=["GET"])
 @login_required
 def usage():
     promocode = request.args.get("promocode", "").strip()
-
+    start_iso, end_iso = get_date_range_from_request(request)
+    
     # Modified Cypher Query to check abusive usage of the promocode
     query = """// Step 1: Get all orders that used the promocode and their identity attributes
     MATCH (c:Customer)-[:PLACED]->(o:Order)
     WHERE o.promocode = $promocode
+        AND datetime(o.created_at) >= datetime($start)
+        AND datetime(o.created_at) <= datetime($end)
     WITH c, o, datetime(o.created_at) AS full_ts
     
     // Step 2: Get the identity attributes that define the customer's network
@@ -27,6 +61,8 @@ def usage():
       WHERE attr2.value IN identity_attrs
         AND attr2.type IN ['email', 'phone', 'device_id', 'card_details']
         AND o2.promocode = $promocode
+        AND datetime(o2.created_at) >= datetime($start)
+        AND datetime(o2.created_at) <= datetime($end)
       RETURN COLLECT(DISTINCT datetime(o2.created_at)) AS sorted_usages
     }
     
@@ -152,7 +188,7 @@ def usage():
       ROUND(100.0 * SUM(abusive_users) / SUM(genuine_user + abusive_users), 2) AS abuse_user_rate_percentage
       """
 
-    params = {"promocode": promocode} if promocode else {}
+    params = {"promocode": promocode, "start": start_iso, "end": end_iso} if promocode else {}
 
     try:
         with g.neo4j_driver.session() as session_net: 
@@ -174,16 +210,21 @@ def order_count():
 
     if not email:
         return jsonify({"error": "Missing email parameter"}), 400
-
+        
+    start_iso, end_iso = get_date_range_from_request(request)
     query = """
     // Step 1: Find the customer's shared attributes (phone, device_id, card_details, promocode)
     MATCH (c:Customer {email: $email})-[:PLACED]->(order:Order)-[:HAS_ATTRIBUTE]->(attr)
     WHERE attr.type IN ['phone', 'device_id', 'card_details','email']
+      AND datetime(order.created_at) >= datetime($start)
+      AND datetime(order.created_at) <= datetime($end)
     WITH COLLECT(DISTINCT attr.value) AS shared_attributes  // Collect shared attributes
 
     // Step 2: Find all customers connected by shared attributes (same phone, device_id, card_details, promocode)
     MATCH (c2:Customer)-[:PLACED]->(order2:Order)-[:HAS_ATTRIBUTE]->(attr2)
     WHERE attr2.value IN shared_attributes AND attr2.type IN ['phone', 'device_id', 'card_details','email']
+          AND datetime(order2.created_at) >= datetime($start)
+          AND datetime(order2.created_at) <= datetime($end)
 
     // Step 3: Group by promocode and count the number of orders for each promocode
     MATCH (order2)-[:HAS_ATTRIBUTE]->(promocode_attr:Attribute {type: 'promocode'})
@@ -195,7 +236,7 @@ def order_count():
         COLLECT({promocode: promocode, total_orders: total_orders}) AS promocode_stats
     """
 
-    params = {"email": email}
+    params = {"email": email, "start": start_iso, "end": end_iso}
 
     try:
         with g.neo4j_driver.session() as session_net:
@@ -220,11 +261,13 @@ def abuse_by_day():
 
     if not promocode:
         return jsonify({"error": "Missing promocode parameter"}), 400
-
+    start_iso, end_iso = get_date_range_from_request(request)
     query = """
     // Step 1: Get all orders that used the promocode, and their identity
     MATCH (c:Customer)-[:PLACED]->(o:Order)
     WHERE o.promocode = $promocode
+      AND datetime(o.created_at) >= datetime($start)
+      AND datetime(o.created_at) <= datetime($end)
     WITH c, o, date(datetime(o.created_at)) AS order_date, datetime(o.created_at) AS full_ts
     
     // Step 2: Collect identity attributes for each customer
@@ -239,6 +282,8 @@ def abuse_by_day():
       WHERE attr2.value IN identity_attrs
         AND attr2.type IN ['email', 'phone', 'device_id', 'card_details']
         AND o2.promocode = $promocode
+        AND datetime(o2.created_at) >= datetime($start)
+        AND datetime(o2.created_at) <= datetime($end)
       WITH o2
       ORDER BY o2.created_at ASC
       RETURN COLLECT(o2.created_at) AS sorted_usages
@@ -261,7 +306,7 @@ def abuse_by_day():
     ORDER BY order_date
     """
 
-    params = {"promocode": promocode}
+    params = {"promocode": promocode, "start": start_iso, "end": end_iso}
 
 
     try:
@@ -285,9 +330,13 @@ def abuse_by_day():
 @promocode_bp.route("/abuse-history", methods=["GET"])
 @login_required
 def abuse_history_all_promocodes():
+    start_iso, end_iso = get_date_range_from_request(request)
+
     query_old = """
     MATCH (o:Order)
     WHERE o.promocode IS NOT NULL AND TRIM(o.promocode) <> ""
+      AND datetime(o.created_at) >= datetime($start)
+      AND datetime(o.created_at) <= datetime($end)
     WITH o.promocode AS promocode, date(datetime(o.created_at)) AS order_date, o
     MATCH (o)-[:HAS_ATTRIBUTE]->(a:Attribute)
     WHERE a.type IN ['email', 'phone', 'device_id', 'card_details']
@@ -306,6 +355,8 @@ def abuse_history_all_promocodes():
 
     query = """MATCH (c:Customer)-[:PLACED]->(o:Order)
     WHERE o.promocode IS NOT NULL AND TRIM(o.promocode) <> ""
+      AND datetime(o.created_at) >= datetime($start)
+      AND datetime(o.created_at) <= datetime($end)
     WITH c, o, o.promocode AS promocode, date(datetime(o.created_at)) AS order_date, datetime(o.created_at) AS full_ts
     
     // Collect identity values for this customer
@@ -321,6 +372,8 @@ def abuse_history_all_promocodes():
         AND attr2.type IN ['email', 'phone', 'device_id', 'card_details']
         AND o2.promocode = promocode
         AND datetime(o2.created_at) < full_ts
+         AND datetime(o2.created_at) >= datetime($start)
+        AND datetime(o2.created_at) <= datetime($end)
       RETURN COUNT(DISTINCT o2) AS prior_uses
     }
     
@@ -337,7 +390,7 @@ def abuse_history_all_promocodes():
     
     try:
         with g.neo4j_driver.session() as session_net:
-            result = session_net.run(query)
+            result = session_net.run(query, {"start": start_iso, "end": end_iso})
             records = []
             for row in result:
                 rec = row.data()
