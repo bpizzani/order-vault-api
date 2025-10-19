@@ -98,7 +98,7 @@ def change_password_submit():
 
     # update password + flip flag
     user.password_hash = generate_password_hash(new_pw)
-    user.user_onboarded_flag = 1
+    user.onboarded_flag = 1
     db.session.commit()
 
     # clear flag and rotate session
