@@ -4,6 +4,7 @@ from datetime import datetime
 class User(db.Model):
     __tablename__ = "users"
     id = db.Column(db.Integer, primary_key=True)
+    onboarded_flag = db.Column(db.Integer, nullable=False)
     email = db.Column(db.String, unique=True, nullable=False)
     password_hash = db.Column(db.String, nullable=False)
     client_id = db.Column(db.String, nullable=False)
