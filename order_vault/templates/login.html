@@ -99,8 +99,15 @@
       })
       .then(data => {
         if (data.message === "Logged in") {
+          // Normal login flow
           window.location.href = "/promotion_dashboard";
-        } else {
+        } 
+        else if (data.message === "Change Password" || data.require_password_change) {
+          // Force password change flow
+          window.location.href = "/auth/change-password"; // <-- your change_password_page route
+        } 
+        else {
+          // Default error handling
           document.getElementById("error").textContent = data.error || "Login failed.";
         }
       })
