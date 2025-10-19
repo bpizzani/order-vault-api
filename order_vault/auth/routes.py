@@ -85,15 +85,24 @@ def login():
         user = User.query.filter_by(email=email.lower()).first()
         
         if user and check_password_hash(user.password_hash, password):
-            session["user_id"] = user.id
-            session["client_id"] = user.client_id
-
-            # If it's an AJAX request, return JSON
-            if request.is_json:
-                return jsonify({"message": "Logged in"}), 200
-            else:
-                return redirect(url_for("home.promotion_ui"))
-
+            if user.user_onboarded_flag == 1:
+                session["user_id"] = user.id
+                session["client_id"] = user.client_id
+    
+                # If it's an AJAX request, return JSON
+                if request.is_json:
+                    return jsonify({"message": "Logged in"}), 200
+                else:
+                    return redirect(url_for("home.promotion_ui"))
+            if user.user_onboarded_flag == 0:
+                if request.is_json:
+                    return jsonify({
+                    "require_password_change": True,
+                    "redirect": url_for("auth.change_password_page")
+                }), 200
+                else:
+                    return redirect(url_for("auth.change_password_page"))
+                    
         if request.is_json:
             return jsonify({"error": "Invalid credentials"}), 401
         else:
