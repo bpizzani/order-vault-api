@@ -69,10 +69,10 @@ def _ensure_pk_key(existing):
 
 def _valid_password(pw: str) -> bool:
     return (
-        isinstance(pw, str) and len(pw) >= 8
+        isinstance(pw, str) and len(pw) >= 5
         and any(c.islower() for c in pw)
-        and any(c.isupper() for c in pw)
-        and any(c.isdigit() for c in pw)
+        #and any(c.isupper() for c in pw)
+        #and any(c.isdigit() for c in pw)
     )
 
 @auth_bp.route("/change-password", methods=["POST"])
