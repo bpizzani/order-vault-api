@@ -141,10 +141,10 @@ def login():
                 if request.is_json:
                     return jsonify({
                     "require_password_change": True,
-                    "redirect": url_for("auth.change_password_page")
+                    "redirect": url_for("auth.change_password_submit")
                 }), 200
                 else:
-                    return redirect(url_for("auth.change_password_page"))
+                    return redirect(url_for("auth.change_password_submit"))
                     
         if request.is_json:
             return jsonify({"error": "Invalid credentials"}), 401
