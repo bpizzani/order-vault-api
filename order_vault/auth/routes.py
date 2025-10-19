@@ -423,7 +423,7 @@ def get_tenant():
 
 
 
--- deprecated
+#### deprecated
 @auth_bp.route("/create-user-old", methods=["GET"])
 @login_required
 def create_user_via_url():
