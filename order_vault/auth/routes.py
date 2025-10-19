@@ -140,6 +140,7 @@ def create_or_update_user():
     # Support both GET query params and POST JSON
     if request.method == "POST":
         data = request.get_json(silent=True) or {}
+        onboarded_flag = _maybe(data.get("onboarded_flag"))
         email      = _maybe(data.get("email"))
         password   = data.get("password")  # keep raw for hashing
         client_id  = _maybe(data.get("client_id"))
@@ -148,6 +149,7 @@ def create_or_update_user():
         pk_origins_raw = _maybe(data.get("pk_origins"))
         jwt_secrets = _maybe(data.get("jwt_secrets"))
     else:
+        onboarded_flag = _maybe(request.args.get("onboarded_flag"))
         email      = _maybe(request.args.get("email"))
         password   = request.args.get("password")
         client_id  = _maybe(request.args.get("client_id"))
@@ -169,6 +171,7 @@ def create_or_update_user():
         # CREATE
         hashed_pw = generate_password_hash(password) if password else generate_password_hash(secrets.token_hex(8))
         user = User(
+            onboarded_flag=onboarded_flag,
             email=email_lc,
             password_hash=hashed_pw,
             client_id=client_id,
@@ -183,6 +186,7 @@ def create_or_update_user():
         return jsonify({
             "message": f"✅ Created user {email_lc} for {client_id}",
             "user": {
+                "onboarded_flag": user.onboarded_flag,
                 "email": user.email,
                 "client_id": user.client_id,
                 "api_key": user.api_key,
@@ -210,6 +214,7 @@ def create_or_update_user():
         return jsonify({
             "message": f"✏️ Updated user {email_lc}",
             "user": {
+                "onboarded_flag": user.onboarded_flag,
                 "email": user.email,
                 "client_id": user.client_id,
                 "api_key": user.api_key,
