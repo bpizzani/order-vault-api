@@ -104,7 +104,7 @@ def change_password_submit():
     # clear flag and rotate session
     # (optional) regenerate session id here if you have a helper
 
-    return (jsonify({"message": "Password updated"}), 200) if request.is_js
+    return (jsonify({"message": "Password updated"}), 200) if request.is_json
 
 
 @auth_bp.route("/login", methods=["GET", "POST"])
