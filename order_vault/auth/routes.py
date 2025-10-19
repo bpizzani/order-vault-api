@@ -98,7 +98,7 @@ def change_password_submit():
 
     # update password + flip flag
     user.password_hash = generate_password_hash(new_pw)
-    user.user_onboarded_flag = True
+    user.user_onboarded_flag = 1
     db.session.commit()
 
     # clear flag and rotate session
@@ -134,7 +134,7 @@ def login():
                     return jsonify({"message": "Logged in"}), 200
                 else:
                     return redirect(url_for("home.promotion_ui"))
-            if user.user_onboarded_flag == 0:
+            if user.user_onboarded_flag != 1:
                 if request.is_json:
                     return jsonify({
                     "require_password_change": True,
