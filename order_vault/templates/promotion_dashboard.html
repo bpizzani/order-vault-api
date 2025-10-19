@@ -24,7 +24,22 @@
                 <button onclick="fetchPromocodeUsage()"
                     class="bg-[#ff3b2f] px-6 py-3 rounded-r-md text-white font-semibold hover:bg-[#ff1a0f] transition-all">Search</button>
             </div>
-
+            
+            <!-- Date Range Controls -->
+            <div class="flex flex-col md:flex-row items-center gap-3 mb-8">
+              <label class="text-sm text-gray-300">
+                Start:
+                <input type="date" id="startDate" class="bg-[#0f0f0f] border border-gray-700 rounded px-3 py-2">
+              </label>
+              <label class="text-sm text-gray-300">
+                End:
+                <input type="date" id="endDate" class="bg-[#0f0f0f] border border-gray-700 rounded px-3 py-2">
+              </label>
+              <button id="applyRange" class="px-4 py-2 bg-sky-500 hover:bg-sky-400 rounded text-black font-semibold">
+                Apply
+              </button>
+            </div>
+            
             <!-- Cards -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
                 <div class="bg-[#1f1f1f] p-6 rounded-xl shadow-lg">
