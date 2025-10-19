@@ -156,21 +156,6 @@ def logout():
     return render_template("logout.html"), 200
 
 
-@auth_bp.route("/change-password", methods=["GET"])
-def change_password_page():
-    if not session.get("user_id"):
-        return redirect(url_for("auth.login"))
-    # If already onboarded, skip
-    user = User.query.get(session["user_id"])
-    if not user:
-        session.clear()
-        return redirect(url_for("auth.login"))
-    if user.user_onboarded_flag:
-        session.pop("force_pw_change", None)
-        return redirect(url_for("home.promotion_ui"))
-    return render_template("change_password.html")  # contains a form that POSTs to /change-password
-    
-
 
 @auth_bp.route("/create-user", methods=["GET", "POST"])
 @login_required
