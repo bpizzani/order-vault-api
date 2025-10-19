@@ -83,7 +83,7 @@ def login():
             return jsonify({"error": "Missing email or password"}), 400
 
         user = User.query.filter_by(email=email.lower()).first()
-
+        
         if user and check_password_hash(user.password_hash, password):
             session["user_id"] = user.id
             session["client_id"] = user.client_id
@@ -106,32 +106,6 @@ def logout():
     session.clear()
     return render_template("logout.html"), 200
 
-@auth_bp.route("/create-user-old", methods=["GET"])
-@login_required
-def create_user_via_url():
-    email = request.args.get("email")
-    password = request.args.get("password")
-    client_id = request.args.get("client_id")
-    api_key = request.args.get("api_key")
-    #admin_key = request.headers.get("X-Admin-Key")  # Optional for security
-
-    # Optional: check admin key for added security
-    #expected_key = current_app.config.get("ADMIN_API_KEY", "mysecretkey")
-    #if admin_key != expected_key:
-        #return jsonify({"error": "Unauthorized"}), 403
-
-    if not email or not password or not client_id:
-        return jsonify({"error": "Missing parameters"}), 400
-
-    if User.query.filter_by(email=email.lower()).first():
-        return jsonify({"error": "User already exists"}), 400
-
-    hashed_pw = generate_password_hash(password)
-    user = User(email=email.lower(), password_hash=hashed_pw, client_id=client_id, api_key=api_key)
-    db.session.add(user)
-    db.session.commit()
-
-    return jsonify({"message": f"✅ Created user {email} for {client_id}"}), 201
 
 
 @auth_bp.route("/create-user", methods=["GET", "POST"])
@@ -394,3 +368,33 @@ def get_tenant():
         return jsonify({"error": f"Database error: {str(e)}"}), 500
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+
+-- deprecated
+@auth_bp.route("/create-user-old", methods=["GET"])
+@login_required
+def create_user_via_url():
+    email = request.args.get("email")
+    password = request.args.get("password")
+    client_id = request.args.get("client_id")
+    api_key = request.args.get("api_key")
+    #admin_key = request.headers.get("X-Admin-Key")  # Optional for security
+
+    # Optional: check admin key for added security
+    #expected_key = current_app.config.get("ADMIN_API_KEY", "mysecretkey")
+    #if admin_key != expected_key:
+        #return jsonify({"error": "Unauthorized"}), 403
+
+    if not email or not password or not client_id:
+        return jsonify({"error": "Missing parameters"}), 400
+
+    if User.query.filter_by(email=email.lower()).first():
+        return jsonify({"error": "User already exists"}), 400
+
+    hashed_pw = generate_password_hash(password)
+    user = User(email=email.lower(), password_hash=hashed_pw, client_id=client_id, api_key=api_key)
+    db.session.add(user)
+    db.session.commit()
+
+    return jsonify({"message": f"✅ Created user {email} for {client_id}"}), 201
