@@ -208,7 +208,9 @@ def create_or_update_user():
         if jwt_secrets is not None:
             user.jwt_secrets = jwt_secrets
         if pk_origins_list is not None:
-                user.pk_origin = pk_origins_list
+            user.pk_origin = pk_origins_list
+        if onboarded_flag is not None:
+            user.onboarded_flag = onboarded_flag
 
         db.session.commit()
         return jsonify({
