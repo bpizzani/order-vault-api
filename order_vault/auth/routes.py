@@ -128,7 +128,7 @@ def login():
         user = User.query.filter_by(email=email.lower()).first()
         
         if user and check_password_hash(user.password_hash, password):
-            if user.user_onboarded_flag == 1:
+            if user.onboarded_flag == 1:
                 session["user_id"] = user.id
                 session["client_id"] = user.client_id
     
@@ -137,7 +137,7 @@ def login():
                     return jsonify({"message": "Logged in"}), 200
                 else:
                     return redirect(url_for("home.promotion_ui"))
-            if user.user_onboarded_flag != 1:
+            if user.onboarded_flag != 1:
                 if request.is_json:
                     return jsonify({
                     "require_password_change": True,
