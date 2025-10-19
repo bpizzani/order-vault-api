@@ -152,6 +152,9 @@ def login():
                 else:
                     return redirect(url_for("home.promotion_ui"))
             if user.onboarded_flag != 1:
+                session["user_id"] = user.id
+                session["client_id"] = user.client_id
+                
                 if request.is_json:
                     return jsonify({
                     "require_password_change": True,
