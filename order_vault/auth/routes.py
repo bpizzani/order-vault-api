@@ -157,7 +157,7 @@ def login():
                 session["client_id"] = user.client_id
                 
                 if request.is_json:
-                    return jsonify({"message": "Chagne Password"}), 200
+                    return jsonify({"message": "Change Password"}), 200
                 else:
                     return redirect(url_for("auth.change_password_page"))
                     
