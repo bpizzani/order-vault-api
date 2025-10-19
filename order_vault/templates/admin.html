@@ -69,6 +69,10 @@
           <label for="u_password">Password</label>
           <input id="u_password" name="password" type="password" placeholder="Min 8 characters" minlength="1" required />
 
+          <label for="u_onboarded_flag">Onboarded Flag</label>
+          <input id="u_onboarded_flag" name="onboarded_flag" type="onboarded_flag" placeholder="0 / 1" minlength="1" required />
+
+           
           <div class="row">
             <div>
               <label for="u_client_id">Client ID</label>
@@ -296,6 +300,7 @@
 
       const url = buildUrl(base, prefix, "/create-user", {
         email: byId("u_email").value.trim(),
+        onboarded_flag: byId("u_onboarded_flag").value,
         password: byId("u_password").value,
         client_id: byId("u_client_id").value.trim(),
         api_key: byId("u_api_key").value.trim(),
