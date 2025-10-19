@@ -67,6 +67,46 @@ def _ensure_pk_key(existing):
     return existing or f"pk_{secrets.token_hex(16)}"
 
 
+def _valid_password(pw: str) -> bool:
+    return (
+        isinstance(pw, str) and len(pw) >= 8
+        and any(c.islower() for c in pw)
+        and any(c.isupper() for c in pw)
+        and any(c.isdigit() for c in pw)
+    )
+
+@auth_bp.route("/change-password", methods=["POST"])
+def change_password_submit():
+    if not session.get("user_id"):
+        return (jsonify({"error": "Not authenticated"}), 401) if request.is_json else redirect(url_for("auth.login"))
+
+    user = User.query.get(session["user_id"])
+    if not user:
+        session.clear()
+        return (jsonify({"error": "Not authenticated"}), 401) if request.is_json else redirect(url_for("auth.login"))
+
+    data = request.get_json() if request.is_json else request.form
+    new_pw = (data.get("new_password") or "").strip()
+    confirm_pw = (data.get("confirm_password") or "").strip()
+
+    if not new_pw or not confirm_pw:
+        return (jsonify({"error": "Missing fields"}), 400) if request.is_json else ("Missing fields", 400)
+    if new_pw != confirm_pw:
+        return (jsonify({"error": "Passwords do not match"}), 400) if request.is_json else ("Passwords do not match", 400)
+    if not _valid_password(new_pw):
+        return (jsonify({"error": "Password too weak"}), 400) if request.is_json else ("Password too weak", 400)
+
+    # update password + flip flag
+    user.password_hash = generate_password_hash(new_pw)
+    user.user_onboarded_flag = True
+    db.session.commit()
+
+    # clear flag and rotate session
+    # (optional) regenerate session id here if you have a helper
+
+    return (jsonify({"message": "Password updated"}), 200) if request.is_js
+
+
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -115,6 +155,21 @@ def logout():
     session.clear()
     return render_template("logout.html"), 200
 
+
+@auth_bp.route("/change-password", methods=["GET"])
+def change_password_page():
+    if not session.get("user_id"):
+        return redirect(url_for("auth.login"))
+    # If already onboarded, skip
+    user = User.query.get(session["user_id"])
+    if not user:
+        session.clear()
+        return redirect(url_for("auth.login"))
+    if user.user_onboarded_flag:
+        session.pop("force_pw_change", None)
+        return redirect(url_for("home.promotion_ui"))
+    return render_template("change_password.html")  # contains a form that POSTs to /change-password
+    
 
 
 @auth_bp.route("/create-user", methods=["GET", "POST"])
