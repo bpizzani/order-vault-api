@@ -356,8 +356,8 @@ function fetchAllPromocodeHistory() {
     document.getElementById("loading").classList.remove("hidden");
       const { start, end } = currentRange();
       const qs = `?start_date=${start}&end_date=${end}`;
-    
-    fetch("https://console.rediim.com/api/promocode/abuse-history${qs}", {
+
+    fetch(`https://console.rediim.com/api/promocode/abuse-history${qs}`, {
         method: "GET",
         credentials: "include"
     })
