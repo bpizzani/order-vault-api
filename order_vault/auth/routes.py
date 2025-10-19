@@ -78,12 +78,12 @@ def _valid_password(pw: str) -> bool:
 @auth_bp.route("/change-password", methods=["POST"])
 def change_password_submit():
     if not session.get("user_id"):
-        return (jsonify({"error": "Not authenticated"}), 401) if request.is_json else redirect(url_for("auth.login"))
+        return (jsonify({"error": "Not authenticated"}), 401) if request.is_json else redirect(url_for("auth_bp.login"))
 
     user = User.query.get(session["user_id"])
     if not user:
         session.clear()
-        return (jsonify({"error": "Not authenticated"}), 401) if request.is_json else redirect(url_for("auth.login"))
+        return (jsonify({"error": "Not authenticated"}), 401) if request.is_json else redirect(url_for("auth_bp.login"))
 
     data = request.get_json() if request.is_json else request.form
     new_pw = (data.get("new_password") or "").strip()
@@ -141,10 +141,10 @@ def login():
                 if request.is_json:
                     return jsonify({
                     "require_password_change": True,
-                    "redirect": url_for("auth.change_password_submit")
+                    "redirect": url_for("auth_bp.change_password_submit")
                 }), 200
                 else:
-                    return redirect(url_for("auth.change_password_submit"))
+                    return redirect(url_for("auth_bp.change_password_submit"))
                     
         if request.is_json:
             return jsonify({"error": "Invalid credentials"}), 401
