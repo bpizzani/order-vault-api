@@ -151,15 +151,13 @@ def login():
                     return jsonify({"message": "Logged in"}), 200
                 else:
                     return redirect(url_for("home.promotion_ui"))
+                    
             if user.onboarded_flag != 1:
                 session["user_id"] = user.id
                 session["client_id"] = user.client_id
                 
                 if request.is_json:
-                    return jsonify({
-                    "require_password_change": True,
-                    "redirect": url_for("auth.change_password_page")
-                }), 200
+                    return jsonify({"message": "Chagne Password"}), 200
                 else:
                     return redirect(url_for("auth.change_password_page"))
                     
