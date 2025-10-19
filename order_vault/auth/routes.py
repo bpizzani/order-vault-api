@@ -75,6 +75,20 @@ def _valid_password(pw: str) -> bool:
         #and any(c.isdigit() for c in pw)
     )
 
+@auth_bp.route("/change-password", methods=["GET"])
+def change_password_page():
+    if not session.get("user_id"):
+        return redirect(url_for("auth.login"))
+    # If already onboarded, skip
+    user = User.query.get(session["user_id"])
+    if not user:
+        session.clear()
+        return redirect(url_for("auth.login"))
+    if user.onboarded_flag == 1:
+        return redirect(url_for("home.promotion_ui"))
+    return render_template("change_password.html")  # contains a form that POSTs to /change-password
+
+
 @auth_bp.route("/change-password", methods=["POST"])
 def change_password_submit():
     if not session.get("user_id"):
