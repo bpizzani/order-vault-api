@@ -94,7 +94,7 @@
         </div>
       </section>
 
-
+      <section class="my-12">
          <!-- Search Tools Fingerprint-->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10">
               <!-- Search by user_id -->
@@ -127,12 +127,7 @@
                 <div id="resPromo" class="mt-4 text-sm"></div>
               </div>
             </div>
-
-    
-      <!-- Loading -->
-      <div id="loading2" class="text-center text-white text-xl hidden">
-        Cargando datos, por favor espera...
-      </div>
+      </section>
         
             <!-- Results tables -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8" id="searchTables" style="display:none;">
@@ -371,7 +366,7 @@ function renderList(elId, arr) {
 
   document.addEventListener("DOMContentLoaded", () => {
     // loader
-    const loader = $("loading2");
+    const loader = $("loading");
     if (loader) loader.classList.remove("hidden");
       
     // ---- Search handlers (now DOM is ready) ----
