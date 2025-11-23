@@ -95,56 +95,56 @@
       </section>
 
 
-     <!-- Search Tools Fingerprint-->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10">
-          <!-- Search by user_id -->
-          <div class="bg-[#1a1a1a] p-5 rounded-lg">
-            <h3 class="text-lg font-semibold mb-3">Search by <span class="text-sky-400">user_id</span></h3>
-            <div class="flex gap-2">
-              <input id="qUserId" class="w-full bg-[#0f0f0f] border border-gray-700 rounded px-3 py-2" placeholder="e.g. 12345" />
-              <button id="btnUserId" class="px-3 py-2 bg-sky-500 hover:bg-sky-400 rounded text-black font-semibold">Search</button>
+         <!-- Search Tools Fingerprint-->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10">
+              <!-- Search by user_id -->
+              <div class="bg-[#1a1a1a] p-5 rounded-lg">
+                <h3 class="text-lg font-semibold mb-3">Search by <span class="text-sky-400">user_id</span></h3>
+                <div class="flex gap-2">
+                  <input id="qUserId" class="w-full bg-[#0f0f0f] border border-gray-700 rounded px-3 py-2" placeholder="e.g. 12345" />
+                  <button id="btnUserId" class="px-3 py-2 bg-sky-500 hover:bg-sky-400 rounded text-black font-semibold">Search</button>
+                </div>
+                <div id="resUserId" class="mt-4 text-sm"></div>
+              </div>
+            
+              <!-- Search by device_id -->
+              <div class="bg-[#1a1a1a] p-5 rounded-lg">
+                <h3 class="text-lg font-semibold mb-3">Search by <span class="text-emerald-400">device_id</span></h3>
+                <div class="flex gap-2">
+                  <input id="qDeviceId" class="w-full bg-[#0f0f0f] border border-gray-700 rounded px-3 py-2" placeholder="tm/js/visitor id" />
+                  <button id="btnDeviceId" class="px-3 py-2 bg-emerald-500 hover:bg-emerald-400 rounded text-black font-semibold">Search</button>
+                </div>
+                <div id="resDeviceId" class="mt-4 text-sm"></div>
+              </div>
+            
+              <!-- Search by promocode -->
+              <div class="bg-[#1a1a1a] p-5 rounded-lg">
+                <h3 class="text-lg font-semibold mb-3">Search by <span class="text-amber-400">promocode</span></h3>
+                <div class="flex gap-2">
+                  <input id="qPromo" class="w-full bg-[#0f0f0f] border border-gray-700 rounded px-3 py-2" placeholder="e.g. SAVE10" />
+                  <button id="btnPromo" class="px-3 py-2 bg-amber-400 hover:bg-amber-300 rounded text-black font-semibold">Search</button>
+                </div>
+                <div id="resPromo" class="mt-4 text-sm"></div>
+              </div>
             </div>
-            <div id="resUserId" class="mt-4 text-sm"></div>
-          </div>
-        
-          <!-- Search by device_id -->
-          <div class="bg-[#1a1a1a] p-5 rounded-lg">
-            <h3 class="text-lg font-semibold mb-3">Search by <span class="text-emerald-400">device_id</span></h3>
-            <div class="flex gap-2">
-              <input id="qDeviceId" class="w-full bg-[#0f0f0f] border border-gray-700 rounded px-3 py-2" placeholder="tm/js/visitor id" />
-              <button id="btnDeviceId" class="px-3 py-2 bg-emerald-500 hover:bg-emerald-400 rounded text-black font-semibold">Search</button>
-            </div>
-            <div id="resDeviceId" class="mt-4 text-sm"></div>
-          </div>
-        
-          <!-- Search by promocode -->
-          <div class="bg-[#1a1a1a] p-5 rounded-lg">
-            <h3 class="text-lg font-semibold mb-3">Search by <span class="text-amber-400">promocode</span></h3>
-            <div class="flex gap-2">
-              <input id="qPromo" class="w-full bg-[#0f0f0f] border border-gray-700 rounded px-3 py-2" placeholder="e.g. SAVE10" />
-              <button id="btnPromo" class="px-3 py-2 bg-amber-400 hover:bg-amber-300 rounded text-black font-semibold">Search</button>
-            </div>
-            <div id="resPromo" class="mt-4 text-sm"></div>
-          </div>
-        </div>
-        
-        <!-- Results tables -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8" id="searchTables" style="display:none;">
-          <div class="bg-[#1a1a1a] p-5 rounded-lg">
-            <h4 id="titleA" class="font-semibold mb-3">List A</h4>
-            <table class="w-full text-sm">
-              <thead><tr class="text-gray-300"><th class="text-left py-2">Value</th></tr></thead>
-              <tbody id="tableA"></tbody>
-            </table>
-          </div>
-          <div class="bg-[#1a1a1a] p-5 rounded-lg">
-            <h4 id="titleB" class="font-semibold mb-3">List B</h4>
-            <table class="w-full text-sm">
-              <thead><tr class="text-gray-300"><th class="text-left py-2">Value</th></tr></thead>
-              <tbody id="tableB"></tbody>
-            </table>
-          </div>
-        </div>    
+            
+            <!-- Results tables -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8" id="searchTables" style="display:none;">
+              <div class="bg-[#1a1a1a] p-5 rounded-lg">
+                <h4 id="titleA" class="font-semibold mb-3">List A</h4>
+                <table class="w-full text-sm">
+                  <thead><tr class="text-gray-300"><th class="text-left py-2">Value</th></tr></thead>
+                  <tbody id="tableA"></tbody>
+                </table>
+              </div>
+              <div class="bg-[#1a1a1a] p-5 rounded-lg">
+                <h4 id="titleB" class="font-semibold mb-3">List B</h4>
+                <table class="w-full text-sm">
+                  <thead><tr class="text-gray-300"><th class="text-left py-2">Value</th></tr></thead>
+                  <tbody id="tableB"></tbody>
+                </table>
+              </div>
+            </div>    
 
         
     </main>
