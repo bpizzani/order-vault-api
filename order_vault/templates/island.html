@@ -129,6 +129,12 @@
               </div>
             </div>
       </section>
+
+
+      <!-- Loading -->
+      <div id="loading2" class="text-center text-white text-xl hidden">
+        Cargando datos, por favor espera...
+      </div>
         
             <!-- Results tables -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8" id="searchTables" style="display:none;">
@@ -366,6 +372,11 @@ function renderList(elId, arr) {
   }
 
   document.addEventListener("DOMContentLoaded", () => {
+  // loader
+      
+    const $ = (id) => document.getElementById(id);
+    const loader = $("loading2");
+    if (loader) loader.classList.remove("hidden");
       
     // ---- Search handlers (now DOM is ready) ----
     $("btnUserId")?.addEventListener("click", async () => {
