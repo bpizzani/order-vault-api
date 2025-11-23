@@ -190,6 +190,7 @@ function ctxFresh(id) {
             type: 'bar',
             data: { labels, datasets: [{ label: 'Users per Device', data: counts, backgroundColor: '#facc15', borderColor: '#eab308', borderWidth: 1 }]},
             options: {
+              indexAxis: 'y',   // 👈 THIS FLIPS THE AXIS
               responsive: true,
               plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => `${c.raw} users` } } },
               scales: {
