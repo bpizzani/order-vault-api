@@ -139,15 +139,6 @@ async function getAccessTokenClient() { // Client side API
   }
 }
     
-  // Optional: your own user identifier. If you don’t have one, use 0 or skip.
-  function getUserId() {
-    let uid = localStorage.getItem("user_id");
-    if (!uid) {
-      uid = Math.floor(Math.random() * 1_000_000);
-      localStorage.setItem("user_id", uid);
-    }
-    return uid;
-  }
 
   // Call this on pages you want to track (commonly right after login)
   async function runInHouseFingerprint(key, clientId, call_type = null, userId = null, coupon = null) {
@@ -181,7 +172,7 @@ async function getAccessTokenClient() { // Client side API
     // Option 2: Or generate an Access Token from your backened
     const accessToken = await getAccessTokenClient();
     
-    const userId = getUserId(); // optional but recommended
+    const userId = user_id; // optional but recommended
     const coupon = {promocode: promocode, // optional but recommended
                     promotion_id: promotion_id,
                     type: type,
