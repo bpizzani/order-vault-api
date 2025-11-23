@@ -352,6 +352,11 @@
                 });
         }
 
+
+  const $ = (id) => document.getElementById(id);
+  const setText = (id, text) => { const el = $(id); if (el) el.textContent = text; };
+  const show = (id) => { const el = $(id); if (el) el.style.display = "grid"; };
+        
 function renderList(elId, arr) {
     const el = $(elId);
     if (!el) return;
@@ -367,12 +372,10 @@ function renderList(elId, arr) {
     if (!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
     return data;
   }
-
+        
+   
   document.addEventListener("DOMContentLoaded", () => {
      // loader
-    const setText = (id, text) => { const el = $(id); if (el) el.textContent = text; };
-    const show = (id) => { const el = $(id); if (el) el.style.display = "grid"; };
-    const $ = (id) => document.getElementById(id);
     const loader = $("loading2");
     if (loader) loader.classList.remove("hidden");
       
