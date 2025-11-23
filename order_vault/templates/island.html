@@ -366,9 +366,6 @@ function renderList(elId, arr) {
   }
 
   document.addEventListener("DOMContentLoaded", () => {
-    // loader
-    const loader = $("loading");
-    if (loader) loader.classList.remove("hidden");
       
     // ---- Search handlers (now DOM is ready) ----
     $("btnUserId")?.addEventListener("click", async () => {
