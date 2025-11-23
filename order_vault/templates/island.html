@@ -369,8 +369,9 @@ function renderList(elId, arr) {
   }
 
   document.addEventListener("DOMContentLoaded", () => {
-  // loader
-      
+     // loader
+    const setText = (id, text) => { const el = $(id); if (el) el.textContent = text; };
+    const show = (id) => { const el = $(id); if (el) el.style.display = "grid"; };
     const $ = (id) => document.getElementById(id);
     const loader = $("loading2");
     if (loader) loader.classList.remove("hidden");
