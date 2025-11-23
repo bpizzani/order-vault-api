@@ -282,6 +282,7 @@ def get_my_credentials():
         "client_id": user.client_id,
         "api_key": user.api_key,     # server-side secret: only return to the owner
         "pk_key": user.pk_key,       # publishable key (safe for browsers)
+        "pk_origin": user.pk_origin, # publishable key origins (safe for browsers)
         "jwt": user.jwt_secrets      # fresh short-lived token
     }), 200
     
