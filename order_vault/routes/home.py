@@ -43,7 +43,7 @@ def customer_ui():
 @login_required
 @require_subscription_in("demo","fingerprint_demo","admin",None)
 def fingerprint_ui():
-    return render_template("fingerprint.html")
+    return render_template("fingerprint.html",active='fingerprint')
 
 @home_bp.route("/credentials", methods=["GET"])
 @login_required
