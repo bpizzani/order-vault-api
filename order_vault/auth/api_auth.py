@@ -10,7 +10,7 @@ from neo4j import GraphDatabase
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
-def _set_tenant_context(client_id):
+def _set_tenant_context_deprecated(client_id):
     tenant = Tenant.query.filter_by(client_id=client_id).first()
     if not tenant:
         abort(401, description="unknown_tenant")
@@ -27,6 +27,42 @@ def _set_tenant_context(client_id):
         auth=(neo4j_user_dec, neo4j_pass_dec)
     )
 
+def _set_tenant_context(client_id):
+    print(f"[TENANT] Looking up tenant for client_id: {client_id}")
+    
+    tenant = Tenant.query.filter_by(client_id=client_id).first()
+    if not tenant:
+        print(f"[TENANT] ERROR: No tenant found for client_id: {client_id}")
+        abort(401, description="unknown_tenant")
+    
+    print(f"[TENANT] Tenant found: {tenant.id}")
+    
+    pg_uri_dec = dec(tenant.pg_uri_enc)
+    neo4j_uri_dec = dec(tenant.neo4j_uri_enc)
+    neo4j_user_dec = dec(tenant.neo4j_user_enc)
+    neo4j_pass_dec = dec(tenant.neo4j_pass_enc)
+
+    print(f"[TENANT] neo4j_uri: {neo4j_uri_dec}")
+    print(f"[TENANT] neo4j_user: {neo4j_user_dec}")
+    print(f"[TENANT] neo4j_pass (first 6 chars): {neo4j_pass_dec[:6]}...")
+    print(f"[TENANT] pg_uri (masked): {pg_uri_dec[:20]}...")
+
+    try:
+        driver = GraphDatabase.driver(
+            neo4j_uri_dec,
+            auth=(neo4j_user_dec, neo4j_pass_dec)
+        )
+        # Verify connectivity immediately so we catch auth errors here
+        driver.verify_connectivity()
+        print(f"[TENANT] Neo4j connection verified OK")
+        g.neo4j_driver = driver
+    except Exception as e:
+        print(f"[TENANT] ERROR connecting to Neo4j: {str(e)}")
+        raise
+
+    g.client_id = client_id
+    g.db_uri = pg_uri_dec
+    
 def _verify_api_key_or_401():
     print("API!")
     api_key = request.headers.get("X-API-KEY")
