@@ -1,136 +1,24 @@
-<aside class="w-64 bg-[#121212] p-6 text-white flex flex-col">
-    <div class="mb-8">
-        <a href="https://rediim.com" target="_blank" rel="noopener noreferrer">
-        <img src="{{ url_for('static', filename='images/rediim_logo.svg') }}" class="h-10 mx-auto" alt="Logo">
-        </a>
-    </div>
-
-    {% if client_id %}
-    <div class="text-sm text-gray-400 mb-8 border-b border-gray-700 pb-4">
-        <p class="text-xs uppercase">Client</p>
-        <p class="text-white font-medium">{{ client_id }}</p>
-        <p class="text-gray-500">{{ client_email }}</p>
-    </div>
-    {% endif %}
-
-    {# Lock the non-fingerprint links when on the fingerprint_demo plan #}
-    {# Flip to != "fingerprint_demo" if you want the opposite behavior #}
-    {% set lock_others = (subscription_type == "fingerprint_demo") %}
-
-    <nav class="flex flex-col space-y-3">
-        <a href="{{ url_for('home.promotion_ui') }}"
-           class="sidebar-link {% if lock_others %}locked{% endif %}"
-           {% if lock_others %}aria-disabled="true" tabindex="-1" title="Locked on demo plan"{% endif %}>📊 Dashboard</a>
-
-        <a href="{{ url_for('home.rules_ui') }}"
-           class="sidebar-link {% if lock_others %}locked{% endif %}"
-           {% if lock_others %}aria-disabled="true" tabindex="-1" title="Locked on demo plan"{% endif %}>📐 Reglas</a>
-
-        <a href="{{ url_for('home.customer_ui') }}"
-           class="sidebar-link {% if lock_others %}locked{% endif %}"
-           {% if lock_others %}aria-disabled="true" tabindex="-1" title="Locked on demo plan"{% endif %}>🔍 User Intelligence</a>
-
-        {# Fingerprint remains available #}
-        <a href="{{ url_for('home.fingerprint_ui') }}" class="sidebar-link">🖐️ Fingerprint</a>
-         <!-- <a href="https://console.rediim.com/documentation" class="sidebar-link">📖 Documentation</a>-->
-         <!-- Documentation Toggle -->
-        <button id="doc-toggle" class="sidebar-link flex items-center justify-between">
-            📖 Documentation
-            <span id="doc-arrow">▶</span>
-        </button>
-        <!-- Submenu -->
-        <div id="doc-submenu" class="ml-4 mt-2 hidden flex flex-col">
-            <a href="https://console.rediim.com/documentation_web" 
-               class="submenu-link" target="_blank">🌐 Web</a>
-            <a href="https://console.rediim.com/documentation_android" 
-       class="submenu-link" target="_blank">📱 Mobile</a>
-        </div>
-        <a href={{ url_for('home.credentials_page') }} class="sidebar-link" target="_blank">🗝️ Credentials</a>
-        <a href="/logout" class="sidebar-link">🚪 Logout</a>
-
-        {# Admin-only link #}
-        {% if subscription_type and subscription_type|lower == "admin" %}
-            <a href="{{ url_for('home.admin_ui') }}" class="sidebar-link">⚙️ Admin Panel</a>
-        {% endif %}
-        
-    </nav>
-
-    <style>
-        .sidebar-link {
-            padding: 0.75rem 1rem;
-            border-radius: 0.5rem;
-            font-weight: 500;
-            transition: all 0.2s ease;
-            color: #d1d5db;
-            position: relative; /* needed for overlay positioning */
-        }
-
-        .sidebar-link:hover {
-            background-color: #1f1f1f;
-            color: #ffffff;
-        }
-
-        .sidebar-link.active {
-            background-color: #ff3b2f;
-            color: #ffffff;
-        }
-
-        /* Lock “overlay” */
-        .sidebar-link.locked {
-            pointer-events: none;  /* blocks clicks */
-            opacity: 0.6;
-            filter: grayscale(0.2);
-            cursor: not-allowed;
-        }
-        .sidebar-link.locked::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background: rgba(0,0,0,0.25);
-            border-radius: 0.5rem;
-        }
-        .sidebar-link.locked::after {
-            content: "🔒";
-            position: absolute;
-            right: 0.75rem;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 0.95rem;
-        }
-
-        .submenu-link {
-        display: block;
-        padding: 0.5rem 1rem;
-        border-radius: 0.375rem;
-        font-size: 0.875rem; /* smaller than main links */
-        color: #d1d5db;
-        transition: background-color 0.2s ease;
-    }
-    .submenu-link:hover {
-        background-color: #1f1f1f;
-        color: #ffffff;
-    }
-    </style>
-
-    <script>
-        // Optional: Highlight current link
-        const links = document.querySelectorAll('.sidebar-link');
-        const path = window.location.pathname;
-        links.forEach(link => {
-            try {
-                const href = link.getAttribute('href') || "";
-                if (href === path) link.classList.add('active');
-            } catch (_) {}
-        });
-
-        // Documentation submenu toggle
-        const toggleBtn = document.getElementById('doc-toggle');
-        const submenu = document.getElementById('doc-submenu');
-        const arrow = document.getElementById('doc-arrow');
-
-        toggleBtn.addEventListener('click', () => {
-            submenu.classList.toggle('hidden');
-            arrow.textContent = submenu.classList.contains('hidden') ? '▶' : '▼';
-        });
-    </script>
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <a class="logo-mark" href="https://rediim.com" target="_blank" rel="noopener">
+      <span class="logo-dot"></span>
+      <span class="logo-text">rediim</span>
+    </a>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">Analytics</div>
+    <a class="nav-item {% if active == 'dashboard' %}active{% endif %}" href="{{ url_for('home.promotion_ui') }}">
+      <span class="nav-icon">▦</span> Dashboard
+    </a>
+    <a class="nav-item {% if active == 'rules' %}active{% endif %}" href="{{ url_for('home.rules_ui') }}">
+      <span class="nav-icon">◈</span> Rules
+    </a>
+    <a class="nav-item {% if active == 'customers' %}active{% endif %}" href="{{ url_for('home.customer_ui') }}">
+      <span class="nav-icon">◎</span> User Intelligence
+    </a>
+    <div class="nav-section" style="margin-top: 10px">Detection</div>
+    <a class="nav-item {% if active == 'fingerprint' %}active{% endif %}" href="{{ url_for('home.fingerprint_ui') }}">
+      <span class="nav-icon">◉</span> Fingerprint
+    </a>
+  </nav>
 </aside>

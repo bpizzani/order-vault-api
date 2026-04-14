@@ -1,0 +1,45 @@
+<header class="topbar">
+  <span class="topbar-title">{{ page_title or 'Rediim Console' }}</span>
+  <div class="profile-wrap">
+    <div class="profile-btn" id="profileBtn">
+      <div class="avatar">{{ client_id[:2]|upper if client_id else 'AC' }}</div>
+      <div>
+        <div class="p-name">{{ client_id or 'Client' }}</div>
+        <div class="p-email">{{ client_email or '' }}</div>
+      </div>
+      <span class="chevron" id="chev">▾</span>
+    </div>
+    <div class="drop-menu" id="dropMenu">
+      <div class="drop-sec">Docs</div>
+      <a class="drop-item" href="https://console.rediim.com/documentation_web" target="_blank">
+        <span class="di">◻</span> Web documentation
+      </a>
+      <a class="drop-item" href="https://console.rediim.com/documentation_android" target="_blank">
+        <span class="di">◻</span> Mobile documentation
+      </a>
+      <div class="drop-div"></div>
+      <div class="drop-sec">Account</div>
+      <a class="drop-item" href="{{ url_for('home.credentials_page') }}">
+        <span class="di">◇</span> Credentials
+      </a>
+      <div class="drop-div"></div>
+      <a class="drop-item red" href="/logout">
+        <span class="di">→</span> Logout
+      </a>
+    </div>
+  </div>
+</header>
+
+<script>
+  document.getElementById('profileBtn').addEventListener('click', function(e) {
+    e.stopPropagation();
+    const menu = document.getElementById('dropMenu');
+    const chev = document.getElementById('chev');
+    const open = menu.classList.toggle('open');
+    chev.classList.toggle('open', open);
+  });
+  document.addEventListener('click', function() {
+    document.getElementById('dropMenu').classList.remove('open');
+    document.getElementById('chev').classList.remove('open');
+  });
+</script>
