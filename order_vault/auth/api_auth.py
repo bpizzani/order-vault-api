@@ -42,11 +42,6 @@ def _set_tenant_context(client_id):
     neo4j_user_dec = dec(tenant.neo4j_user_enc)
     neo4j_pass_dec = dec(tenant.neo4j_pass_enc)
 
-    print(f"[TENANT] neo4j_uri: {neo4j_uri_dec}")
-    print(f"[TENANT] neo4j_user: {neo4j_user_dec}")
-    print(f"[TENANT] neo4j_pass (first 6 chars): {neo4j_pass_dec}...")
-    print(f"[TENANT] pg_uri (masked): {pg_uri_dec[:20]}...")
-
     try:
         driver = GraphDatabase.driver(
             neo4j_uri_dec,
