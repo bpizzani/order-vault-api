@@ -1,0 +1,85 @@
+/* ─────────────────────────────────────────
+   Rediim shared layout styles
+   Include this in every page via:
+   <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css') }}">
+   ───────────────────────────────────────── */
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #0a0a0a; color: #f0f0f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; min-height: 100vh; }
+.shell { display: flex; height: 100vh; overflow: hidden; }
+
+/* ── SIDEBAR ── */
+.sidebar { width: 210px; flex-shrink: 0; background: #111; border-right: 1px solid #1c1c1c; display: flex; flex-direction: column; }
+.sidebar-logo { padding: 20px 18px 16px; border-bottom: 1px solid #1c1c1c; }
+.logo-mark { display: flex; align-items: center; gap: 7px; text-decoration: none; }
+.logo-dot { width: 8px; height: 8px; background: #ff3b2f; border-radius: 50%; flex-shrink: 0; }
+.logo-text { font-size: 17px; font-weight: 800; letter-spacing: -0.5px; color: #fff; }
+.sidebar-nav { flex: 1; padding: 12px 8px; display: flex; flex-direction: column; gap: 2px; }
+.nav-section { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #2a2a2a; padding: 8px 10px 4px; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 7px; font-size: 13px; font-weight: 500; color: #555; cursor: pointer; text-decoration: none; transition: color 0.15s, background 0.15s; position: relative; }
+.nav-item:hover { color: #bbb; background: #181818; }
+.nav-item.active { color: #fff; background: #1d1d1d; }
+.nav-item.active::before { content: ''; position: absolute; left: -8px; top: 50%; transform: translateY(-50%); width: 3px; height: 18px; background: #ff3b2f; border-radius: 0 2px 2px 0; }
+.nav-item.active .nav-icon { color: #ff3b2f; }
+.nav-icon { font-size: 13px; width: 16px; text-align: center; flex-shrink: 0; }
+
+/* ── RIGHT COLUMN ── */
+.right-col { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+
+/* ── TOP BAR ── */
+.topbar { height: 52px; background: #111; border-bottom: 1px solid #1c1c1c; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; flex-shrink: 0; }
+.topbar-title { font-size: 14px; font-weight: 700; color: #fff; letter-spacing: -0.2px; }
+.profile-wrap { position: relative; }
+.profile-btn { display: flex; align-items: center; gap: 8px; background: #1a1a1a; border: 1px solid #252525; border-radius: 22px; padding: 4px 11px 4px 4px; cursor: pointer; transition: background 0.15s; user-select: none; }
+.profile-btn:hover { background: #212121; }
+.avatar { width: 27px; height: 27px; border-radius: 50%; background: #ff3b2f; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #fff; flex-shrink: 0; }
+.p-name { font-size: 12px; font-weight: 600; color: #fff; line-height: 1.3; }
+.p-email { font-size: 10px; color: #555; line-height: 1; }
+.chevron { font-size: 9px; color: #444; margin-left: 2px; transition: transform 0.15s; display: inline-block; }
+.chevron.open { transform: rotate(180deg); }
+
+/* ── DROPDOWN ── */
+.drop-menu { position: absolute; top: calc(100% + 6px); right: 0; background: #1a1a1a; border: 1px solid #252525; border-radius: 10px; padding: 5px; min-width: 185px; z-index: 200; display: none; }
+.drop-menu.open { display: block; }
+.drop-sec { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #333; padding: 6px 10px 3px; }
+.drop-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; font-size: 13px; color: #777; border-radius: 6px; cursor: pointer; text-decoration: none; transition: background 0.15s, color 0.15s; }
+.drop-item:hover { background: #252525; color: #fff; }
+.drop-item .di { font-size: 12px; width: 14px; text-align: center; }
+.drop-div { height: 1px; background: #222; margin: 4px 0; }
+.drop-item.red { color: #ff3b2f; }
+.drop-item.red:hover { background: #1d1010; color: #ff5a50; }
+
+/* ── MAIN SCROLL AREA ── */
+.main-scroll { flex: 1; overflow-y: auto; padding: 28px 28px 40px; }
+
+/* ── PAGE HEADER ── */
+.accent-bar { width: 28px; height: 3px; background: #ff3b2f; border-radius: 2px; margin-bottom: 8px; }
+.page-title { font-size: 23px; font-weight: 800; letter-spacing: -0.5px; color: #fff; }
+.page-sub { font-size: 12px; color: #444; margin-top: 4px; }
+
+/* ── DATE CONTROLS ── */
+.controls-bar { display: flex; align-items: center; gap: 8px; margin: 20px 0 22px; flex-wrap: wrap; }
+.date-label { font-size: 12px; color: #444; white-space: nowrap; }
+.date-input { background: #141414; border: 1px solid #222; border-radius: 6px; color: #ccc; font-size: 12px; padding: 6px 10px; outline: none; color-scheme: dark; }
+.date-input:focus { border-color: #00d4ff; }
+.apply-btn { background: #00d4ff; color: #000; border: none; border-radius: 6px; padding: 7px 16px; font-size: 12px; font-weight: 700; cursor: pointer; transition: background 0.15s; }
+.apply-btn:hover { background: #2de0ff; }
+
+/* ── METRIC CARDS ── */
+.metrics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 22px; }
+.metric-card { background: #141414; border: 1px solid #1e1e1e; border-radius: 12px; padding: 18px 20px; }
+.metric-lbl { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 8px; }
+.metric-val { font-size: 30px; font-weight: 800; letter-spacing: -1px; color: #fff; line-height: 1; }
+.metric-hint { font-size: 11px; color: #333; margin-top: 5px; }
+.m-cyan .metric-lbl { color: #00d4ff; }
+.m-green .metric-lbl { color: #34d399; }
+.m-red .metric-lbl { color: #ff3b2f; }
+
+/* ── SECTION LABEL ── */
+.sec-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #2c2c2c; margin: 18px 0 10px; }
+
+/* ── CHART CARDS ── */
+.charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+.chart-card { background: #141414; border: 1px solid #1e1e1e; border-radius: 12px; padding: 20px; }
+.chart-title { font-size: 10px; font-weight: 700; color: #444; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 14px; }
+.chart-wrap { position: relative; height: 200px; }
