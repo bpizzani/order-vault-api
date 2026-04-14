@@ -61,7 +61,7 @@ def save_order_in_neo4j(session, order_data):
 
     # Write the graph to Neo4j
     with session:
-        session.write_transaction(create_graph, G)
+        session.execute_write(create_graph, G)
 
 
 def create_graph(tx, G):
