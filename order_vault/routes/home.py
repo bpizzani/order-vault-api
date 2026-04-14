@@ -31,7 +31,7 @@ def promotion_ui():
 @login_required
 @require_subscription_in("demo","admin",None)
 def rules_ui():
-    return render_template('rules.html')
+    return render_template('rules.html',active='rules')
 
 @home_bp.route("/island", methods=["GET"])
 @login_required
