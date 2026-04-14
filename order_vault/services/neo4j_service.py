@@ -29,60 +29,72 @@ def trigger_process_and_update(order_data,neo4j_driver):
 
 def save_order_in_neo4j(session, order_data):
     """ Save the confirmed order into Neo4j """
+    print(f"[NEO4J] save_order_in_neo4j called with order_id: {order_data.get('id')}")
+    print(f"[NEO4J] order_data keys: {list(order_data.keys())}")
+    
     G = nx.Graph()
 
-    order_id = order_data['id']  # Order ID as the main entity
+    order_id = order_data['id']
     order_node = f"Order {order_id}"
 
-    # add order node with created_at
     G.add_node(order_node,
                type='order',
                created_at=order_data.get('created_at'),
-               promocode= (order_data.get("coupon") or {}).get("promocode"), #order_data.get('coupon').get("promocode"),
-               promotion_id= (order_data.get("coupon") or {}).get("promotion_id"), # order_data.get('coupon').get("promotion_id"),
+               promocode=(order_data.get("coupon") or {}).get("promocode"),
+               promotion_id=(order_data.get("coupon") or {}).get("promotion_id"),
                call_type=order_data.get('call_type')
               )
 
     customer_node = f"Customer {order_data['email']}"
-    G.add_node(customer_node, type='customer',user_id= order_data.get('user_id')) 
-
-    # Link the customer to the order
+    G.add_node(customer_node, type='customer', user_id=order_data.get('user_id'))
     G.add_edge(customer_node, order_node)
 
-    # Add order attributes as nodes and edges in the graph
-    attributes = ['card_details', 'email', 'device_id', 'phone','local_session_id'] #promocode
-
+    attributes = ['card_details', 'email', 'device_id', 'phone', 'local_session_id']
     for attribute in attributes:
         attr_value = order_data.get(attribute)
+        print(f"[NEO4J] attribute '{attribute}': {attr_value}")
         if attr_value:
             attribute_node = f"{attribute} {attr_value}"
             G.add_node(attribute_node, type=attribute)
-            G.add_edge(order_node, attribute_node)  # Connect order to attribute
+            G.add_edge(order_node, attribute_node)
 
-    # Write the graph to Neo4j
-    with session:
-        session.execute_write(create_graph, G) # write_transaction
+    print(f"[NEO4J] Graph nodes ({G.number_of_nodes()}): {list(G.nodes())}")
+    print(f"[NEO4J] Graph edges ({G.number_of_edges()}): {list(G.edges())}")
+
+    try:
+        print(f"[NEO4J] Starting execute_write...")
+        with session:
+            session.execute_write(create_graph, G)
+        print(f"[NEO4J] execute_write completed successfully")
+    except Exception as e:
+        print(f"[NEO4J] ERROR in execute_write: {type(e).__name__}: {str(e)}")
+        raise
 
 
 def create_graph(tx, G):
     """Create or update nodes and relationships in Neo4j from the NetworkX graph"""
+    print(f"[NEO4J] create_graph transaction started")
 
     # --- Step 1: Create all nodes first ---
+    print(f"[NEO4J] Step 1: Creating nodes...")
     for node_id, node_data in G.nodes(data=True):
         node_label = node_data['type']
+        print(f"[NEO4J]   Processing node: '{node_id}' (type={node_label})")
 
         if node_label == 'customer':
             email = node_id.split(" ", 1)[1]
             user_id = node_data.get('user_id')
+            print(f"[NEO4J]   MERGE Customer email={email}, user_id={user_id}")
             tx.run("""MERGE (c:Customer {email: $email})
                     SET c.user_id = $user_id""", email=email, user_id=user_id)
-                    
+
         elif node_label == 'order':
             order_id   = node_id.split(" ", 1)[1]
             created_at = node_data.get('created_at')
-            promocode = node_data.get('promocode')
+            promocode  = node_data.get('promocode')
             promotion_id = node_data.get('promotion_id')
-            call_type = node_data.get('call_type')
+            call_type  = node_data.get('call_type')
+            print(f"[NEO4J]   MERGE Order id={order_id}, created_at={created_at}, promocode={promocode}")
             tx.run(
                 """
                 MERGE (o:Order {id:$order_id})
@@ -100,6 +112,7 @@ def create_graph(tx, G):
 
         else:
             attr_type, attr_value = node_id.split(" ", 1)
+            print(f"[NEO4J]   MERGE Attribute type={attr_type}, value={attr_value}")
             tx.run(
                 "MERGE (a:Attribute {type: $type, value: $value})",
                 type=attr_type,
@@ -107,29 +120,32 @@ def create_graph(tx, G):
             )
 
     # --- Step 2: Create all relationships ---
+    print(f"[NEO4J] Step 2: Creating relationships...")
     for node_id in G.nodes():
         node_label = G.nodes[node_id]['type']
 
         for neighbor in G.neighbors(node_id):
             neighbor_label = G.nodes[neighbor]['type']
+            print(f"[NEO4J]   Edge: '{node_id}' ({node_label}) → '{neighbor}' ({neighbor_label})")
 
-            # 1) Customer → PLACED → Order
             if node_label == 'customer' and neighbor_label == 'order':
+                email    = node_id.split(" ", 1)[1]
+                order_id = neighbor.split(" ", 1)[1]
+                print(f"[NEO4J]   MERGE (Customer:{email})-[:PLACED]->(Order:{order_id})")
                 tx.run(
                     """
                     MATCH (c:Customer {email: $email}), (o:Order {id: $order_id})
                     MERGE (c)-[:PLACED]->(o)
                     """,
-                    email=node_id.split(" ", 1)[1],
-                    order_id=neighbor.split(" ", 1)[1]
+                    email=email,
+                    order_id=order_id
                 )
 
-            # 2) Order → HAS_ATTRIBUTE → Attribute
             elif node_label == 'order' and neighbor_label not in ['order', 'customer']:
-                order_id   = node_id.split(" ", 1)[1]
-                attr_type  = neighbor_label
+                order_id  = node_id.split(" ", 1)[1]
+                attr_type = neighbor_label
                 attr_value = neighbor.split(" ", 1)[1]
-
+                print(f"[NEO4J]   MERGE (Order:{order_id})-[:HAS_ATTRIBUTE]->(Attribute:{attr_type}={attr_value})")
                 tx.run(
                     """
                     MATCH (o:Order {id: $order_id}), 
@@ -141,7 +157,7 @@ def create_graph(tx, G):
                     value=attr_value
                 )
 
-            # 3) Attribute → CONNECTED_TO → Attribute
+                # 3) Attribute → CONNECTED_TO → Attribute
             #elif node_label not in ['order', 'customer'] and neighbor_label not in ['order', 'customer'] and node_label != 'promocode' and neighbor_label != 'promocode':
             #    tx.run(
             #        """
@@ -155,7 +171,8 @@ def create_graph(tx, G):
             #        value2=neighbor.split(" ", 1)[1]
             #    )
 
-    # --- Step 3: Customer → HAS_ATTRIBUTE → Attribute (from their orders) ---
+    # --- Step 3: Customer → HAS_ATTRIBUTE ---
+    print(f"[NEO4J] Step 3: Linking Customer HAS_ATTRIBUTE via orders...")
     tx.run(
         """
         MATCH (c:Customer)-[:PLACED]->(o:Order)-[:HAS_ATTRIBUTE]->(a:Attribute)
@@ -163,6 +180,8 @@ def create_graph(tx, G):
         MERGE (c)-[:HAS_ATTRIBUTE]->(a)
         """
     )
+    print(f"[NEO4J] create_graph transaction completed")
+    
 
 def evaluate_attributes(session: Session, attribute_types: list, promocode: str = None) -> dict:
     """
