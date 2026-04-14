@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Rediim Fingerprint (Android) – Integration Guide</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Minimal dark styling for docs -->
+  <style>
+    :root {
+      --bg: #0b1220; --panel:#121a2b; --muted:#95a3b3; --text:#e9eef5;
+      --border:#1e293b; --accent:#7dd3fc; --accent2:#a78bfa;
+    }
+    html, body { margin:0; background:var(--bg); color:var(--text);
+      font: 15px/1.6 system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    header { padding:48px 20px 24px; border-bottom:1px solid var(--border);
+      background:
+        radial-gradient(600px 200px at 20% -10%, rgba(125,211,252,.14), transparent),
+        radial-gradient(600px 200px at 80% -10%, rgba(167,139,250,.12), transparent);}
+    .wrap { max-width: 980px; margin: 0 auto; padding: 0 20px; }
+    h1 { margin: 0 0 6px; font-size: 32px; line-height: 1.15; }
+    .subtitle { color: var(--muted); margin: 0 0 8px; }
+    .badge { display:inline-block; font-size:12px; padding:4px 8px; border-radius:999px;
+      background: rgba(125,211,252,.12); color: var(--accent); border:1px solid rgba(125,211,252,.25); }
+    main { padding: 28px 0 80px;}
+    h2 { margin: 28px 0 12px; font-size:24px; }
+    h3 { margin: 20px 0 10px; font-size:18px; }
+    .panel { background: var(--panel); border:1px solid var(--border); border-radius: 12px; padding:16px; }
+    .toc { list-style:none; padding:0; margin:12px 0 0; display:grid; gap:6px; }
+    pre { border-radius: 10px; overflow:auto; }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+    .note { border-left:4px solid var(--accent); background: rgba(125,211,252,.08); padding:10px 12px; border-radius:8px; }
+  </style>
+
+  <!-- Highlight.js (theme + core + languages) -->
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/kotlin.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/groovy.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => hljs.highlightAll());
+  </script>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="badge">Android SDK</div>
+    <h1>Rediim Fingerprint – Integration Guide (Android)</h1>
+    <p class="subtitle">Create a stable per‑device ID (<code>visitorId</code>) and per‑session ID (<code>localSessionId</code>) in your Android app.</p>
+    <ul class="toc">
+      <li>• <a href="#requirements">Requirements</a></li>
+      <li>• <a href="#install">1) Install the SDK</a></li>
+      <li>• <a href="#keys">2) Get your keys</a></li>
+      <li>• <a href="#fingerprint">3) Capture fingerprint</a></li>
+      <li>• <a href="#backend">4) Send to backend</a></li>
+      <li>• <a href="#client-calls">5) (Optional) Client API calls</a></li>
+      <li>• <a href="#example">6) Minimal Activity example</a></li>
+      <li>• <a href="#best">7) Best practices</a></li>
+      <li>• <a href="#troubleshoot">8) Troubleshooting</a></li>
+      <li>• <a href="#troubleshoot">9) How to get your API Keys, Publishable Keys or JWT secrets</a></li>
+    </ul>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section id="requirements">
+    <h2>Requirements</h2>
+    <div class="panel">
+      <ul>
+        <li>Android: <strong>minSdk 24+</strong>, <strong>targetSdk 36</strong></li>
+        <li>Kotlin JVM target: <strong>11</strong></li>
+        <li>HTTPS access to <code>api.rediim.com</code></li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="install">
+    <h2>1) Install the SDK</h2>
+
+    <h3>Enable JitPack (top‑level <code>settings.gradle</code>)</h3>
+    <pre><code class="language-groovy">dependencyResolutionManagement {
+  repositories {
+    google()
+    mavenCentral()
+    maven { url = uri("https://jitpack.io") } // add this
+  }
+}</code></pre>
+
+    <h3>App module <code>build.gradle</code></h3>
+    <pre><code class="language-groovy">android {
+  compileSdk = 36
+  defaultConfig {
+    applicationId = "com.example.fakecheckout"
+    minSdk = 24
+    targetSdk = 36
+    versionCode = 1
+    versionName = "1.0"
+    testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+  }
+  compileOptions {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+  }
+  kotlinOptions { jvmTarget = "11" }
+}
+
+dependencies {
+  implementation "com.github.bpizzani:rediim_android_sdk:1.2.0" // add this
+  implementation "com.squareup.okhttp3:okhttp:4.12.0" 
+  implementation "com.google.code.gson:gson:2.10.1" 
+
+  implementation libs.androidx.core.ktx
+  implementation libs.androidx.appcompat
+  implementation libs.material
+  testImplementation libs.junit
+  androidTestImplementation libs.androidx.junit
+  androidTestImplementation libs.androidx.espresso.core
+}</code></pre>
+  </section>
+
+  <section id="keys">
+    <h2>2) Get your keys</h2>
+    <div class="panel">
+      <p>You’ll receive an <strong>API Key</strong> and <strong>Client ID</strong>. Store them securely (remote config, encrypted storage, or build configs).</p>
+    </div>
+  </section>
+
+  <section id="fingerprint">
+    <h2>3) Capture fingerprint early</h2>
+    <p>Call the SDK as soon as possible (e.g., right after login or on your first screen):</p>
+    <div class="callout">
+    <strong>Tip:</strong> You can also call <code>runInHouseFingerprint</code> immediately after a successful login redirect or a checkout submission.
+    </div>
+    <pre><code class="language-kotlin">import com.rediim.sdk.RediimFingerprint
+
+RediimFingerprint.sendFingerprint(
+    context = this,
+    key = "YOUR_KEY",      // replace
+    clientId = "YOUR_CLIENT_ID",  // replace
+    call_type = "LOGIN/CHECKOUT/BROWSING" 
+    userId = currentUserIdOrNull, // optional but recommended
+    coupon = currentCouponOrNull, // optional but recommended - JSONObject E.g:  {coupon: {promocode: promocode, promotion_id: promotion_id, type: type}}
+    callback = object : RediimFingerprint.Callback {
+        override fun onSuccess(vId: String, sessId: String) {
+            visitorId = vId
+            localSessionId = sessId
+        }
+        override fun onError(error: String) {
+            // Don't block UX; log and optionally retry later
+        }
+    }
+)</code></pre>
+
+    <div class="note"><strong>Returns:</strong> <code>visitorId</code> (stable per‑device) and <code>localSessionId</code> (per‑session).</div>
+  </section>
+
+      <section id="monitor">
+      <h2>4) Monitoring your traffic in the Rediim Fingerprint Dashboard</h2>
+      <div class="panel">
+        <p>Once you’ve integrated the fingerprint snippet on your app, you can monitor device and session activity in the
+          <a href="https://console.rediim.com/fingerprint" target="_blank">Rediim Fingerprint Dashboard</a>.</p>
+        <ul>
+          <li>See real-time <strong>visitorId</strong> and <strong>localSessionId</strong> creation events.</li>
+          <li>Search by <code>user_id</code> to find all devices used by the same account.</li>
+          <li>Search by <code>device_id</code> (visitorId) to see how many accounts use the same device.</li>
+          <li>Filter by <strong>promocode</strong> to detect promo abuse patterns.</li>
+        </ul>
+        <p>To get meaningful insights:</p>
+        <ul>
+          <li>Always pass a <code>user_id</code> to <code>sendFingerprint()</code> when known.</li>
+          <li>If applicable, pass the <code>promocode</code> offered or used at the time of fingerprinting.</li>
+          <li>Ensure your frontend sends the same <strong>device_id</strong> and <strong>local_session_id</strong> to your backend for risk evaluation calls.</li>
+        </ul>
+        <p class="ok">With these identifiers in place, the dashboard will let you monitor traffic, detect duplicate devices across users, and catch suspicious promo usage.</p>
+      </div>
+    </section>
+
+  <!-- <section id="backend">
+    <h2>4) Send identifiers to your backend</h2>
+    <div class="panel">
+      <p>On meaningful actions (checkout/finalize), include:</p>
+      <ul>
+        <li><code>user_id</code> (your internal ID)</li>
+        <li><code>device_id</code> = <code>visitorId</code></li>
+        <li><code>local_session_id</code> = <code>localSessionId</code></li>
+        <li>Fields like <code>email</code>, <code>phone</code>, <code>card_details</code>, <code>promocode</code>, etc.</li>
+      </ul>
+      <p>Prefer server‑to‑server calls from your backend to Rediim for security.</p>
+    </div>
+  </section> -->
+
+  <!-- <section id="client-calls">
+    <h2>5) (Optional) Call Rediim APIs from the app</h2>
+
+    <h3>Risk evaluation</h3>
+    <pre><code class="language-kotlin">import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import org.json.JSONObject
+
+fun evaluateRisk(values: JSONObject, apiKey: String, clientId: String): Map&lt;String, Any&gt; {
+    val client = OkHttpClient()
+    val url = "https://api.rediim.com/api/evaluate"
+    val body = values.toString().toRequestBody("application/json".toMediaTypeOrNull())
+
+    val request = Request.Builder()
+        .url(url)
+        .post(body)
+        .addHeader("Content-Type", "application/json")
+        .addHeader("X-API-KEY", apiKey)
+        .addHeader("X-CLIENT-ID", clientId)
+        .build()
+
+    return try {
+        client.newCall(request).execute().use { response ->
+            val bodyString = response.body?.string()
+            if (response.isSuccessful &amp;&amp; bodyString != null) {
+                val json = JSONObject(bodyString)
+                mapOf("overall_abusive" to json.optBoolean("overall_abusive", false))
+            } else {
+                mapOf("error" to "Error: ${'$'}{response.code} - ${'$'}{response.message}")
+            }
+        }
+    } catch (e: Exception) {
+        mapOf("error" to "Request failed: ${'$'}{e.message}")
+    }
+}</code></pre>
+
+    <h3>Finalize order</h3>
+    <pre><code class="language-kotlin">suspend fun finalizeOrder(
+    orderData: JSONObject,
+    apiKey: String,
+    clientId: String
+): Map&lt;String, Any&gt; {
+    val client = OkHttpClient()
+    val url = "https://api.rediim.com/finalize-order"
+    val body = orderData.toString().toRequestBody("application/json".toMediaTypeOrNull())
+
+    val request = Request.Builder()
+        .url(url)
+        .post(body)
+        .addHeader("Content-Type", "application/json")
+        .addHeader("X-API-KEY", apiKey)
+        .addHeader("X-CLIENT-ID", clientId)
+        .build()
+
+    return try {
+        client.newCall(request).execute().use { response ->
+            val bodyString = response.body?.string()
+            if (response.isSuccessful &amp;&amp; bodyString != null) {
+                val json = JSONObject(bodyString)
+                json.keys().asSequence().associateWith { k -&gt; json.get(k) }
+            } else {
+                mapOf("status" to "failed", "error" to "Error: ${'$'}{response.code} - ${'$'}{response.message}")
+            }
+        }
+    } catch (e: Exception) {
+        mapOf("status" to "failed", "error" to "Request failed: ${'$'}{e.message}")
+    }
+}</code></pre>
+  </section>   -->
+
+  <section id="example">
+    <h2>6) Minimal Activity example</h2>
+    <pre><code class="language-kotlin">class MainActivity : AppCompatActivity() {
+    private var visitorId: String? = null
+    private var localSessionId: String? = null
+    private var userId: Int? = null
+    private var callType: String? = null
+      
+    private val tokenEndpoint = "/rediim/token"
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+        // Option 1: Publishable Key stored in App Build
+        val publishableKey = BuildConfig.REDIIM_PUBLISHABLE_KEY
+        val clientId = BuildConfig.REDIIM_CLIENT_ID
+
+        // Option 2: Get Access Token Client API (Requires Backened Development)
+        val accessToken: String? = fetchAccessToken(tokenEndpoint)  
+      
+        userId = (0..1000).random()
+        callType = "Checkout"
+        val promoCode = (0..1000).random()
+        val promotionId = (0..1000).random()
+        val promoType = "TEST"
+      
+        val couponObj = JSONObject().apply {
+            put("promocode", promoCode)
+            put("promotion_id", promotionId)
+            put("type", promoType)
+        }
+        RediimFingerprint.sendFingerprint(
+            context = this,
+            key = "YOUR_KEY", // publishableKey or accessToken
+            clientId = clientId,
+            call_type = callType,
+            userId = userId,
+            coupon = couponObj, // optional but recommended - JSONObject E.g:  {coupon: {promocode: promocode, promotion_id: promotion_id, type: type}}
+            callback = object : RediimFingerprint.Callback {
+                override fun onSuccess(vId: String, sessId: String) {
+                    visitorId = vId
+                    localSessionId = sessId
+                }
+                override fun onError(error: String) { /* log + retry later if needed */ }
+            }
+        )
+
+      suspend fun fetchAccessToken(tokenEndpoint: String): String? {
+        return withContext(Dispatchers.IO) {
+            try {
+                val req = Request.Builder()
+                    .url(tokenEndpoint) // e.g. https://merchant-backend.com/rediim/token
+                    .post("{}".toRequestBody("application/json".toMediaTypeOrNull()))
+                    .build()
+
+                OkHttpClient().newCall(req).execute().use { res ->
+                    if (!res.isSuccessful) return@withContext null
+                    val body = res.body?.string() ?: return@withContext null
+                    val json = JSONObject(body)
+                    json.optString("access_token").takeIf { it.isNotBlank() }
+                }
+            } catch (e: Exception) {
+                Log.e("Auth", "Token fetch failed", e)
+                null
+            }
+        }
+    }
+      
+<!-- 
+        findViewById<Button>(R.id.submitButton).setOnClickListener {
+            val payload = buildCheckoutPayload(
+                deviceId = visitorId.orEmpty(),
+                localSessionId = localSessionId.orEmpty(),
+                userId = userId,
+                email = findViewById&lt;EditText&gt;(R.id.emailInput).text.toString(),
+                phone = findViewById&lt;EditText&gt;(R.id.phoneInput).text.toString(),
+                card = findViewById&lt;EditText&gt;(R.id.cardInput).text.toString(),
+                promocode = findViewById&lt;EditText&gt;(R.id.promoInput).text.toString()
+            )
+
+            CoroutineScope(Dispatchers.IO).launch {
+                val risk = evaluateRisk(payload, "YOUR_API_KEY", "YOUR_CLIENT_ID")
+                if (risk["overall_abusive"] == true) {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(this@MainActivity, "PROMO ABUSE detected", Toast.LENGTH_LONG).show()
+                    }
+                } else {
+                    val result = finalizeOrder(payload, "YOUR_API_KEY", "YOUR_CLIENT_ID")
+                    withContext(Dispatchers.Main) {
+                        val ok = result["status"] != "failed"
+                        Toast.makeText(this@MainActivity, if (ok) "Order finalized ✅" else "Finalize failed", Toast.LENGTH_LONG).show()
+                    }
+                }
+            }
+        }
+    }
+
+
+
+    private fun buildCheckoutPayload(
+        deviceId: String,
+        localSessionId: String,
+        userId: Int?,
+        email: String,
+        phone: String,
+        card: String,
+        promocode: String
+    ): JSONObject {
+        val orderId = "ord_" + UUID.randomUUID().toString().take(8)
+        val checkoutId = "chk_" + UUID.randomUUID().toString().take(8)
+        val map = mapOf(
+            "device_id" to deviceId,
+            "local_session_id" to localSessionId,
+            "session_id" to localSessionId,
+            "user_id" to (userId?.toString().orEmpty()),
+            "email" to email,
+            "phone" to phone,
+            "card_details" to card,
+            "promocode" to promocode,
+            "order_id" to orderId,
+            "id" to orderId,
+            "checkout_id" to checkoutId,
+            "attribute_types" to "device_id,phone,card_details,email,local_session_id"
+        )
+        return JSONObject(map)
+    }
+
+}</code></pre> 
+                -->
+  </section>  
+
+  <section id="best">
+    <h2>7) Best practices</h2>
+    <div class="panel">
+      <ul>
+        <li>Call fingerprint early (after login/app open) so IDs are ready.</li>
+        <li>Always pass <code>user_id</code> when known.</li>
+        <li>Pass <code>promocode</code> to help detect promo abuse patterns.</li>
+        <li>Don’t block UX on transient errors; log and retry later.</li>
+        <li>Prefer server‑to‑server Rediim API calls from your backend.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="troubleshoot">
+    <h2>8) Troubleshooting</h2>
+    <h3>ProGuard/R8</h3>
+    <pre><code> -keep class com.rediim.sdk.** { *; }
+ -dontwarn com.rediim.sdk.**</code></pre>
+
+    <div class="panel" style="margin-top:12px;">
+      <ul>
+        <li><strong>No IDs returned</strong>: verify <code>apiKey</code>/<code>clientId</code> pair is correct.</li>
+        <li><strong>Network errors</strong>: require HTTPS to <code>https://api.rediim.com</code>.</li>
+      </ul>
+    </div>
+  </section>
+
+    <section id="monitor">
+    <h2>9) How to get your API Keys, Publishable Keys or JWT secrets</h2>
+    <div class="panel">
+    <p>In order to get your  API Keys, Publishable Keys or JWT secrets to integrate with Rediim's Fingerprint. You can simply Log in into the Rediim portal
+    <a href="https://console.rediim.com/promotion_dashboard" target="_blank">Rediim portal</a>. And click on the <a href="https://console.rediim.com/credentials" target="_blank">Credentials</a> tab on the sidebar.</p> 
+    </div>
+    </section>
+
+      
+</main>
+
+<footer class="wrap" style="border-top:1px solid var(--border); padding:22px 0; color:var(--muted);">
+  <small>© <span id="yr"></span> Rediim. All rights reserved.</small>
+</footer>
+
+<script>document.getElementById('yr').textContent = new Date().getFullYear();</script>
+</body>
+</html>

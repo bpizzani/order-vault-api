@@ -1,0 +1,24 @@
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <a class="logo-mark" href="https://rediim.com" target="_blank" rel="noopener">
+      <span class="logo-dot"></span>
+      <span class="logo-text">rediim</span>
+    </a>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">Analytics</div>
+    <a class="nav-item {% if active == 'dashboard' %}active{% endif %}" href="{{ url_for('home.promotion_ui') }}">
+      <span class="nav-icon">▦</span> Dashboard
+    </a>
+    <a class="nav-item {% if active == 'rules' %}active{% endif %}" href="{{ url_for('home.rules_ui') }}">
+      <span class="nav-icon">◈</span> Rules
+    </a>
+    <a class="nav-item {% if active == 'customers' %}active{% endif %}" href="{{ url_for('home.customer_ui') }}">
+      <span class="nav-icon">◎</span> User Intelligence
+    </a>
+    <div class="nav-section" style="margin-top: 10px">Detection</div>
+    <a class="nav-item {% if active == 'fingerprint' %}active{% endif %}" href="{{ url_for('home.fingerprint_ui') }}">
+      <span class="nav-icon">◉</span> Fingerprint
+    </a>
+  </nav>
+</aside>

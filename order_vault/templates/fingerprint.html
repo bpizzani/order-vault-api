@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fingerprint — Rediim</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css') }}">
+</head>
+<body>
+
+<div class="shell">
+
+  {% include "_sidebar.html" %}
+
+  <div class="right-col">
+
+    {% set page_title = "Duplicate Account Intelligence" %}
+    {% include "_topbar.html" %}
+
+    <main class="main-scroll">
+
+      <div class="accent-bar"></div>
+      <h1 class="page-title">Duplicate Account Intelligence</h1>
+      <p class="page-sub">Monitor device fingerprints, detect duplicate users and track promo abuse.</p>
+
+      <!-- Date controls -->
+      <div class="controls-bar">
+        <span class="date-label">From</span>
+        <input type="date" id="startDate" class="date-input">
+        <span class="date-label">To</span>
+        <input type="date" id="endDate" class="date-input">
+        <button class="apply-btn" id="applyRange">Apply range</button>
+      </div>
+
+      <!-- Metric cards -->
+      <div class="metrics-grid">
+        <div class="metric-card m-cyan">
+          <div class="metric-lbl">Total Devices</div>
+          <div class="metric-val" id="totalDevices">—</div>
+          <div class="metric-hint">Unique fingerprints</div>
+        </div>
+        <div class="metric-card m-green">
+          <div class="metric-lbl">Total Users</div>
+          <div class="metric-val" id="totalUsers">—</div>
+          <div class="metric-hint">Accounts in range</div>
+        </div>
+        <div class="metric-card m-red">
+          <div class="metric-lbl">Duplicate Rate</div>
+          <div class="metric-val" id="abusiveDevices">—</div>
+          <div class="metric-hint">Flagged as duplicates</div>
+        </div>
+      </div>
+
+      <!-- Daily trends -->
+      <div class="sec-label">Daily trends</div>
+      <div class="charts-row">
+        <div class="chart-card">
+          <div class="chart-title">Duplicate rate (%)</div>
+          <div class="chart-wrap"><canvas id="duplicateRateChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Duplicate vs total devices</div>
+          <div class="chart-wrap"><canvas id="duplicateUserChart"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Promo abuse -->
+      <div class="sec-label">Promocode abuse</div>
+      <div class="charts-row">
+        <div class="chart-card">
+          <div class="chart-title">Abusive rate by promocode — top 5</div>
+          <div class="chart-wrap"><canvas id="promoAbuseChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Top devices by user count</div>
+          <div class="chart-wrap"><canvas id="deviceUsageChart"></canvas></div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script>
+  Chart.defaults.color = '#555';
+  Chart.defaults.borderColor = '#1e1e1e';
+  Chart.defaults.font.family = "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+  Chart.defaults.font.size = 11;
+
+  const GRID = { color: '#1a1a1a' };
+  const TICK = { color: '#444' };
+
+  function $(id) { return document.getElementById(id); }
+  function setText(id, v) { const el = $(id); if (el) el.textContent = v; }
+
+  function buildQs() {
+    const s = $('startDate')?.value?.trim();
+    const e = $('endDate')?.value?.trim();
+    const p = new URLSearchParams();
+    if (s) p.set('start', s);
+    if (e) p.set('end', e);
+    const qs = p.toString();
+    return qs ? `?${qs}` : '';
+  }
+
+  function ctxFresh(id) {
+    const old = document.getElementById(id);
+    if (!old) return null;
+    const parent = old.parentNode;
+    const fresh = document.createElement('canvas');
+    fresh.id = id;
+    parent.replaceChild(fresh, old);
+    return fresh.getContext('2d');
+  }
+
+  function baseScales(xLabel, yLabel, maxY) {
+    return {
+      x: { grid: GRID, ticks: { ...TICK, maxRotation: 45 }, title: { display: !!xLabel, text: xLabel, color: '#444' } },
+      y: { beginAtZero: true, ...(maxY ? { max: maxY } : {}), grid: GRID, ticks: TICK, title: { display: !!yLabel, text: yLabel, color: '#444' } }
+    };
+  }
+
+  function loadAll() {
+    const qs = buildQs();
+
+    fetch(`/api/fingerprint/device-usage${qs}`)
+      .then(r => r.json())
+      .then(data => {
+        if (data?.error) return;
+        const rate = data.total_users ? (data.duplicate_users / data.total_users * 100) : 0;
+        setText('totalDevices', (data.total_devices ?? 0).toLocaleString());
+        setText('totalUsers', (data.total_users ?? 0).toLocaleString());
+        setText('abusiveDevices', rate.toFixed(1) + '%');
+        const labels = (data.user_per_device ?? []).map(d => d.device_id.slice(0, 8) + '…');
+        const counts = (data.user_per_device ?? []).map(d => d.user_count);
+        const ctx = ctxFresh('deviceUsageChart');
+        if (ctx && labels.length) {
+          new Chart(ctx, {
+            type: 'bar',
+            data: { labels, datasets: [{ label: 'Users', data: counts, backgroundColor: '#facc15', borderRadius: 3 }] },
+            options: {
+              indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+              plugins: { legend: { display: false } },
+              scales: { x: baseScales('', '').x, y: { grid: { color: 'transparent' }, ticks: { color: '#555', font: { size: 10 } } } }
+            }
+          });
+        }
+      }).catch(console.error);
+
+    fetch(`/api/fingerprint/duplicate-rate-daily${qs}`)
+      .then(r => r.json())
+      .then(data => {
+        if (!Array.isArray(data)) return;
+        const labels = data.map(d => d.date);
+        const rates  = data.map(d => d.duplicate_user_rate);
+        const users  = data.map(d => d.total_users);
+        const devs   = data.map(d => d.total_devices);
+
+        const rc = ctxFresh('duplicateRateChart');
+        if (rc && labels.length) {
+          new Chart(rc, {
+            type: 'line',
+            data: { labels, datasets: [{ label: 'Duplicate rate (%)', data: rates, borderColor: '#ff3b2f', backgroundColor: 'rgba(255,59,47,0.07)', tension: 0.35, fill: true, pointRadius: 3, pointBackgroundColor: '#ff3b2f' }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: baseScales('Date', 'Rate (%)', 100) }
+          });
+        }
+
+        const cc = ctxFresh('duplicateUserChart');
+        if (cc && labels.length) {
+          new Chart(cc, {
+            type: 'bar',
+            data: { labels, datasets: [
+              { label: 'Total Users',   data: users, backgroundColor: '#fb923c', borderRadius: 3 },
+              { label: 'Total Devices', data: devs,  backgroundColor: '#38bdf8', borderRadius: 3 }
+            ]},
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#555', boxWidth: 8, padding: 10 } } }, scales: baseScales('Date', 'Count') }
+          });
+        }
+      }).catch(console.error);
+
+    fetch(`/api/fingerprint/abusive-promocodes-daily${qs}`)
+      .then(r => r.json())
+      .then(rows => {
+        if (!Array.isArray(rows) || !rows.length) return;
+        const labels = Array.from(new Set(rows.map(r => r.date))).sort();
+        const byCode = new Map();
+        for (const r of rows) {
+          const code = r.promocode ?? '(unknown)';
+          if (!byCode.has(code)) byCode.set(code, { perDate: new Map(), total: 0 });
+          byCode.get(code).perDate.set(r.date, r);
+          byCode.get(code).total += (r.total_uses || 0);
+        }
+        const top = Array.from(byCode.entries()).sort((a, b) => b[1].total - a[1].total).slice(0, 5).map(([c]) => c);
+        const pal = ['#00d4ff', '#ff3b2f', '#facc15', '#34d399', '#a78bfa'];
+        const datasets = top.map((code, i) => {
+          const rec = byCode.get(code);
+          return { label: code, data: labels.map(d => { const row = rec.perDate.get(d); return row ? (row.abusive_use_rate ?? 0) : null; }), borderColor: pal[i], backgroundColor: pal[i], tension: 0.3, fill: false, spanGaps: true, pointRadius: 2 };
+        });
+        const ctx = ctxFresh('promoAbuseChart');
+        if (!ctx) return;
+        new Chart(ctx, {
+          type: 'line',
+          data: { labels, datasets },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#555', boxWidth: 8, padding: 10, font: { size: 10 } } } }, scales: baseScales('Date', 'Abusive rate (%)', 100) }
+        });
+      }).catch(console.error);
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const today = new Date(), start = new Date(today);
+    start.setDate(today.getDate() - 20);
+    $('startDate').value = start.toISOString().slice(0, 10);
+    $('endDate').value   = today.toISOString().slice(0, 10);
+    $('applyRange')?.addEventListener('click', loadAll);
+    loadAll();
+  });
+</script>
+
+</body>
+</html>

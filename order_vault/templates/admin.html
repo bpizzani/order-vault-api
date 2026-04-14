@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin – Create User & Subscription</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root { --bg:#0b1020; --card:#121a33; --muted:#9fb0d3; --text:#e9efff; --accent:#6aa1ff; --ok:#20c997; --err:#ff6b6b; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial; background:linear-gradient(180deg,#0a0f1f,#0b1020 30%); color:var(--text); }
+    .wrap { max-width: 980px; margin: 40px auto; padding: 0 16px; }
+    h1 { font-size: 28px; margin: 0 0 16px; }
+    p.lead { color: var(--muted); margin: 0 0 28px; }
+    .grid { display: grid; gap: 18px; grid-template-columns: 1fr; }
+    @media (min-width: 900px){ .grid { grid-template-columns: 1fr 1fr; } }
+    .card { background: var(--card); border: 1px solid #1e2a52; border-radius: 16px; padding: 18px; box-shadow: 0 10px 30px rgba(0,0,0,.25); }
+    .card h2 { margin: 0 0 12px; font-size: 20px; }
+    label { display:block; font-size: 13px; color: var(--muted); margin: 14px 0 6px; }
+    input, select { width: 100%; padding: 10px 12px; font-size: 14px; border-radius: 10px; border: 1px solid #2a3a70; background: #0e1630; color: var(--text); outline: none; }
+    input::placeholder { color:#6d7fb0; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .btn { margin-top: 16px; width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid #2c4da8; background: linear-gradient(180deg,#1b3a8a,#2451c8); color: white; font-weight: 600; cursor: pointer; transition: transform .05s ease; }
+    .btn:active { transform: translateY(1px); }
+    .muted { color: var(--muted); font-size: 12px; }
+    .stack { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .pill { border-radius: 999px; padding: 6px 10px; font-size: 12px; border: 1px solid #31447f; background:#101a37; }
+    .status { margin-top: 12px; border-radius: 12px; padding: 12px; font-size: 13px; border: 1px solid #26396e; background:#0f1a35; display:none; white-space: pre-wrap; word-break: break-word; }
+    .status.ok { border-color: #176b54; background: rgba(32,201,151,.1); color: #a9f0d5; display:block; }
+    .status.err { border-color: #6b1720; background: rgba(255,107,107,.08); color: #ffd1d1; display:block; }
+    .status.loading { display:block; color: #cfe1ff; }
+    .toolbar { display:flex; gap:12px; align-items:center; margin-bottom:18px; flex-wrap:wrap; }
+    .toolbar input { max-width: 460px; }
+    .small { font-size: 12px; color:#7f93c7; }
+    .sep { height:1px; background:#1b2853; margin:16px 0; border-radius:1px; }
+    code { background:#0e1630; padding:2px 6px; border-radius:6px; border:1px solid #263a7a; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Admin Console</h1>
+    <p class="lead">Create users and manage subscriptions against your backend endpoints. These forms use <strong>GET</strong> requests with query parameters to match your routes.</p>
+
+    <div class="toolbar card">
+      <div style="flex:1">
+        <label for="baseUrl">API Base URL</label>
+        <input id="baseUrl" type="url" placeholder="https://console.rediim.com" />
+        <div class="small">Requests will be sent to <code>{baseUrl}/auth/create-user</code>, <code>{baseUrl}/auth/create-subscription</code> and <code>{baseUrl}/update-subscription-limit</code> (adjust the prefix below if needed).</div>
+      </div>
+      <div>
+        <label for="prefix">Route Prefix</label>
+        <input id="prefix" type="text" value="/" />
+        <div class="small">Change if your blueprints are mounted elsewhere.</div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- Create User -->
+      <div class="card">
+        <h2>1. Create User</h2>
+        <div class="stack">
+          <span class="pill">GET /create-user</span>
+          <span class="pill">Query params</span>
+        </div>
+
+        <form id="userForm">
+          <label for="u_email">Email</label>
+          <input id="u_email" name="email" type="email" placeholder="user@example.com" required />
+
+          <label for="u_password">Password</label>
+          <input id="u_password" name="password" type="password" placeholder="Min 8 characters" minlength="1" required />
+
+          <label for="u_onboarded_flag">Onboarded Flag</label>
+          <input id="u_onboarded_flag" name="onboarded_flag" type="onboarded_flag" placeholder="0 / 1" minlength="1" required />
+
+           
+          <div class="row">
+            <div>
+              <label for="u_client_id">Client ID</label>
+              <input id="u_client_id" name="client_id" type="text" placeholder="client_123" required />
+            </div>
+            <div>
+              <label for="u_api_key">API Key (optional)</label>
+              <input id="u_api_key" name="api_key" type="text" placeholder="optional key" />
+
+              <label for="u_pk_key">Publishable Key (optional)</label>
+              <input id="u_pk_key" name="pk_key" type="text" placeholder="pk_live_xxx" />
+              
+              <label for="u_pk_origins">Publishable Origins (JSON array or CSV)</label>
+              <input id="u_pk_origins" name="pk_origins" type="text" placeholder='["https://app.com","https://rediim.com"] or https://app.com, https://rediim.com' />
+              
+              <label for="u_jwt_secrets">JWT Secret / Material (optional)</label>
+              <input id="u_jwt_secrets" name="jwt_secrets" type="text" placeholder="only if using HS256 per-client" />
+                            
+            </div>
+            
+          </div>
+
+          <button class="btn" type="submit">Create User</button>
+          <div id="userStatus" class="status"></div>
+          <div class="sep"></div>
+          <div class="muted">201 → <code>{"message": "✅ Created user ..."}</code> • 400 → <code>{"error": "..."}</code></div>
+        </form>
+      </div>
+
+      <!-- Create Subscription -->
+      <div class="card">
+        <h2>2. Create Subscription</h2>
+        <div class="stack">
+          <span class="pill">GET /create-subscription</span>
+          <span class="pill">Query params</span>
+        </div>
+
+        <form id="subForm">
+          <label for="s_client_id">Client ID</label>
+          <input id="s_client_id" name="client_id" type="text" placeholder="client_123" required />
+
+          <div class="row">
+            <div>
+              <label for="s_type">Type</label>
+              <select id="s_type" name="type">
+                <option value="full">full</option>
+                <option value="admin">admin</option>
+                <option value="demo">demo</option>
+                <option value="fingerprint_demo">fingerprint_demo</option>
+              </select>
+            </div>
+            <div>
+              <label for="s_max_calls">Max API Calls</label>
+              <input id="s_max_calls" name="max_api_calls" type="number" min="0" placeholder="10000" required />
+            </div>
+          </div>
+
+          <div class="row">
+            <div>
+              <label for="s_start_date">Start Date</label>
+              <input id="s_start_date" name="start_date" type="date" required />
+            </div>
+            <div>
+              <label for="s_end_date">End Date</label>
+              <input id="s_end_date" name="end_date" type="date" required />
+            </div>
+          </div>
+
+          <label for="s_max_fp">Max Fingerprint API Calls</label>
+          <input id="s_max_fp" name="max_api_fingerprint_calls" type="number" min="0" placeholder="e.g. 5000" required />
+
+          <button class="btn" type="submit">Create Subscription</button>
+          <div id="subStatus" class="status"></div>
+          <div class="sep"></div>
+          <div class="muted">201 → <code>{"message": "✅ Created subscription ..."}</code> • 400/403 → <code>{"error": "..."}</code></div>
+        </form>
+      </div>
+
+      <!-- Update Subscription Limits -->
+      <div class="card">
+        <h2>Update Subscription Limits</h2>
+        <div class="stack">
+          <span class="pill">GET /update-subscription-limit</span>
+          <span class="pill">Query params</span>
+        </div>
+      
+        <form id="updateForm">
+          <label for="u2_client_id">Client ID</label>
+          <input id="u2_client_id" name="client_id" type="text" placeholder="client_123" required />
+      
+          <div class="row">
+            <div>
+              <label for="u2_type">Type (optional)</label>
+              <select id="u2_type" name="type">
+                <option value="">(leave unchanged)</option>
+                <option value="full">full</option>
+                <option value="admin">admin</option>
+                <option value="demo">demo</option>
+                <option value="fingerprint_demo">fingerprint_demo</option>
+              </select>
+            </div>
+            <div>
+              <label for="u2_max_calls">New Max API Calls</label>
+              <input id="u2_max_calls" name="max_api_calls" type="number" min="0" placeholder="e.g. 20000" required />
+            </div>
+          </div>
+      
+          <label for="u2_max_fp">New Max Fingerprint API Calls</label>
+          <input id="u2_max_fp" name="max_api_fingerprint_calls" type="number" min="0" placeholder="e.g. 8000" required />
+      
+          <div class="row">
+            <div>
+              <label for="u2_start_date">New Start Date (optional)</label>
+              <input id="u2_start_date" name="start_date" type="date" />
+            </div>
+            <div>
+              <label for="u2_end_date">New End Date (optional)</label>
+              <input id="u2_end_date" name="end_date" type="date" />
+            </div>
+          </div>
+      
+          <button class="btn" type="submit">Update Subscription</button>
+          <div id="updateStatus" class="status"></div>
+          <div class="sep"></div>
+          <div class="muted">
+            200 → <code>{"message": "✅ Updated subscription ..."}</code> • 404 → <code>{"error": "No active subscription ..."}</code> • 400/500 → <code>{"error": "..."}</code>
+          </div>
+        </form>
+      </div>
+
+      <!-- Create / Update Tenant -->
+      <div class="card">
+        <h2>3. Create / Update Tenant</h2>
+        <div class="stack">
+          <span class="pill">POST /admin/upsert-tenant</span>
+          <span class="pill">JSON body</span>
+        </div>
+      
+        <form id="tenantForm">
+          <label for="t_admin_key">Admin API Key (header)</label>
+          <input id="t_admin_key" type="password" placeholder="X-API-KEY value"  />
+      
+          <label for="t_client_id">Client ID</label>
+          <input id="t_client_id" type="text" placeholder="client_123" required />
+      
+          <label for="t_pg_uri">Postgres URI</label>
+          <input id="t_pg_uri" type="text" placeholder="postgresql://user:pass@host:5432/dbname" required />
+      
+          <label for="t_neo4j_uri">Neo4j URI</label>
+          <input id="t_neo4j_uri" type="text" placeholder="neo4j+s://<instance>.databases.neo4j.io" required />
+      
+          <div class="row">
+            <div>
+              <label for="t_neo4j_user">Neo4j User</label>
+              <input id="t_neo4j_user" type="text" placeholder="neo4j" required />
+            </div>
+            <div>
+              <label for="t_neo4j_pass">Neo4j Password</label>
+              <input id="t_neo4j_pass" type="password" placeholder="********" required />
+            </div>
+          </div>
+      
+          <button class="btn" type="submit">Create / Update Tenant</button>
+          <div id="tenantStatus" class="status"></div>
+          <div class="sep"></div>
+          <div class="muted">
+            201/200 → <code>{"message": "✅ Tenant created/updated", "client_id": "..."}</code> • 4xx/5xx → <code>{"error": "..."}</code>
+          </div>
+        </form>
+      </div>
+
+      
+    </div>
+
+    <p class="small" style="margin-top:18px">
+      Heads-up: Using <strong>GET</strong> for actions that mutate data exposes sensitive params in URLs and logs. Consider switching to <code>POST</code> with JSON + CSRF in production.
+    </p>
+  </div>
+
+  <script>
+    const byId = (id) => document.getElementById(id);
+
+    function buildUrl(base, prefix, path, params) {
+      const baseUrl = (base || "").replace(/\/+$/, "");
+      const pre = (prefix || "").startsWith("/") ? prefix : `/${prefix || ""}`;
+      const url = new URL(`${baseUrl}${pre}${path}`);
+      Object.entries(params).forEach(([k, v]) => {
+        if (v !== undefined && v !== null && String(v).length) url.searchParams.set(k, v);
+      });
+      return url.toString();
+    }
+
+
+
+
+    async function doGet(url, statusEl) {
+      statusEl.className = "status loading";
+      statusEl.textContent = "Sending request…";
+      try {
+        const res = await fetch(url, { method: "GET", credentials: "include" });
+        const text = await res.text();
+        let payload;
+        try { payload = JSON.parse(text); } catch { payload = { raw: text }; }
+        if (!res.ok) {
+          statusEl.className = "status err";
+          statusEl.textContent = JSON.stringify(payload, null, 2);
+        } else {
+          statusEl.className = "status ok";
+          statusEl.textContent = JSON.stringify(payload, null, 2);
+        }
+      } catch (e) {
+        statusEl.className = "status err";
+        statusEl.textContent = String(e);
+      }
+    }
+
+    // Defaults
+    byId("baseUrl").value = location.origin;
+
+    // Create User
+    byId("userForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const base = byId("baseUrl").value.trim();
+      const prefix = byId("prefix").value.trim() || "/auth";
+
+      const url = buildUrl(base, prefix, "/create-user", {
+        email: byId("u_email").value.trim(),
+        onboarded_flag: byId("u_onboarded_flag").value,
+        password: byId("u_password").value,
+        client_id: byId("u_client_id").value.trim(),
+        api_key: byId("u_api_key").value.trim(),
+        pk_key: byId("u_pk_key").value.trim(),
+        pk_origins: byId("u_pk_origins").value.trim(), // JSON array or CSV
+        jwt_secrets: byId("u_jwt_secrets").value.trim(),
+      });
+      doGet(url, byId("userStatus"));
+    });
+
+    // Create Subscription
+    byId("subForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const base = byId("baseUrl").value.trim();
+      const prefix = byId("prefix").value.trim() || "/auth";
+
+      const start = byId("s_start_date").value;
+      const end = byId("s_end_date").value;
+      if (start && end && new Date(end) < new Date(start)) {
+        const s = byId("subStatus");
+        s.className = "status err";
+        s.textContent = "End date cannot be before start date.";
+        return;
+      }
+
+      const url = buildUrl(base, prefix, "/create-subscription", {
+        client_id: byId("s_client_id").value.trim(),
+        type: byId("s_type").value,
+        start_date: start,
+        end_date: end,
+        max_api_calls: byId("s_max_calls").value,
+        max_api_fingerprint_calls: byId("s_max_fp").value,
+      });
+
+      doGet(url, byId("subStatus"));
+    });
+    
+    // Update Subscription Limits
+    byId("updateForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const base = byId("baseUrl").value.trim();
+      const prefix = byId("prefix").value.trim() || "/";
+    
+      const url = buildUrl(base, prefix, "/update-subscription-limit", {
+        client_id: byId("u2_client_id").value.trim(),
+        type: byId("u2_type").value,
+        max_api_calls: byId("u2_max_calls").value,
+        max_api_fingerprint_calls: byId("u2_max_fp").value,
+        start_date: byId("u2_start_date").value,
+        end_date: byId("u2_end_date").value,
+      });
+    
+      doGet(url, byId("updateStatus"));
+    });
+
+async function doPost(url, body, statusEl, headers = {}) {
+  statusEl.className = "status loading";
+  statusEl.textContent = "Sending request…";
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...headers },
+      credentials: "include",
+      body: JSON.stringify(body),
+    });
+    const text = await res.text();
+    let payload;
+    try { payload = JSON.parse(text); } catch { payload = { raw: text }; }
+    if (!res.ok) {
+      statusEl.className = "status err";
+      statusEl.textContent = JSON.stringify(payload, null, 2);
+    } else {
+      statusEl.className = "status ok";
+      statusEl.textContent = JSON.stringify(payload, null, 2);
+    }
+  } catch (e) {
+    statusEl.className = "status err";
+    statusEl.textContent = String(e);
+  }
+}
+
+  // Create / Update Tenant (POST JSON)
+  document.getElementById("tenantForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const base = document.getElementById("baseUrl").value.trim();
+    const baseUrl = (base || "").replace(/\/+$/, "");
+    // admin endpoints are usually at root or /admin; your card shows /admin
+    const url = `${baseUrl}/admin/upsert-tenant`;
+  
+    const headers = { "X-API-KEY": document.getElementById("t_admin_key").value };
+    const body = {
+      client_id: document.getElementById("t_client_id").value.trim(),
+      postgres_uri: document.getElementById("t_pg_uri").value.trim(),
+      neo4j_uri: document.getElementById("t_neo4j_uri").value.trim(),
+      neo4j_user: document.getElementById("t_neo4j_user").value.trim(),
+      neo4j_password: document.getElementById("t_neo4j_pass").value,
+    };
+  
+    doPost(url, body, document.getElementById("tenantStatus"), headers);
+  });
+
+    
+  </script>
+</body>
+</html>

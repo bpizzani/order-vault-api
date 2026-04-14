@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f3f4f6;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .login-container {
+      background: white;
+      padding: 2rem 3rem;
+      border-radius: 10px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 400px;
+    }
+    .login-container h2 {
+      margin-bottom: 1rem;
+      text-align: center;
+      color: #111827;
+    }
+    .form-group {
+      margin-bottom: 1rem;
+    }
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: bold;
+    }
+    input[type="email"],
+    input[type="password"] {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid #d1d5db;
+      border-radius: 5px;
+    }
+    button {
+      width: 100%;
+      padding: 0.75rem;
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #1d4ed8;
+    }
+    #error {
+      color: red;
+      margin-top: 1rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <h2>Log In</h2>
+    <form id="login-form">
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input id="email" type="email" name="email" required placeholder="you@example.com">
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input id="password" type="password" name="password" required placeholder="••••••••">
+      </div>
+      <button type="submit">Sign In</button>
+    </form>
+    <p id="error"></p>
+  </div>
+
+  <script>
+    document.getElementById("login-form").addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      fetch("https://console.rediim.com/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        credentials: "include",  // Keeps session cookie
+        body: JSON.stringify({ email, password })
+      })
+      .then(res => {
+        if (!res.ok) throw new Error("Invalid credentials");
+        return res.json();
+      })
+      .then(data => {
+        if (data.message === "Logged in") {
+          // Normal login flow
+          window.location.href = "/promotion_dashboard";
+        } 
+        else if (data.message === "Change Password") {
+          // Force password change flow
+          window.location.href = "/change-password"; // <-- your change_password_page route
+        } 
+        else {
+          // Default error handling
+          document.getElementById("error").textContent = data.error || "Login failed.";
+        }
+      })
+      .catch(err => {
+        document.getElementById("error").textContent = err.message;
+      });
+    });
+  </script>
+</body>
+</html>
+

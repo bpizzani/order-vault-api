@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Intelligence — Rediim</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css') }}">
+  <style>
+    /* ── PAGE-SPECIFIC STYLES ── */
+ 
+    /* Email search form */
+    .email-form { display: flex; gap: 0; margin-bottom: 28px; }
+    .email-input {
+      flex: 1; background: #141414; border: 1px solid #222;
+      border-right: none; border-radius: 7px 0 0 7px;
+      color: #fff; font-size: 13px; padding: 9px 14px; outline: none;
+      transition: border-color 0.15s; color-scheme: dark;
+    }
+    .email-input:focus { border-color: #00d4ff; }
+    .email-input::placeholder { color: #333; }
+    .email-btn {
+      background: #00d4ff; color: #000; border: none;
+      border-radius: 0 7px 7px 0; padding: 9px 20px;
+      font-size: 13px; font-weight: 700; cursor: pointer; transition: background 0.15s;
+    }
+    .email-btn:hover { background: #2de0ff; }
+ 
+    /* Tables */
+    .table-section { margin-bottom: 28px; }
+    .table-section-title { font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 10px; }
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #444; padding: 8px 14px; border-bottom: 1px solid #1e1e1e; text-align: left; }
+    .data-table td { font-size: 13px; color: #aaa; padding: 10px 14px; border-bottom: 1px solid #181818; }
+    .data-table td:last-child { color: #fff; font-weight: 600; text-align: right; }
+    .data-table tbody tr:last-child td { border-bottom: none; }
+    .data-table tbody tr:hover td { background: #181818; }
+    .empty-row td { color: #2e2e2e !important; text-align: center !important; font-weight: 400 !important; }
+ 
+    /* Search tools */
+    .search-tools-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
+    .search-tool-card { background: #141414; border: 1px solid #1e1e1e; border-radius: 12px; padding: 18px; }
+    .tool-title { font-size: 12px; font-weight: 700; color: #555; margin-bottom: 12px; }
+    .tool-accent-user { color: #38bdf8; }
+    .tool-accent-device { color: #34d399; }
+    .tool-accent-promo { color: #facc15; }
+    .tool-search-row { display: flex; gap: 0; }
+    .tool-input {
+      flex: 1; background: #0e0e0e; border: 1px solid #222;
+      border-right: none; border-radius: 6px 0 0 6px;
+      color: #ddd; font-size: 12px; padding: 7px 10px; outline: none;
+      transition: border-color 0.15s; color-scheme: dark;
+    }
+    .tool-input:focus { border-color: #555; }
+    .tool-input::placeholder { color: #2e2e2e; }
+    .tool-btn {
+      border: none; border-radius: 0 6px 6px 0;
+      padding: 7px 12px; font-size: 12px; font-weight: 700; cursor: pointer; transition: background 0.15s;
+    }
+    .tool-btn-user   { background: #38bdf8; color: #000; }
+    .tool-btn-user:hover   { background: #7dd3fc; }
+    .tool-btn-device { background: #34d399; color: #000; }
+    .tool-btn-device:hover { background: #6ee7b7; }
+    .tool-btn-promo  { background: #facc15; color: #000; }
+    .tool-btn-promo:hover  { background: #fde047; }
+    .tool-result { margin-top: 12px; font-size: 12px; }
+    .result-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: #1a1a1a; border: 1px solid #252525; border-radius: 6px;
+      padding: 5px 10px; margin: 3px 4px 3px 0; font-size: 11px; color: #666;
+    }
+    .result-badge b { color: #ccc; font-weight: 700; }
+ 
+    /* Result tables for search tools */
+    .result-tables { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
+    .result-table-card { background: #141414; border: 1px solid #1e1e1e; border-radius: 10px; padding: 16px; }
+    .result-table-title { font-size: 11px; font-weight: 700; color: #555; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; }
+    .result-list-table { width: 100%; border-collapse: collapse; }
+    .result-list-table td { font-size: 12px; color: #888; padding: 5px 0; border-bottom: 1px solid #181818; word-break: break-all; }
+    .result-list-table tr:last-child td { border-bottom: none; }
+ 
+    /* Loader */
+    .loader { font-size: 13px; color: #444; padding: 8px 0; display: none; }
+  </style>
+</head>
+<body>
+ 
+<div class="shell">
+ 
+  {% include "_sidebar.html" %}
+ 
+  <div class="right-col">
+ 
+    {% set page_title = "User Intelligence" %}
+    {% include "_topbar.html" %}
+ 
+    <main class="main-scroll">
+ 
+      <div class="accent-bar"></div>
+      <h1 class="page-title">User Intelligence</h1>
+      <p class="page-sub">Look up customer attributes, network connections and promocode activity by email.</p>
+ 
+      <!-- Email search -->
+      <div style="margin-top: 20px; max-width: 560px;">
+        <form id="emailForm">
+          <div class="email-form">
+            <input type="email" id="email" class="email-input" placeholder="user@example.com" required>
+            <button type="submit" class="email-btn">Search</button>
+          </div>
+        </form>
+        <div id="loading" class="loader">Loading customer data…</div>
+      </div>
+ 
+      <!-- Customer attributes table -->
+      <div class="sec-label">Customer attributes</div>
+      <div class="chart-card table-section">
+        <div class="data-table-wrap">
+          <table class="data-table" id="customerAttributesTable">
+            <thead><tr><th>Attribute</th><th style="text-align:right">Value</th></tr></thead>
+            <tbody>
+              <tr class="empty-row"><td colspan="2">Search an email to load customer data.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+ 
+      <!-- Network attributes table -->
+      <div class="sec-label">Network attributes</div>
+      <div class="chart-card table-section">
+        <div class="data-table-wrap">
+          <table class="data-table" id="networkAttributesTable">
+            <thead><tr><th>Attribute</th><th style="text-align:right">Value</th></tr></thead>
+            <tbody>
+              <tr class="empty-row"><td colspan="2">Network data will appear here after a search.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+ 
+      <!-- Promocode order count table -->
+      <div class="sec-label">Orders by promocode</div>
+      <div class="chart-card table-section">
+        <div class="data-table-wrap">
+          <table class="data-table" id="promocodeOrderTable">
+            <thead><tr><th>Promocode</th><th style="text-align:right">Total orders</th></tr></thead>
+            <tbody>
+              <tr class="empty-row"><td colspan="2">Promocode breakdown will appear here after a search.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+ 
+      <!-- Fingerprint search tools -->
+      <div class="sec-label">Fingerprint lookup</div>
+      <div class="search-tools-grid">
+ 
+        <div class="search-tool-card">
+          <div class="tool-title">Search by <span class="tool-accent-user">user_id</span></div>
+          <div class="tool-search-row">
+            <input id="qUserId" class="tool-input" placeholder="e.g. 12345">
+            <button id="btnUserId" class="tool-btn tool-btn-user">Go</button>
+          </div>
+          <div id="resUserId" class="tool-result"></div>
+        </div>
+ 
+        <div class="search-tool-card">
+          <div class="tool-title">Search by <span class="tool-accent-device">device_id</span></div>
+          <div class="tool-search-row">
+            <input id="qDeviceId" class="tool-input" placeholder="tm/js/visitor id">
+            <button id="btnDeviceId" class="tool-btn tool-btn-device">Go</button>
+          </div>
+          <div id="resDeviceId" class="tool-result"></div>
+        </div>
+ 
+        <div class="search-tool-card">
+          <div class="tool-title">Search by <span class="tool-accent-promo">promocode</span></div>
+          <div class="tool-search-row">
+            <input id="qPromo" class="tool-input" placeholder="e.g. SAVE10">
+            <button id="btnPromo" class="tool-btn tool-btn-promo">Go</button>
+          </div>
+          <div id="resPromo" class="tool-result"></div>
+        </div>
+ 
+      </div>
+ 
+      <div id="loading2" class="loader">Searching…</div>
+ 
+      <!-- Search result tables -->
+      <div class="result-tables" id="searchTables" style="display:none">
+        <div class="result-table-card">
+          <div class="result-table-title" id="titleA">List A</div>
+          <table class="result-list-table"><tbody id="tableA"></tbody></table>
+        </div>
+        <div class="result-table-card">
+          <div class="result-table-title" id="titleB">List B</div>
+          <table class="result-list-table"><tbody id="tableB"></tbody></table>
+        </div>
+      </div>
+ 
+    </main>
+  </div>
+</div>
+ 
+<script>
+  function $(id) { return document.getElementById(id); }
+  function setText(id, v) { const el = $(id); if (el) el.textContent = v; }
+  function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+ 
+  function badgeHtml(label, value, color) {
+    return `<span class="result-badge"><span style="color:${color}">${label}:</span><b>${escHtml(String(value))}</b></span>`;
+  }
+ 
+  function renderTableRows(tbodyId, rows) {
+    const el = $(tbodyId);
+    if (!el) return;
+    el.innerHTML = (rows && rows.length)
+      ? rows.map(v => `<tr><td>${escHtml(v)}</td></tr>`).join('')
+      : `<tr><td style="color:#2e2e2e">No data</td></tr>`;
+  }
+ 
+  // ── Email form ──
+  document.getElementById('emailForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const email = $('email').value.trim();
+    $('loading').style.display = 'block';
+    Promise.all([
+      fetchCustomerAttributes(email),
+      fetchNetworkAttributes(email),
+      fetchPromocodeOrderCount(email)
+    ]).finally(() => { $('loading').style.display = 'none'; });
+  });
+ 
+  function setTableBody(tbodySelector, rows) {
+    const tbody = document.querySelector(tbodySelector);
+    if (!tbody) return;
+    tbody.innerHTML = rows.length
+      ? rows.map(([label, val]) => `<tr><td>${escHtml(label)}</td><td>${escHtml(String(val))}</td></tr>`).join('')
+      : `<tr class="empty-row"><td colspan="2">No data found.</td></tr>`;
+  }
+ 
+  function fetchCustomerAttributes(email) {
+    return fetch(`/api/customer/attributes-summary?email=${encodeURIComponent(email)}`)
+      .then(r => r.json())
+      .then(data => {
+        if (!data || data.message || !Object.keys(data).length) {
+          setTableBody('#customerAttributesTable tbody', []);
+          return;
+        }
+        setTableBody('#customerAttributesTable tbody', [
+          ['Total orders',      data.total_orders ?? '—'],
+          ['Distinct cards',    data.distinct_cards ?? '—'],
+          ['Distinct phones',   data.distinct_phones ?? '—'],
+          ['Distinct devices',  data.distinct_devices ?? '—'],
+        ]);
+      }).catch(() => setTableBody('#customerAttributesTable tbody', []));
+  }
+ 
+  function fetchNetworkAttributes(email) {
+    return fetch(`/api/customer/attributes-network?email=${encodeURIComponent(email)}`)
+      .then(r => r.json())
+      .then(data => {
+        if (!data || data.message || !Object.keys(data).length) {
+          setTableBody('#networkAttributesTable tbody', []);
+          return;
+        }
+        setTableBody('#networkAttributesTable tbody', [
+          ['Connected customers',    data.connected_customers ?? '—'],
+          ['Connected orders',       data.connected_orders ?? '—'],
+          ['Distinct cards',         data.distinct_cards ?? '—'],
+          ['Distinct phones',        data.distinct_phones ?? '—'],
+          ['Distinct devices',       data.distinct_devices ?? '—'],
+          ['Distinct promocodes',    data.distinct_promocodes ?? '—'],
+          ['Total promocodes used',  data.total_promocodes ?? '—'],
+        ]);
+      }).catch(() => setTableBody('#networkAttributesTable tbody', []));
+  }
+ 
+  function fetchPromocodeOrderCount(email) {
+    return fetch(`/api/promocode/order-count?email=${encodeURIComponent(email)}`)
+      .then(r => r.json())
+      .then(data => {
+        const stats = data?.promocode_stats;
+        if (!stats || !stats.length) {
+          setTableBody('#promocodeOrderTable tbody', []);
+          return;
+        }
+        const tbody = document.querySelector('#promocodeOrderTable tbody');
+        tbody.innerHTML = stats.map(s => `<tr><td>${escHtml(s.promocode)}</td><td>${escHtml(String(s.total_orders))}</td></tr>`).join('');
+      }).catch(() => setTableBody('#promocodeOrderTable tbody', []));
+  }
+ 
+  // ── Fingerprint search helpers ──
+  async function runSearch(url, params) {
+    const qs = new URLSearchParams(params).toString();
+    const res = await fetch(`${url}?${qs}`);
+    const data = await res.json();
+    if (!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
+    return data;
+  }
+ 
+  function showSearchTables(titleA, titleB, listA, listB) {
+    $('searchTables').style.display = 'grid';
+    setText('titleA', titleA);
+    setText('titleB', titleB);
+    renderTableRows('tableA', listA);
+    renderTableRows('tableB', listB);
+  }
+ 
+  document.addEventListener('DOMContentLoaded', () => {
+ 
+    $('btnUserId')?.addEventListener('click', async () => {
+      const user_id = $('qUserId')?.value?.trim();
+      if (!user_id) return;
+      const box = $('resUserId'); box.textContent = 'Searching…';
+      try {
+        const data = await runSearch('/api/fingerprint/search/by-user', { user_id });
+        box.innerHTML =
+          badgeHtml('Unique devices', data.device_count, '#34d399') +
+          badgeHtml('Total promocodes', data.promocode_count, '#38bdf8') +
+          badgeHtml('Unique promocodes', data.promocode_count_unique, '#38bdf8');
+        showSearchTables(`Devices for user ${user_id}`, `Promocodes for user ${user_id}`, data.devices, data.promocodes);
+      } catch(e) { box.textContent = 'Error: ' + e.message; }
+    });
+ 
+    $('btnDeviceId')?.addEventListener('click', async () => {
+      const device_id = $('qDeviceId')?.value?.trim();
+      if (!device_id) return;
+      const box = $('resDeviceId'); box.textContent = 'Searching…';
+      try {
+        const data = await runSearch('/api/fingerprint/search/by-device', { device_id });
+        box.innerHTML =
+          badgeHtml('Unique users', data.user_count, '#34d399') +
+          badgeHtml('Total promocodes', data.promocode_count, '#38bdf8') +
+          badgeHtml('Unique promocodes', data.promocode_count_unique, '#38bdf8');
+        showSearchTables(`Users on device ${device_id.slice(0,8)}…`, 'Promocodes used by device', data.users, data.promocodes);
+      } catch(e) { box.textContent = 'Error: ' + e.message; }
+    });
+ 
+    $('btnPromo')?.addEventListener('click', async () => {
+      const promocode = $('qPromo')?.value?.trim();
+      if (!promocode) return;
+      const box = $('resPromo'); box.textContent = 'Searching…';
+      try {
+        const data = await runSearch('/api/fingerprint/search/by-promo', { promocode });
+        box.innerHTML =
+          badgeHtml('Unique users', data.unique_user_count, '#34d399') +
+          badgeHtml('Unique devices', data.unique_device_count, '#38bdf8');
+        showSearchTables(`Users who used ${promocode}`, `Devices that used ${promocode}`, data.users, data.devices);
+      } catch(e) { box.textContent = 'Error: ' + e.message; }
+    });
+ 
+  });
+</script>
+ 
+</body>
+</html>
+
