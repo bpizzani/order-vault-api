@@ -1,370 +1,294 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
-    <title>Customer Attributes</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Intelligence — Rediim</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css') }}">
+  <style>
+    /* ── PAGE-SPECIFIC STYLES ── */
+ 
+    /* Email search form */
+    .email-form { display: flex; gap: 0; margin-bottom: 28px; }
+    .email-input {
+      flex: 1; background: #141414; border: 1px solid #222;
+      border-right: none; border-radius: 7px 0 0 7px;
+      color: #fff; font-size: 13px; padding: 9px 14px; outline: none;
+      transition: border-color 0.15s; color-scheme: dark;
+    }
+    .email-input:focus { border-color: #00d4ff; }
+    .email-input::placeholder { color: #333; }
+    .email-btn {
+      background: #00d4ff; color: #000; border: none;
+      border-radius: 0 7px 7px 0; padding: 9px 20px;
+      font-size: 13px; font-weight: 700; cursor: pointer; transition: background 0.15s;
+    }
+    .email-btn:hover { background: #2de0ff; }
+ 
+    /* Tables */
+    .table-section { margin-bottom: 28px; }
+    .table-section-title { font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 10px; }
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #444; padding: 8px 14px; border-bottom: 1px solid #1e1e1e; text-align: left; }
+    .data-table td { font-size: 13px; color: #aaa; padding: 10px 14px; border-bottom: 1px solid #181818; }
+    .data-table td:last-child { color: #fff; font-weight: 600; text-align: right; }
+    .data-table tbody tr:last-child td { border-bottom: none; }
+    .data-table tbody tr:hover td { background: #181818; }
+    .empty-row td { color: #2e2e2e !important; text-align: center !important; font-weight: 400 !important; }
+ 
+    /* Search tools */
+    .search-tools-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
+    .search-tool-card { background: #141414; border: 1px solid #1e1e1e; border-radius: 12px; padding: 18px; }
+    .tool-title { font-size: 12px; font-weight: 700; color: #555; margin-bottom: 12px; }
+    .tool-accent-user { color: #38bdf8; }
+    .tool-accent-device { color: #34d399; }
+    .tool-accent-promo { color: #facc15; }
+    .tool-search-row { display: flex; gap: 0; }
+    .tool-input {
+      flex: 1; background: #0e0e0e; border: 1px solid #222;
+      border-right: none; border-radius: 6px 0 0 6px;
+      color: #ddd; font-size: 12px; padding: 7px 10px; outline: none;
+      transition: border-color 0.15s; color-scheme: dark;
+    }
+    .tool-input:focus { border-color: #555; }
+    .tool-input::placeholder { color: #2e2e2e; }
+    .tool-btn {
+      border: none; border-radius: 0 6px 6px 0;
+      padding: 7px 12px; font-size: 12px; font-weight: 700; cursor: pointer; transition: background 0.15s;
+    }
+    .tool-btn-user   { background: #38bdf8; color: #000; }
+    .tool-btn-user:hover   { background: #7dd3fc; }
+    .tool-btn-device { background: #34d399; color: #000; }
+    .tool-btn-device:hover { background: #6ee7b7; }
+    .tool-btn-promo  { background: #facc15; color: #000; }
+    .tool-btn-promo:hover  { background: #fde047; }
+    .tool-result { margin-top: 12px; font-size: 12px; }
+    .result-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: #1a1a1a; border: 1px solid #252525; border-radius: 6px;
+      padding: 5px 10px; margin: 3px 4px 3px 0; font-size: 11px; color: #666;
+    }
+    .result-badge b { color: #ccc; font-weight: 700; }
+ 
+    /* Result tables for search tools */
+    .result-tables { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
+    .result-table-card { background: #141414; border: 1px solid #1e1e1e; border-radius: 10px; padding: 16px; }
+    .result-table-title { font-size: 11px; font-weight: 700; color: #555; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; }
+    .result-list-table { width: 100%; border-collapse: collapse; }
+    .result-list-table td { font-size: 12px; color: #888; padding: 5px 0; border-bottom: 1px solid #181818; word-break: break-all; }
+    .result-list-table tr:last-child td { border-bottom: none; }
+ 
+    /* Loader */
+    .loader { font-size: 13px; color: #444; padding: 8px 0; display: none; }
+  </style>
 </head>
-<body class="bg-[#0d0d0d] text-[#f5f5f5] font-sans">
-  <div class="flex h-screen overflow-hidden">
-    <!-- Sidebar -->
-    {% include "_sidebar.html" %}
-
-    <!-- Main Content -->
-    <main class="flex-1 overflow-y-auto p-10">
-      <!-- Title -->
-      <h1 class="text-4xl font-extrabold mb-10 text-center text-white">Buscar Atributos de Cliente</h1>
-
-      <!-- Search -->
-      <section class="flex justify-center mb-10">
-        <form id="emailForm" class="bg-[#1f1f1f] p-8 rounded-xl shadow-xl w-full max-w-xl">
-          <label for="email" class="block text-lg mb-2">Email del Cliente:</label>
-          <input
-            type="email"
-            id="email"
-            required
-            placeholder="usuario@correo.com"
-            class="input-rediim w-full mb-4"
-          />
-          <button
-            type="submit"
-            class="button-rediim w-full"
-          >
-            Buscar
-          </button>
+<body>
+ 
+<div class="shell">
+ 
+  {% include "_sidebar.html" %}
+ 
+  <div class="right-col">
+ 
+    {% set page_title = "User Intelligence" %}
+    {% include "_topbar.html" %}
+ 
+    <main class="main-scroll">
+ 
+      <div class="accent-bar"></div>
+      <h1 class="page-title">User Intelligence</h1>
+      <p class="page-sub">Look up customer attributes, network connections and promocode activity by email.</p>
+ 
+      <!-- Email search -->
+      <div style="margin-top: 20px; max-width: 560px;">
+        <form id="emailForm">
+          <div class="email-form">
+            <input type="email" id="email" class="email-input" placeholder="user@example.com" required>
+            <button type="submit" class="email-btn">Search</button>
+          </div>
         </form>
-      </section>
-
-      <!-- Loading -->
-      <div id="loading" class="text-center text-white text-xl hidden">
-        Cargando datos, por favor espera...
+        <div id="loading" class="loader">Loading customer data…</div>
       </div>
-
-      <!-- Tables Section -->
-      <section class="my-12">
-        <h2 class="text-2xl font-bold text-center text-white mb-6">Resumen de Atributos del Cliente</h2>
-        <div class="overflow-x-auto">
-          <table id="customerAttributesTable" class="w-4/5 mx-auto bg-[#1f1f1f] rounded-xl shadow-lg">
-            <thead>
-              <tr class="bg-[#2a2a2a] text-white text-left">
-                <th class="py-3 px-6 text-lg">Atributo</th>
-                <th class="py-3 px-6 text-lg">Cantidad</th>
-              </tr>
-            </thead>
-            <tbody class="text-gray-300">
-              <!-- Dynamic content -->
+ 
+      <!-- Customer attributes table -->
+      <div class="sec-label">Customer attributes</div>
+      <div class="chart-card table-section">
+        <div class="data-table-wrap">
+          <table class="data-table" id="customerAttributesTable">
+            <thead><tr><th>Attribute</th><th style="text-align:right">Value</th></tr></thead>
+            <tbody>
+              <tr class="empty-row"><td colspan="2">Search an email to load customer data.</td></tr>
             </tbody>
           </table>
         </div>
-      </section>
-
-      <section class="my-12">
-        <h2 class="text-2xl font-bold text-center text-white mb-6">Atributos de la Network</h2>
-        <div class="overflow-x-auto">
-          <table id="networkAttributesTable" class="w-4/5 mx-auto bg-[#1f1f1f] rounded-xl shadow-lg">
-            <thead>
-              <tr class="bg-[#2a2a2a] text-white text-left">
-                <th class="py-3 px-6 text-lg">Atributo</th>
-                <th class="py-3 px-6 text-lg">Cantidad</th>
-              </tr>
-            </thead>
-            <tbody class="text-gray-300">
-              <!-- Dynamic content -->
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section class="my-12">
-        <h2 class="text-2xl font-bold text-center text-white mb-6">Conteo de Ordenes por Promocodes</h2>
-        <div class="overflow-x-auto">
-          <table id="promocodeOrderTable" class="w-4/5 mx-auto bg-[#1f1f1f] rounded-xl shadow-lg">
-            <thead>
-              <tr class="bg-[#2a2a2a] text-white text-left">
-                <th class="py-3 px-6 text-lg">Promocode</th>
-                <th class="py-3 px-6 text-lg">Total de Ordenes</th>
-              </tr>
-            </thead>
-            <tbody class="text-gray-300">
-              <!-- Dynamic content -->
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-         <!-- Search Tools Fingerprint-->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10">
-              <!-- Search by user_id -->
-              <div class="bg-[#1a1a1a] p-5 rounded-lg">
-                <h3 class="text-lg font-semibold mb-3">Search by <span class="text-sky-400">user_id</span></h3>
-                <div class="flex gap-2">
-                  <input id="qUserId" class="w-full bg-[#0f0f0f] border border-gray-700 rounded px-3 py-2" placeholder="e.g. 12345" />
-                  <button id="btnUserId" class="px-3 py-2 bg-sky-500 hover:bg-sky-400 rounded text-black font-semibold">Search</button>
-                </div>
-                <div id="resUserId" class="mt-4 text-sm"></div>
-              </div>
-            
-              <!-- Search by device_id -->
-              <div class="bg-[#1a1a1a] p-5 rounded-lg">
-                <h3 class="text-lg font-semibold mb-3">Search by <span class="text-emerald-400">device_id</span></h3>
-                <div class="flex gap-2">
-                  <input id="qDeviceId" class="w-full bg-[#0f0f0f] border border-gray-700 rounded px-3 py-2" placeholder="tm/js/visitor id" />
-                  <button id="btnDeviceId" class="px-3 py-2 bg-emerald-500 hover:bg-emerald-400 rounded text-black font-semibold">Search</button>
-                </div>
-                <div id="resDeviceId" class="mt-4 text-sm"></div>
-              </div>
-            
-              <!-- Search by promocode -->
-              <div class="bg-[#1a1a1a] p-5 rounded-lg">
-                <h3 class="text-lg font-semibold mb-3">Search by <span class="text-amber-400">promocode</span></h3>
-                <div class="flex gap-2">
-                  <input id="qPromo" class="w-full bg-[#0f0f0f] border border-gray-700 rounded px-3 py-2" placeholder="e.g. SAVE10" />
-                  <button id="btnPromo" class="px-3 py-2 bg-amber-400 hover:bg-amber-300 rounded text-black font-semibold">Search</button>
-                </div>
-                <div id="resPromo" class="mt-4 text-sm"></div>
-              </div>
-            </div>
-
-      <!-- Loading -->
-      <div id="loading2" class="text-center text-white text-xl hidden">
-        Cargando datos, por favor espera...
       </div>
-        
-            <!-- Results tables -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8" id="searchTables" style="display:none;">
-              <div class="bg-[#1a1a1a] p-5 rounded-lg">
-                <h4 id="titleA" class="font-semibold mb-3">List A</h4>
-                <table class="w-full text-sm">
-                  <thead><tr class="text-gray-300"><th class="text-left py-2">Value</th></tr></thead>
-                  <tbody id="tableA"></tbody>
-                </table>
-              </div>
-              <div class="bg-[#1a1a1a] p-5 rounded-lg">
-                <h4 id="titleB" class="font-semibold mb-3">List B</h4>
-                <table class="w-full text-sm">
-                  <thead><tr class="text-gray-300"><th class="text-left py-2">Value</th></tr></thead>
-                  <tbody id="tableB"></tbody>
-                </table>
-              </div>
-            </div>    
-
-        
+ 
+      <!-- Network attributes table -->
+      <div class="sec-label">Network attributes</div>
+      <div class="chart-card table-section">
+        <div class="data-table-wrap">
+          <table class="data-table" id="networkAttributesTable">
+            <thead><tr><th>Attribute</th><th style="text-align:right">Value</th></tr></thead>
+            <tbody>
+              <tr class="empty-row"><td colspan="2">Network data will appear here after a search.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+ 
+      <!-- Promocode order count table -->
+      <div class="sec-label">Orders by promocode</div>
+      <div class="chart-card table-section">
+        <div class="data-table-wrap">
+          <table class="data-table" id="promocodeOrderTable">
+            <thead><tr><th>Promocode</th><th style="text-align:right">Total orders</th></tr></thead>
+            <tbody>
+              <tr class="empty-row"><td colspan="2">Promocode breakdown will appear here after a search.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+ 
+      <!-- Fingerprint search tools -->
+      <div class="sec-label">Fingerprint lookup</div>
+      <div class="search-tools-grid">
+ 
+        <div class="search-tool-card">
+          <div class="tool-title">Search by <span class="tool-accent-user">user_id</span></div>
+          <div class="tool-search-row">
+            <input id="qUserId" class="tool-input" placeholder="e.g. 12345">
+            <button id="btnUserId" class="tool-btn tool-btn-user">Go</button>
+          </div>
+          <div id="resUserId" class="tool-result"></div>
+        </div>
+ 
+        <div class="search-tool-card">
+          <div class="tool-title">Search by <span class="tool-accent-device">device_id</span></div>
+          <div class="tool-search-row">
+            <input id="qDeviceId" class="tool-input" placeholder="tm/js/visitor id">
+            <button id="btnDeviceId" class="tool-btn tool-btn-device">Go</button>
+          </div>
+          <div id="resDeviceId" class="tool-result"></div>
+        </div>
+ 
+        <div class="search-tool-card">
+          <div class="tool-title">Search by <span class="tool-accent-promo">promocode</span></div>
+          <div class="tool-search-row">
+            <input id="qPromo" class="tool-input" placeholder="e.g. SAVE10">
+            <button id="btnPromo" class="tool-btn tool-btn-promo">Go</button>
+          </div>
+          <div id="resPromo" class="tool-result"></div>
+        </div>
+ 
+      </div>
+ 
+      <div id="loading2" class="loader">Searching…</div>
+ 
+      <!-- Search result tables -->
+      <div class="result-tables" id="searchTables" style="display:none">
+        <div class="result-table-card">
+          <div class="result-table-title" id="titleA">List A</div>
+          <table class="result-list-table"><tbody id="tableA"></tbody></table>
+        </div>
+        <div class="result-table-card">
+          <div class="result-table-title" id="titleB">List B</div>
+          <table class="result-list-table"><tbody id="tableB"></tbody></table>
+        </div>
+      </div>
+ 
     </main>
   </div>
-</body>
-
-    <script>
-        document.getElementById("emailForm").addEventListener("submit", function(event) {
-            event.preventDefault();  // Prevent page refresh
-            const email = document.getElementById("email").value;
-            showLoading(true);  // Show loading indicator
-            fetchCustomerAttributes(email);
-            fetchNetworkAttributes(email);
-            fetchPromocodeOrderCount(email);
-        });
-
-        // Show or hide the loading indicator
-        function showLoading(show) {
-            const loadingElement = document.getElementById("loading");
-            if (show) {
-                loadingElement.classList.remove("hidden");
-            } else {
-                loadingElement.classList.add("hidden");
-            }
-        }
-
-        function fetchCustomerAttributes(email) {
-            fetch(`https://console.rediim.com/api/customer/attributes-summary?email=${email}`)
-                .then(response => response.json())
-                .then(data => {
-                    console.log("API Response - Customer Attributes Summary:", data);
-
-                    const tableBody = document.querySelector("#customerAttributesTable tbody");
-                    tableBody.innerHTML = "";  // Clear previous data
-
-                    if (data.message || Object.keys(data).length === 0) {
-                        tableBody.innerHTML = "<tr><td colspan='2' class='text-center text-gray-500'>No se encontraron datos.</td></tr>";
-                        return;
-                    }
-
-                    // Display total orders
-                    const rowOrders = document.createElement("tr");
-                    rowOrders.innerHTML = `
-                        <td class="py-3 px-6">Total de Ordenes</td>
-                        <td class="py-3 px-6">${data.total_orders}</td>
-                    `;
-                    tableBody.appendChild(rowOrders);
-
-                    // Display distinct cards
-                    const rowCards = document.createElement("tr");
-                    rowCards.innerHTML = `
-                        <td class="py-3 px-6">Tarjetas Distintas</td>
-                        <td class="py-3 px-6">${data.distinct_cards}</td>
-                    `;
-                    tableBody.appendChild(rowCards);
-
-                    // Display distinct phones
-                    const rowPhones = document.createElement("tr");
-                    rowPhones.innerHTML = `
-                        <td class="py-3 px-6">Teléfonos Distintos</td>
-                        <td class="py-3 px-6">${data.distinct_phones}</td>
-                    `;
-                    tableBody.appendChild(rowPhones);
-
-                    // Display distinct devices
-                    const rowDevices = document.createElement("tr");
-                    rowDevices.innerHTML = `
-                        <td class="py-3 px-6">Dispositivos Distintos</td>
-                        <td class="py-3 px-6">${data.distinct_devices}</td>
-                    `;
-                    tableBody.appendChild(rowDevices);
-                })
-                .catch(error => {
-                    console.error("Error fetching customer attributes:", error);
-                    const tableBody = document.querySelector("#customerAttributesTable tbody");
-                    tableBody.innerHTML = "<tr><td colspan='2' class='text-center text-red-500'>Error al obtener datos.</td></tr>";
-                })
-                .finally(() => {
-                    showLoading(false);  // Hide loading indicator
-                });
-        }
-
-        function fetchNetworkAttributes(email) {
-            fetch(`https://console.rediim.com/api/customer/attributes-network?email=${encodeURIComponent(email)}`)
-                .then(response => response.json())
-                .then(data => {
-                    console.log("API Response - Network Attributes:", data);
-
-                    const tableBody = document.querySelector("#networkAttributesTable tbody");
-                    tableBody.innerHTML = "";  // Clear previous data
-
-                    if (data.message || Object.keys(data).length === 0) {
-                        tableBody.innerHTML = "<tr><td colspan='2' class='text-center text-gray-500'>No se encontraron datos en la network.</td></tr>";
-                        return;
-                    }
-
-                    // Render the network attributes data
-                    const networkData = data;
-
-                    // Display connected customers
-                    const rowCustomers = document.createElement("tr");
-                    rowCustomers.innerHTML = `
-                        <td class="py-3 px-6">Clientes Conectados</td>
-                        <td class="py-3 px-6">${networkData.connected_customers}</td>
-                    `;
-                    tableBody.appendChild(rowCustomers);
-
-                    // Display connected orders
-                    const rowOrders = document.createElement("tr");
-                    rowOrders.innerHTML = `
-                        <td class="py-3 px-6">Ordenes Conectadas</td>
-                        <td class="py-3 px-6">${networkData.connected_orders}</td>
-                    `;
-                    tableBody.appendChild(rowOrders);
-
-                    // Display distinct cards
-                    const rowCards = document.createElement("tr");
-                    rowCards.innerHTML = `
-                        <td class="py-3 px-6">Tarjetas Distintas</td>
-                        <td class="py-3 px-6">${networkData.distinct_cards}</td>
-                    `;
-                    tableBody.appendChild(rowCards);
-
-                    // Display distinct phones
-                    const rowPhones = document.createElement("tr");
-                    rowPhones.innerHTML = `
-                        <td class="py-3 px-6">Teléfonos Distintos</td>
-                        <td class="py-3 px-6">${networkData.distinct_phones}</td>
-                    `;
-                    tableBody.appendChild(rowPhones);
-
-                    // Display distinct devices
-                    const rowDevices = document.createElement("tr");
-                    rowDevices.innerHTML = `
-                        <td class="py-3 px-6">Dispositivos Distintos</td>
-                        <td class="py-3 px-6">${networkData.distinct_devices}</td>
-                    `;
-                    tableBody.appendChild(rowDevices);
-
-                    // Display distinct promocodes
-                    const rowPromocodes = document.createElement("tr");
-                    rowPromocodes.innerHTML = `
-                        <td class="py-3 px-6">Promocodes Distintos</td>
-                        <td class="py-3 px-6">${networkData.distinct_promocodes}</td>
-                    `;
-                    tableBody.appendChild(rowPromocodes);
-
-                    // Display total promocodes
-                    const rowTotalPromocodes = document.createElement("tr");
-                    rowTotalPromocodes.innerHTML = `
-                        <td class="py-3 px-6">Total Promocodes</td>
-                        <td class="py-3 px-6">${networkData.total_promocodes}</td>
-                    `;
-                    tableBody.appendChild(rowTotalPromocodes);
-                })
-                .catch(error => {
-                    console.error("Error al obtener los atributos de la network:", error);
-                    const tableBody = document.querySelector("#networkAttributesTable tbody");
-                    tableBody.innerHTML = "<tr><td colspan='2' class='text-center text-red-500'>Error al obtener los atributos de la network.</td></tr>";
-                })
-                .finally(() => {
-                    showLoading(false);  // Hide loading indicator
-                });
-        }
-
-        function fetchPromocodeOrderCount(email) {
-            fetch(`https://console.rediim.com/api/promocode/order-count?email=${encodeURIComponent(email)}`)
-                .then(response => response.json())
-                .then(data => {
-                    console.log("API Response - Promocode Order Count:", data);
-
-                    const tableBody = document.querySelector("#promocodeOrderTable tbody");
-                    tableBody.innerHTML = "";  // Clear previous data
-
-                    if (data.message || Object.keys(data).length === 0) {
-                        tableBody.innerHTML = "<tr><td colspan='2' class='text-center text-gray-500'>No se encontraron datos en la network.</td></tr>";
-                        return;
-                    }
-
-                    // Render the promocode order count data
-                    const networkData = data.promocode_stats;
-
-                    // Display each promocode and the corresponding order count
-                    networkData.forEach(promocodeStat => {
-                        const rowPromocode = document.createElement("tr");
-                        rowPromocode.innerHTML = `
-                            <td class="py-3 px-6">Promocode: ${promocodeStat.promocode}</td>
-                            <td class="py-3 px-6">${promocodeStat.total_orders}</td>
-                        `;
-                        tableBody.appendChild(rowPromocode);
-                    });
-                })
-                .catch(error => {
-                    console.error("Error al obtener los atributos de la network:", error);
-                    const tableBody = document.querySelector("#promocodeOrderTable tbody");
-                    tableBody.innerHTML = "<tr><td colspan='2' class='text-center text-red-500'>Error al obtener los atributos de la network.</td></tr>";
-                })
-                .finally(() => {
-                    showLoading(false);  // Hide loading indicator
-                });
-        }
-
-
-  const $ = (id) => document.getElementById(id);
-  const setText = (id, text) => { const el = $(id); if (el) el.textContent = text; };
-  const show = (id) => { const el = $(id); if (el) el.style.display = "grid"; };
-        
-function renderList(elId, arr) {
-    const el = $(elId);
-    if (!el) return;
-    el.innerHTML = (arr && arr.length)
-      ? arr.map(v => `<tr><td class="py-1 border-b border-gray-800 break-all">${v}</td></tr>`).join("")
-      : `<tr><td class="py-2 text-gray-400">No data</td></tr>`;
+</div>
+ 
+<script>
+  function $(id) { return document.getElementById(id); }
+  function setText(id, v) { const el = $(id); if (el) el.textContent = v; }
+  function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+ 
+  function badgeHtml(label, value, color) {
+    return `<span class="result-badge"><span style="color:${color}">${label}:</span><b>${escHtml(String(value))}</b></span>`;
   }
-
+ 
+  function renderTableRows(tbodyId, rows) {
+    const el = $(tbodyId);
+    if (!el) return;
+    el.innerHTML = (rows && rows.length)
+      ? rows.map(v => `<tr><td>${escHtml(v)}</td></tr>`).join('')
+      : `<tr><td style="color:#2e2e2e">No data</td></tr>`;
+  }
+ 
+  // ── Email form ──
+  document.getElementById('emailForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const email = $('email').value.trim();
+    $('loading').style.display = 'block';
+    Promise.all([
+      fetchCustomerAttributes(email),
+      fetchNetworkAttributes(email),
+      fetchPromocodeOrderCount(email)
+    ]).finally(() => { $('loading').style.display = 'none'; });
+  });
+ 
+  function setTableBody(tbodySelector, rows) {
+    const tbody = document.querySelector(tbodySelector);
+    if (!tbody) return;
+    tbody.innerHTML = rows.length
+      ? rows.map(([label, val]) => `<tr><td>${escHtml(label)}</td><td>${escHtml(String(val))}</td></tr>`).join('')
+      : `<tr class="empty-row"><td colspan="2">No data found.</td></tr>`;
+  }
+ 
+  function fetchCustomerAttributes(email) {
+    return fetch(`/api/customer/attributes-summary?email=${encodeURIComponent(email)}`)
+      .then(r => r.json())
+      .then(data => {
+        if (!data || data.message || !Object.keys(data).length) {
+          setTableBody('#customerAttributesTable tbody', []);
+          return;
+        }
+        setTableBody('#customerAttributesTable tbody', [
+          ['Total orders',      data.total_orders ?? '—'],
+          ['Distinct cards',    data.distinct_cards ?? '—'],
+          ['Distinct phones',   data.distinct_phones ?? '—'],
+          ['Distinct devices',  data.distinct_devices ?? '—'],
+        ]);
+      }).catch(() => setTableBody('#customerAttributesTable tbody', []));
+  }
+ 
+  function fetchNetworkAttributes(email) {
+    return fetch(`/api/customer/attributes-network?email=${encodeURIComponent(email)}`)
+      .then(r => r.json())
+      .then(data => {
+        if (!data || data.message || !Object.keys(data).length) {
+          setTableBody('#networkAttributesTable tbody', []);
+          return;
+        }
+        setTableBody('#networkAttributesTable tbody', [
+          ['Connected customers',    data.connected_customers ?? '—'],
+          ['Connected orders',       data.connected_orders ?? '—'],
+          ['Distinct cards',         data.distinct_cards ?? '—'],
+          ['Distinct phones',        data.distinct_phones ?? '—'],
+          ['Distinct devices',       data.distinct_devices ?? '—'],
+          ['Distinct promocodes',    data.distinct_promocodes ?? '—'],
+          ['Total promocodes used',  data.total_promocodes ?? '—'],
+        ]);
+      }).catch(() => setTableBody('#networkAttributesTable tbody', []));
+  }
+ 
+  function fetchPromocodeOrderCount(email) {
+    return fetch(`/api/promocode/order-count?email=${encodeURIComponent(email)}`)
+      .then(r => r.json())
+      .then(data => {
+        const stats = data?.promocode_stats;
+        if (!stats || !stats.length) {
+          setTableBody('#promocodeOrderTable tbody', []);
+          return;
+        }
+        const tbody = document.querySelector('#promocodeOrderTable tbody');
+        tbody.innerHTML = stats.map(s => `<tr><td>${escHtml(s.promocode)}</td><td>${escHtml(String(s.total_orders))}</td></tr>`).join('');
+      }).catch(() => setTableBody('#promocodeOrderTable tbody', []));
+  }
+ 
+  // ── Fingerprint search helpers ──
   async function runSearch(url, params) {
     const qs = new URLSearchParams(params).toString();
     const res = await fetch(`${url}?${qs}`);
@@ -372,99 +296,61 @@ function renderList(elId, arr) {
     if (!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
     return data;
   }
-        
-   
-  document.addEventListener("DOMContentLoaded", () => {
-     // loader
-    const loader = $("loading2");
-    if (loader) loader.classList.remove("hidden");
-      
-    // ---- Search handlers (now DOM is ready) ----
-    $("btnUserId")?.addEventListener("click", async () => {
-      const user_id = $("qUserId")?.value?.trim();
+ 
+  function showSearchTables(titleA, titleB, listA, listB) {
+    $('searchTables').style.display = 'grid';
+    setText('titleA', titleA);
+    setText('titleB', titleB);
+    renderTableRows('tableA', listA);
+    renderTableRows('tableB', listB);
+  }
+ 
+  document.addEventListener('DOMContentLoaded', () => {
+ 
+    $('btnUserId')?.addEventListener('click', async () => {
+      const user_id = $('qUserId')?.value?.trim();
       if (!user_id) return;
-      const box = $("resUserId"); if (box) box.textContent = "Searching...";
+      const box = $('resUserId'); box.textContent = 'Searching…';
       try {
-        const data = await runSearch("/api/fingerprint/search/by-user", { user_id });
-        //if (box) box.innerHTML = `<div class="text-xs text-gray-400 mb-2">device_count: <b>${data.device_count}</b>, promocode_count: <b>${data.promocode_count}</b></div>`;
-        if (box) {
-              box.innerHTML = `
-                <div class="bg-[#1f2937] border border-gray-700 rounded-lg px-4 py-3 mb-3">
-                  <p class="text-xs text-gray-400">
-                    <span class="mr-4">💻 Unique Devices: <b class="text-emerald-400">${data.device_count}</b></span>
-                    <span class="mr-4">🎟️ Total Promocodes: <b class="text-sky-400">${data.promocode_count}</b></span>
-                    <span class="mr-4">🎫 Total Unique Promocodes: <b class="text-sky-400">${data.promocode_count_unique}</b></span>
-                  </p>
-                </div>
-              `;
-            }
-        show("searchTables");
-        setText("titleA", `Devices for user ${user_id}`);
-        setText("titleB", `Promocodes for user ${user_id}`);
-        renderList("tableA", data.devices);
-        renderList("tableB", data.promocodes);
-      } catch (e) {
-        if (box) box.textContent = "Error: " + e.message;
-      }
+        const data = await runSearch('/api/fingerprint/search/by-user', { user_id });
+        box.innerHTML =
+          badgeHtml('Unique devices', data.device_count, '#34d399') +
+          badgeHtml('Total promocodes', data.promocode_count, '#38bdf8') +
+          badgeHtml('Unique promocodes', data.promocode_count_unique, '#38bdf8');
+        showSearchTables(`Devices for user ${user_id}`, `Promocodes for user ${user_id}`, data.devices, data.promocodes);
+      } catch(e) { box.textContent = 'Error: ' + e.message; }
     });
-
-    $("btnDeviceId")?.addEventListener("click", async () => {
-      const device_id = $("qDeviceId")?.value?.trim();
+ 
+    $('btnDeviceId')?.addEventListener('click', async () => {
+      const device_id = $('qDeviceId')?.value?.trim();
       if (!device_id) return;
-      const box = $("resDeviceId"); if (box) box.textContent = "Searching...";
+      const box = $('resDeviceId'); box.textContent = 'Searching…';
       try {
-        const data = await runSearch("/api/fingerprint/search/by-device", { device_id });
-        //if (box) box.innerHTML = `<div class="text-xs text-gray-400 mb-2">user_count: <b>${data.user_count}</b>, promocode_count: <b>${data.promocode_count}</b></div>`;
-        if (box) {
-              box.innerHTML = `
-                <div class="bg-[#1f2937] border border-gray-700 rounded-lg px-4 py-3 mb-3">
-                  <p class="text-xs text-gray-400">
-                    <span class="mr-4">👤 Unique Users: <b class="text-emerald-400">${data.user_count}</b></span>
-                    <span class="mr-4">🎟️ Total Promocodes: <b class="text-sky-400">${data.promocode_count}</b></span>
-                    <span class="mr-4">🎫 Total Unique Promocodes: <b class="text-sky-400">${data.promocode_count_unique}</b></span>
-                  </p>
-                </div>
-              `;
-            }
-        show("searchTables");
-        setText("titleA", `Users on device ${device_id.slice(0,8)}…`);
-        setText("titleB", `Promocodes used by device`);
-        renderList("tableA", data.users);
-        renderList("tableB", data.promocodes);
-      } catch (e) {
-        if (box) box.textContent = "Error: " + e.message;
-      }
+        const data = await runSearch('/api/fingerprint/search/by-device', { device_id });
+        box.innerHTML =
+          badgeHtml('Unique users', data.user_count, '#34d399') +
+          badgeHtml('Total promocodes', data.promocode_count, '#38bdf8') +
+          badgeHtml('Unique promocodes', data.promocode_count_unique, '#38bdf8');
+        showSearchTables(`Users on device ${device_id.slice(0,8)}…`, 'Promocodes used by device', data.users, data.promocodes);
+      } catch(e) { box.textContent = 'Error: ' + e.message; }
     });
-
-    $("btnPromo")?.addEventListener("click", async () => {
-      const promocode = $("qPromo")?.value?.trim();
+ 
+    $('btnPromo')?.addEventListener('click', async () => {
+      const promocode = $('qPromo')?.value?.trim();
       if (!promocode) return;
-      const box = $("resPromo"); if (box) box.textContent = "Searching...";
+      const box = $('resPromo'); box.textContent = 'Searching…';
       try {
-        const data = await runSearch("/api/fingerprint/search/by-promo", { promocode });
-        //if (box) box.innerHTML = `<div class="text-xs text-gray-400 mb-2">unique_user_count: <b>${data.unique_user_count}</b>, unique_device_count: <b>${data.unique_device_count}</b></div>`;
-        if (box) {
-              box.innerHTML = `
-                <div class="bg-[#1f2937] border border-gray-700 rounded-lg px-4 py-3 mb-3">
-                  <p class="text-xs text-gray-400">
-                    <span class="mr-4">👤 Unique Users: <b class="text-emerald-400">${data.unique_user_count}</b></span>
-                    <span>💻 Unique Devices: <b class="text-sky-400">${data.unique_device_count}</b></span>
-                  </p>
-                </div>
-              `;
-            }
-          
-        show("searchTables");
-        setText("titleA", `Users who used ${promocode}`);
-        setText("titleB", `Devices that used ${promocode}`);
-        renderList("tableA", data.users);
-        renderList("tableB", data.devices);
-      } catch (e) {
-        if (box) box.textContent = "Error: " + e.message;
-      }
+        const data = await runSearch('/api/fingerprint/search/by-promo', { promocode });
+        box.innerHTML =
+          badgeHtml('Unique users', data.unique_user_count, '#34d399') +
+          badgeHtml('Unique devices', data.unique_device_count, '#38bdf8');
+        showSearchTables(`Users who used ${promocode}`, `Devices that used ${promocode}`, data.users, data.devices);
+      } catch(e) { box.textContent = 'Error: ' + e.message; }
     });
+ 
   });
-
-    </script>
+</script>
+ 
+</body>
 </html>
 
