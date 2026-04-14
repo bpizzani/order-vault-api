@@ -25,7 +25,7 @@ def admin_ui():
 @login_required
 @require_subscription_in("demo","admin",None)
 def promotion_ui():
-    return render_template("promotion_dashboard.html")
+    return render_template("promotion_dashboard.html",active='dashboard')
     
 @home_bp.route('/rules')
 @login_required
@@ -37,7 +37,7 @@ def rules_ui():
 @login_required
 @require_subscription_in("demo","admin",None)
 def customer_ui():
-    return render_template("island.html")
+    return render_template("island.html",active="customers")
 
 @home_bp.route("/fingerprint", methods=["GET"])
 @login_required
