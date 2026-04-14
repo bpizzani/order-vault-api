@@ -66,7 +66,7 @@ def limit_fingerprint_events_subscription():
                 .first()
             )
             if not subscription:
-                return jsonify({"error": "No active subscription found"}), 403
+                return jsonify({"error": "No active subscription found"}), 433
 
             count = (
                 db.session.query(FingerprintEvents)
